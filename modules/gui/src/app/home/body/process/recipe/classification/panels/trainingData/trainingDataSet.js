@@ -1,20 +1,22 @@
 /* eslint-disable react/jsx-key */
-import {Form} from 'widget/form/form'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import ClassMappingStep from './classMappingStep'
-import ClassStep from './classStep'
-import CsvUploadSection from './csvUploadSection'
-import EETableSection from './eeTableSection'
-import LocationStep from './locationStep'
-import PanelSections from 'widget/panelSections'
 import PropTypes from 'prop-types'
 import React from 'react'
-import RecipeSection from './recipeSection'
-import SampleClassificationSection from './sampleClassificationSection'
-import SectionSelection from './sectionSelection'
+
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {PanelSections} from '~/widget/panelSections'
+
+import {ClassMappingStep} from './classMappingStep'
+import {ClassStep} from './classStep'
+import {CsvUploadSection} from './csvUploadSection'
+import {EETableSection} from './eeTableSection'
+import {LocationStep} from './locationStep'
+import {RecipeSection} from './recipeSection'
+import {SampleClassificationSection} from './sampleClassificationSection'
+import {SectionSelection} from './sectionSelection'
 import styles from './trainingDataSet.module.css'
 
 const fields = {
@@ -94,7 +96,7 @@ const mapRecipeToProps = recipe => ({
     recipeId: recipe.id
 })
 
-class TrainingDataSet extends React.Component {
+class _TrainingDataSet extends React.Component {
     render() {
         const {dataCollectionManager, inputs} = this.props
 
@@ -170,7 +172,7 @@ class TrainingDataSet extends React.Component {
     componentDidMount() {
         // const {inputs: {bandSetSpecs}} = this.props
         // if (!bandSetSpecs.value)
-        //     bandSetSpecs.set([{id: guid(), type: 'IMAGE_BANDS', class: 'IMAGE_BANDS'}])
+        //     bandSetSpecs.set([{id: uuid(), type: 'IMAGE_BANDS', class: 'IMAGE_BANDS'}])
     }
 
     componentDidUpdate() {
@@ -267,8 +269,8 @@ const panelOptions = {
     policy
 }
 
-export default compose(
-    TrainingDataSet,
+export const TrainingDataSet = compose(
+    _TrainingDataSet,
     recipeFormPanel(panelOptions)
 )
 

@@ -1,15 +1,19 @@
-import {Form, withForm} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {Panel} from 'widget/panel/panel'
-import {Subject, takeUntil} from 'rxjs'
-import {compose} from 'compose'
-import {connect, select} from 'store'
-import {msg} from 'translate'
-import {v4 as uuid} from 'uuid'
-import {withActivatable} from 'widget/activation/activatable'
-import {withRecipe} from '../recipeContext'
 import React from 'react'
-import api from 'api'
+import {Subject, takeUntil} from 'rxjs'
+
+import api from '~/apiRegistry'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {select} from '~/store'
+import {msg} from '~/translate'
+import {uuid} from '~/uuid'
+import {withActivatable} from '~/widget/activation/activatable'
+import {Form} from '~/widget/form'
+import {withForm} from '~/widget/form/form'
+import {Layout} from '~/widget/layout'
+import {Panel} from '~/widget/panel/panel'
+
+import {withRecipe} from '../recipeContext'
 import styles from './selectPlanet.module.css'
 
 const mapStateToProps = () => {
@@ -66,7 +70,6 @@ class _SelectPlanet extends React.Component {
                     label={msg('map.layout.addImageLayerSource.types.Planet.form.description.label')}
                     input={description}
                     autoFocus
-                    errorMessage
                 />
                 <Form.Input
                     label={msg('map.layout.addImageLayerSource.types.Planet.form.apiKey.label')}
@@ -74,7 +77,6 @@ class _SelectPlanet extends React.Component {
                     spellCheck={false}
                     onChangeDebounced={apiKey => this.validateApiKey(apiKey)}
                     busyMessage={this.props.stream('VALIDATE_API_KEY').active && msg('widget.loading')}
-                    errorMessage
                 />
             </Layout>
         )

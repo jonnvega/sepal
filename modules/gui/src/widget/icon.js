@@ -1,12 +1,14 @@
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
+import {library} from '@fortawesome/fontawesome-svg-core'
 import {fab} from '@fortawesome/free-brands-svg-icons'
 import {far} from '@fortawesome/free-regular-svg-icons'
 import {fas} from '@fortawesome/free-solid-svg-icons'
-import {library} from '@fortawesome/fontawesome-svg-core'
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import Tooltip from 'widget/tooltip'
-import _ from 'lodash'
+
+import {Tooltip} from '~/widget/tooltip'
+
 import styles from './icon.module.css'
 
 library.add(fab)
@@ -28,7 +30,7 @@ const fontAwesomeCollection = type => {
 
 const OMITTED_ATTRIBUTES = ['icon', 'name', 'type', 'className', 'variant']
 
-export default class Icon extends React.Component {
+export class Icon extends React.Component {
     render() {
         const {tooltip, tooltipPlacement, tooltipClickTrigger, tooltipDelay, tooltipDisabled} = this.props
         return (
@@ -61,8 +63,9 @@ export default class Icon extends React.Component {
 
     renderIcon() {
         const {name, type, size, attributes} = this.props
-        const filteredAttributes = _.omit({spin: this.isSpinner(name), ...attributes}, OMITTED_ATTRIBUTES)
-        const icon = [fontAwesomeCollection(type || 'solid'), name]
+        const spin = this.isSpinner(name)
+        const filteredAttributes = _.omit({spin, ...attributes}, OMITTED_ATTRIBUTES)
+        const icon = [fontAwesomeCollection(type && !spin ? type : 'solid'), name]
         return (
             <span className={this.classNames()}>
                 <FontAwesomeIcon

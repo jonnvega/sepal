@@ -1,16 +1,18 @@
-import {Form} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {PreviewMap} from './previewMap'
-import {RecipeActions} from '../../mosaicRecipe'
-import {Subject, map, takeUntil} from 'rxjs'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import {withRecipe} from 'app/home/body/process/recipeContext'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
-import api from 'api'
+import {map, Subject, takeUntil} from 'rxjs'
+
+import api from '~/apiRegistry'
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {Layout} from '~/widget/layout'
+
+import {RecipeActions} from '../../mosaicRecipe'
+import {PreviewMap} from './previewMap'
 
 const mapRecipeToProps = recipe => {
     return {
@@ -44,14 +46,13 @@ class _EETableSection extends React.Component {
         const {inputs: {eeTable}} = this.props
         return (
             <Layout>
-                <Form.Input
+                <Form.AssetCombo
                     label={msg('process.mosaic.panel.areaOfInterest.form.eeTable.eeTable.label')}
                     autoFocus
                     input={eeTable}
                     placeholder={msg('process.mosaic.panel.areaOfInterest.form.eeTable.eeTable.placeholder')}
-                    spellCheck={false}
-                    onChangeDebounced={tableId => tableId && this.loadColumns(tableId)}
-                    errorMessage
+                    allowedTypes={['Table']}
+                    onChange={tableId => tableId && this.loadColumns(tableId)}
                     busyMessage={this.props.stream('LOAD_EE_TABLE_COLUMNS').active && msg('widget.loading')}
                 />
                 {this.renderFilterOptions()}
@@ -122,7 +123,6 @@ class _EETableSection extends React.Component {
                         this.eeTableColumnChanged$.next()
                         this.loadDistinctColumnValues(column.value)
                     }}
-                    errorMessage
                 />
                 <Form.Combo
                     label={msg('process.mosaic.panel.areaOfInterest.form.eeTable.row.label')}
@@ -130,7 +130,6 @@ class _EETableSection extends React.Component {
                     disabled={eeTableRowDisabled}
                     placeholder={msg(`process.mosaic.panel.areaOfInterest.form.eeTable.row.placeholder.${rowState}`)}
                     options={(rows || []).map(value => ({value, label: value}))}
-                    errorMessage
                 />
                 <Form.Slider
                     label={msg('process.mosaic.panel.areaOfInterest.form.buffer.label')}

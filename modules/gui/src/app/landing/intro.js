@@ -1,19 +1,12 @@
-import {Button} from 'widget/button'
-import {ButtonGroup} from 'widget/buttonGroup'
-import {Scrollable, ScrollableContainer} from 'widget/scrollable'
-import {msg} from 'translate'
-import Keybinding from 'widget/keybinding'
-import React from 'react'
-import Tagline from './tagline'
-import Title from './title'
+import {msg} from '~/translate'
+import {Button} from '~/widget/button'
+import {ButtonGroup} from '~/widget/buttonGroup'
+import {Keybinding} from '~/widget/keybinding'
+import {Scrollable} from '~/widget/scrollable'
+
+import styles from './intro.module.css'
 import image_01 from './intro/bhutan.jpg'
-import image_02 from './intro/senegal.jpg'
 import image_03 from './intro/namibia.jpg'
-import image_04 from './intro/terminal.jpg'
-import image_gee from './intro/tools/gee.png'
-import image_jupyter from './intro/tools/jupyter.png'
-import image_rstudio from './intro/tools/rstudio.png'
-import image_shiny from './intro/tools/shiny.jpg'
 import partner_ec from './intro/partners/ec.png'
 import partner_esa from './intro/partners/esa.png'
 import partner_eth from './intro/partners/eth.png'
@@ -31,16 +24,21 @@ import partner_sc from './intro/partners/sc.png'
 import partner_servir from './intro/partners/servir.png'
 import partner_sig from './intro/partners/sig.png'
 import partner_wageningen from './intro/partners/wageningen.png'
-import styles from './intro.module.css'
+import image_02 from './intro/senegal.jpg'
+import image_04 from './intro/terminal.jpg'
+import image_gee from './intro/tools/gee.png'
+import image_jupyter from './intro/tools/jupyter.png'
+import image_rstudio from './intro/tools/rstudio.png'
+import image_shiny from './intro/tools/shiny.jpg'
+import {Tagline} from './tagline'
+import {Title} from './title'
 
-const Intro = ({onLaunch}) =>
-    <ScrollableContainer>
-        <Scrollable className={styles.intro}>
-            <Main onLaunch={onLaunch}/>
-            <Info/>
-            <Footer/>
-        </Scrollable>
-    </ScrollableContainer>
+export const Intro = ({onLaunch}) =>
+    <Scrollable className={styles.intro} direction='y'>
+        <Main onLaunch={onLaunch}/>
+        <Info/>
+        <Footer/>
+    </Scrollable>
 
 const Main = ({onLaunch}) =>
     <Keybinding keymap={{'Enter': onLaunch, 'Escape': onLaunch}}>
@@ -226,5 +224,3 @@ const scrollToInfo = () =>
     document.getElementById('info').scrollIntoView({
         behavior: 'smooth'
     })
-
-export default Intro

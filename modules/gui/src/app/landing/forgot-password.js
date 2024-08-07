@@ -1,16 +1,20 @@
-import {Button} from 'widget/button'
-import {ButtonGroup} from 'widget/buttonGroup'
-import {Form, withForm} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {Widget} from 'widget/widget'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {requestPasswordReset$} from 'user'
-import {switchMap} from 'rxjs'
-import {withRecaptcha} from 'widget/recaptcha'
-import Notifications from 'widget/notifications'
 import PropTypes from 'prop-types'
 import React from 'react'
+import {switchMap} from 'rxjs'
+
+import {compose} from '~/compose'
+import {msg} from '~/translate'
+import {requestPasswordReset$} from '~/user'
+import {Button} from '~/widget/button'
+import {ButtonGroup} from '~/widget/buttonGroup'
+import {Form} from '~/widget/form'
+import {FormContainer} from '~/widget/form/container'
+import {withForm} from '~/widget/form/form'
+import {Layout} from '~/widget/layout'
+import {Notifications} from '~/widget/notifications'
+import {withRecaptcha} from '~/widget/recaptcha'
+import {Widget} from '~/widget/widget'
+
 import styles from './forgot-password.module.css'
 
 const fields = {
@@ -27,11 +31,11 @@ class _ForgotPassword extends React.Component {
 
     render() {
         return (
-            <Form
+            <FormContainer
                 className={styles.form}
                 onSubmit={this.submit}>
                 {this.renderForm()}
-            </Form>
+            </FormContainer>
         )
     }
 
@@ -53,7 +57,6 @@ class _ForgotPassword extends React.Component {
                         autoComplete='off'
                         tabIndex={1}
                         validate='onBlur'
-                        errorMessage
                     />
                     <ButtonGroup layout='horizontal-nowrap' alignment='spaced'>
                         <Button

@@ -1,9 +1,11 @@
-import {compose} from 'compose'
-import {withContext} from 'context'
-import {withSubscriptions} from 'subscription'
 import PropTypes from 'prop-types'
 import React from 'react'
 import ReactDOM from 'react-dom'
+
+import {compose} from '~/compose'
+import {withContext} from '~/context'
+import {withSubscriptions} from '~/subscription'
+
 import styles from './portal.module.css'
 
 const DEFAULT_PORTAL_CONTAINER_ID = 'defaultPortalContainer'
@@ -35,7 +37,7 @@ PortalContainer.propTypes = {
     id: PropTypes.string,
 }
 
-class Portal extends React.Component {
+class _Portal extends React.Component {
     state = {
         portalContainer: null
     }
@@ -77,15 +79,15 @@ class Portal extends React.Component {
     }
 }
 
+export const Portal = compose(
+    _Portal,
+    withPortal(),
+    withSubscriptions()
+)
+
 Portal.propTypes = {
     type: PropTypes.oneOf(['global', 'context', 'container']).isRequired,
     children: PropTypes.any,
     container: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
     content: PropTypes.any
 }
-
-export default compose(
-    Portal,
-    withPortal(),
-    withSubscriptions()
-)

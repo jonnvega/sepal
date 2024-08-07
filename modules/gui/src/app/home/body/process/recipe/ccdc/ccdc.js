@@ -1,15 +1,17 @@
-import {Aoi} from 'app/home/body/process/recipe/aoi'
-import {Map} from 'app/home/map/map'
-import {RecipeActions, dateRange, defaultModel} from './ccdcRecipe'
-import {compose} from 'compose'
-import {initializeLayers} from 'app/home/body/process/recipe/recipeImageLayerSource'
-import {msg} from 'translate'
-import {recipe} from 'app/home/body/process/recipeContext'
-import {recipeAccess} from 'app/home/body/process/recipeAccess'
-import {selectFrom} from 'stateUtils'
-import CCDCToolbar from './panels/ccdcToolbar'
-import Notifications from 'widget/notifications'
 import React from 'react'
+
+import {Aoi} from '~/app/home/body/process/recipe/aoi'
+import {initializeLayers} from '~/app/home/body/process/recipe/recipeImageLayerSource'
+import {recipeAccess} from '~/app/home/body/process/recipeAccess'
+import {recipe} from '~/app/home/body/process/recipeContext'
+import {Map} from '~/app/home/map/map'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {Notifications} from '~/widget/notifications'
+
+import {dateRange, defaultModel, RecipeActions} from './ccdcRecipe'
+import {CcdcToolbar} from './panels/ccdcToolbar'
 
 const mapRecipeToProps = recipe => ({
     initialized: selectFrom(recipe, 'ui.initialized'),
@@ -31,7 +33,7 @@ class _CCDC extends React.Component {
         const {aoi} = this.props
         return (
             <Map>
-                <CCDCToolbar/>
+                <CcdcToolbar/>
                 <Aoi value={aoi}/>
             </Map>
         )

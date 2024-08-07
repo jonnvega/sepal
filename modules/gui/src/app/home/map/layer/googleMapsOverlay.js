@@ -1,52 +1,46 @@
-import {BalancingTileProvider} from '../tileProvider/balancingTileProvider'
+import {uuid} from '~/uuid'
+
 import {MAX_ZOOM} from '../maps'
-import guid from 'guid'
 
 // implements google.maps.MapType
 export class GoogleMapsOverlay {
-    constructor(tileProvider, {
+    constructor({
+        tileProvider,
         google,
         name,
         minZoom = 0,
-        maxZoom = MAX_ZOOM,
-    } = {}, busy$) {
-        this.tileProvider = new BalancingTileProvider({tileProvider, retries: 3, busy$})
+        maxZoom = MAX_ZOOM
+    }) {
+        this.tileProvider = tileProvider
         this.name = name
         this.minZoom = minZoom
         this.maxZoom = maxZoom
-        this.tileSize = new google.maps.Size(
+        this.tileSize = new google.maps.core.Size(
             tileProvider.tileSize || 256,
             tileProvider.tileSize || 256
         )
-        this.tileElementById = {}
-        this.opacity = 1
+        this.tileSubscriptionById = {}
     }
 
     getTile({x, y}, zoom, doc) {
         const request = this._toTileRequest({x, y, zoom, minZoom: this.minZoom, doc})
         const element = request.element
-        this.tileElementById[element.id] = element
         if (request.outOfBounds) {
             return element
         }
 
-        const tile$ = this.tileProvider.loadTile$(request)
-        tile$.subscribe(blob => this.tileProvider.renderTile({element, blob}))
+        const subscription = this.tileProvider.loadTile$(request).subscribe({
+            next: blob => this.tileProvider.renderTile({element, blob}),
+            error: error => this.tileProvider.renderErrorTile({element, error})
+        })
+        this.tileSubscriptionById[element.id] = subscription
         return element
     }
 
-    releaseTile(tileElement) {
-        delete this.tileElementById[tileElement.id]
-        this.tileProvider.releaseTile(tileElement)
-    }
-
-    setOpacity(opacity) {
-        if (this.opacity !== opacity) {
-            Object.values(this.tileElementById)
-                .forEach(tileElement => tileElement.style.opacity = opacity)
-            this.tileProvider.hide(!opacity)
-            this.opacity = opacity
-        }
+    releaseTile(element) {
+        this.tileSubscriptionById[element.id].unsubscribe()
+        delete this.tileSubscriptionById[element.id]
+        this.tileProvider.releaseTile(element)
     }
 
     close() {
@@ -59,9 +53,8 @@ export class GoogleMapsOverlay {
         if (x < 0) {
             x += maxCoord
         }
-        const id = [this.tileProvider.id, zoom, x, y, guid()].join('/')
+        const id = [this.tileProvider.id, zoom, x, y, uuid()].join('/')
         const element = this.tileProvider.createElement(id, doc)
-        element.style.opacity = this.opacity
         const outOfBounds = zoom < minZoom || y < 0 || y >= maxCoord
         return {id, x, y, zoom, element, outOfBounds}
     }

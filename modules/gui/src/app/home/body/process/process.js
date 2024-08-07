@@ -1,30 +1,36 @@
-import {Recipe} from 'app/home/body/process/recipeContext'
-import {RecipeHome} from './recipeHome'
-import {Tabs, getTabsInfo} from 'widget/tabs/tabs'
-import {compose} from 'compose'
-import {getRecipeType} from './recipeTypes'
-import {loadProjects$, loadRecipes$, recipePath, saveRecipe} from './recipe'
-import {msg} from 'translate'
-import {select} from 'store'
-import {withActivators} from 'widget/activation/activator'
-import {withLeaveAlert} from 'widget/leaveAlert'
-import CloseRecipe from './closeRecipe'
-import Notifications from 'widget/notifications'
-import ProcessMenu from './processMenu'
-import React from 'react'
-import Revisions from 'app/home/body/process/revisions'
-import SaveRecipe from './saveRecipe'
 import _ from 'lodash'
+import React from 'react'
 
-export const getProcessTabsInfo = () => getTabsInfo('process')
+import {Recipe} from '~/app/home/body/process/recipeContext'
+import {Revisions} from '~/app/home/body/process/revisions'
+import {compose} from '~/compose'
+import {select} from '~/store'
+import {msg} from '~/translate'
+import {withActivators} from '~/widget/activation/activator'
+import {withLeaveAlert} from '~/widget/leaveAlert'
+import {Notifications} from '~/widget/notifications'
+import {Tabs} from '~/widget/tabs/tabs'
 
-class Process extends React.Component {
+import {CloseRecipe} from './closeRecipe'
+import {registerImageLayerSources} from './imageLayerSources'
+import {ProcessMenu} from './processMenu'
+import {loadProjects$, loadRecipes$, recipePath, saveRecipe} from './recipe'
+import {RecipeHome} from './recipeHome'
+import {registerRecipeImageLayers} from './recipeImageLayers'
+import {getRecipeType} from './recipeTypeRegistry'
+import {registerRecipeTypes} from './recipeTypes'
+import {SaveRecipe} from './saveRecipe'
+
+class _Process extends React.Component {
     constructor(props) {
         super(props)
         this.isLandingTab = this.isLandingTab.bind(this)
         this.renderMenu = this.renderMenu.bind(this)
         this.renderTab = this.renderTab.bind(this)
         this.onCloseTab = this.onCloseTab.bind(this)
+        registerRecipeTypes()
+        registerRecipeImageLayers()
+        registerImageLayerSources()
     }
 
     render() {
@@ -127,8 +133,8 @@ const mapStateToLeaveAlert = () => {
     return unsavedRecipeCount > 0
 }
 
-export default compose(
-    Process,
+export const Process = compose(
+    _Process,
     withActivators('closeRecipeDialog'),
     withLeaveAlert(mapStateToLeaveAlert)
 )

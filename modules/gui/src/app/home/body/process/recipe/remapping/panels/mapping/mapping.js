@@ -1,20 +1,22 @@
-import {CrudItem} from 'widget/crudItem'
-import {Form} from 'widget/form/form'
-import {ImageConstraints} from 'widget/imageConstraints/imageConstraints'
-import {Layout} from 'widget/layout'
-import {LegendItem} from 'widget/legend/legendItem'
-import {ListItem} from 'widget/listItem'
-import {NoData} from 'widget/noData'
-import {Panel} from 'widget/panel/panel'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import {withActivators} from 'widget/activation/activator'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
+
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {withActivators} from '~/widget/activation/activator'
+import {CrudItem} from '~/widget/crudItem'
+import {Form} from '~/widget/form'
+import {ImageConstraints} from '~/widget/imageConstraints/imageConstraints'
+import {Layout} from '~/widget/layout'
+import {LegendItem} from '~/widget/legend/legendItem'
+import {ListItem} from '~/widget/listItem'
+import {NoData} from '~/widget/noData'
+import {Panel} from '~/widget/panel/panel'
+
 import styles from './mapping.module.css'
 
 const mapRecipeToProps = recipe => ({
@@ -110,6 +112,7 @@ class _Mapping extends React.Component {
                     images={images}
                     booleanOperator={booleanOperator}
                     constraints={constraints}
+                    applyOn={'bands'}
                     onChange={({constraints, booleanOperator}) => this.updateConstraints(id, constraints, booleanOperator)}
                 />
                 {constraints.length

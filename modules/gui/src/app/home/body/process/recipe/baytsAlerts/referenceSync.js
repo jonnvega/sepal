@@ -1,16 +1,18 @@
-import {Subject, takeUntil} from 'rxjs'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {getAllVisualizations} from 'app/home/body/process/recipe/visualizations'
-import {msg} from 'translate'
-import {recipeAccess} from '../../recipeAccess'
-import {selectFrom} from 'stateUtils'
-import {toAssetReference} from './panels/reference/assetSection'
-import {withRecipe} from '../../recipeContext'
-import Notifications from 'widget/notifications'
-import React from 'react'
 import _ from 'lodash'
-import api from 'api'
+import React from 'react'
+import {Subject, takeUntil} from 'rxjs'
+
+import api from '~/apiRegistry'
+import {getAllVisualizations} from '~/app/home/body/process/recipe/visualizations'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {Notifications} from '~/widget/notifications'
+
+import {recipeAccess} from '../../recipeAccess'
+import {withRecipe} from '../../recipeContext'
+import {toAssetReference} from './panels/reference/assetSection'
 
 const mapRecipeToProps = (recipe, ownProps) => ({
     ...ownProps,
@@ -83,7 +85,7 @@ class _ReferenceSync extends React.Component {
             return
         }
         stream('LOAD',
-            api.gee.imageMetadata$({asset: reference.id}).pipe(
+            api.gee.assetMetadata$({asset: reference.id}).pipe(
                 takeUntil(this.cancel$)
             ),
             metadata => this.updateAssetReference(metadata, reference),
@@ -96,7 +98,7 @@ class _ReferenceSync extends React.Component {
         const assetDateFormat = metadata.properties.dateFormat
         const dateFormat = assetDateFormat === undefined ? reference.dateFormat : assetDateFormat
         const referenceDetails = {
-            ...toAssetReference(metadata.bands, metadata.properties),
+            ...toAssetReference(metadata.bandNames, metadata.properties),
             dateFormat
         }
         const builder = recipeActionBuilder('UPDATE_REFERENCE', {referenceDetails})

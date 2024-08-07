@@ -1,9 +1,10 @@
-import {RecipeInput} from 'widget/recipeInput'
-import {getRecipeType} from 'app/home/body/process/recipeTypes'
 import PropTypes from 'prop-types'
 import React from 'react'
 
-export default class RecipeSection extends React.Component {
+import {getRecipeType} from '~/app/home/body/process/recipeTypeRegistry'
+import {RecipeInput} from '~/widget/recipeInput'
+
+export class RecipeSection extends React.Component {
     render() {
         const {input, onLoading} = this.props
         return (

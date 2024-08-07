@@ -1,13 +1,15 @@
-import {Panel} from 'widget/panel/panel'
-import {closeRecipe} from './recipe'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {withActivatable} from 'widget/activation/activatable'
-import {withActivators} from 'widget/activation/activator'
 import React from 'react'
-import styles from './closeRecipe.module.css'
 
-class CloseRecipe extends React.Component {
+import {compose} from '~/compose'
+import {msg} from '~/translate'
+import {withActivatable} from '~/widget/activation/activatable'
+import {withActivators} from '~/widget/activation/activator'
+import {Panel} from '~/widget/panel/panel'
+
+import styles from './closeRecipe.module.css'
+import {closeRecipe} from './recipe'
+
+class _CloseRecipe extends React.Component {
     render() {
         const {activator: {activatables: {saveRecipeDialog}}, activatable} = this.props
         const recipe = activatable.recipe
@@ -54,14 +56,14 @@ class CloseRecipe extends React.Component {
     }
 }
 
-CloseRecipe.propTypes = {}
-
 const policy = () => ({
     _: 'allow'
 })
 
-export default compose(
-    CloseRecipe,
+export const CloseRecipe = compose(
+    _CloseRecipe,
     withActivators('saveRecipeDialog'),
     withActivatable({id: 'closeRecipeDialog', policy})
 )
+
+CloseRecipe.propTypes = {}

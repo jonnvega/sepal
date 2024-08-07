@@ -1,18 +1,19 @@
-import {Legend} from '../legend/legend'
-import {Mapping} from './mapping/mapping'
-import {Retrieve} from './retrieve/retrieve'
-import {RetrieveButton} from '../../retrieveButton'
-import {Toolbar} from 'widget/toolbar/toolbar'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import {setInitialized} from 'app/home/body/process/recipe'
-import {withRecipe} from 'app/home/body/process/recipeContext'
-import InputImagery from './inputImagery/inputImagery'
-import PanelWizard from 'widget/panelWizard'
-import PropTypes from 'prop-types'
 import React from 'react'
+
+import {setInitialized} from '~/app/home/body/process/recipe'
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {PanelWizard} from '~/widget/panelWizard'
+import {Toolbar} from '~/widget/toolbar/toolbar'
+
+import {RetrieveButton} from '../../retrieveButton'
+import {Legend} from '../legend/legend'
+import {InputImagery} from './inputImagery/inputImagery'
+import {Mapping} from './mapping/mapping'
 import styles from './remappingToolbar.module.css'
+import {Retrieve} from './retrieve/retrieve'
 
 const mapRecipeToProps = recipe => ({
     recipeId: recipe.id,
@@ -20,7 +21,7 @@ const mapRecipeToProps = recipe => ({
     initialized: selectFrom(recipe, 'ui.initialized'),
 })
 
-class RemappingToolbar extends React.Component {
+class _RemappingToolbar extends React.Component {
     render() {
         const {recipeId, initialized} = this.props
         return (
@@ -67,11 +68,9 @@ class RemappingToolbar extends React.Component {
     }
 }
 
-RemappingToolbar.propTypes = {
-    recipeId: PropTypes.string.isRequired
-}
-
-export default compose(
-    RemappingToolbar,
+export const RemappingToolbar = compose(
+    _RemappingToolbar,
     withRecipe(mapRecipeToProps)
 )
+
+RemappingToolbar.propTypes = {}

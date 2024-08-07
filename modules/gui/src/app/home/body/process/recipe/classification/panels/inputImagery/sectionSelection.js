@@ -1,7 +1,8 @@
-import {Form} from 'widget/form/form'
-import {msg} from 'translate'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
 
 export class SectionSelection extends React.Component {
     render() {

@@ -1,10 +1,11 @@
-import {Shape} from './shape'
-import Icon from './icon'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import {Icon} from './icon'
+import {Shape} from './shape'
 import styles from './tag.module.css'
 
-export default class Tag extends React.Component {
+export class Tag extends React.Component {
     render() {
         const {size} = this.props
         return (

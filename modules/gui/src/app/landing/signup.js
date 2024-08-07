@@ -1,16 +1,20 @@
-import {Button} from 'widget/button'
-import {ButtonGroup} from 'widget/buttonGroup'
-import {EMPTY, catchError, forkJoin, switchMap, tap} from 'rxjs'
-import {Form, withForm} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {publishEvent} from 'eventPublisher'
-import {signUp$, validateEmail$, validateUsername$} from 'user'
-import {withRecaptcha} from 'widget/recaptcha'
-import Notifications from 'widget/notifications'
 import PropTypes from 'prop-types'
 import React from 'react'
+import {catchError, EMPTY, forkJoin, switchMap, tap} from 'rxjs'
+
+import {compose} from '~/compose'
+import {publishEvent} from '~/eventPublisher'
+import {msg} from '~/translate'
+import {signUp$, validateEmail$, validateUsername$} from '~/user'
+import {Button} from '~/widget/button'
+import {ButtonGroup} from '~/widget/buttonGroup'
+import {Form} from '~/widget/form'
+import {FormContainer} from '~/widget/form/container'
+import {withForm} from '~/widget/form/form'
+import {Layout} from '~/widget/layout'
+import {Notifications} from '~/widget/notifications'
+import {withRecaptcha} from '~/widget/recaptcha'
+
 import styles from './login.module.css'
 
 const fields = {
@@ -42,11 +46,11 @@ class _SignUp extends React.Component {
     
     render() {
         return (
-            <Form
+            <FormContainer
                 className={styles.form}
                 onSubmit={this.submit}>
                 {this.renderForm()}
-            </Form>
+            </FormContainer>
         )
     }
 
@@ -62,7 +66,6 @@ class _SignUp extends React.Component {
                         autoFocus
                         tabIndex={1}
                         busyMessage={this.props.stream('VALIDATE_USERNAME').active && msg('widget.loading')}
-                        errorMessage
                         onBlur={this.checkUsername}
                     />
                     <Form.Input
@@ -70,7 +73,6 @@ class _SignUp extends React.Component {
                         input={name}
                         placeholder={msg('landing.signup.name.placeholder')}
                         tabIndex={2}
-                        errorMessage
                     />
                     <Form.Input
                         label={msg('landing.signup.email.label')}
@@ -78,7 +80,6 @@ class _SignUp extends React.Component {
                         placeholder={msg('landing.signup.email.placeholder')}
                         tabIndex={3}
                         busyMessage={this.props.stream('VALIDATE_EMAIL').active && msg('widget.loading')}
-                        errorMessage
                         onBlur={this.checkEmail}
                     />
                     <Form.Input
@@ -86,7 +87,6 @@ class _SignUp extends React.Component {
                         input={organization}
                         placeholder={msg('landing.signup.organization.placeholder')}
                         tabIndex={4}
-                        errorMessage
                     />
                 </Layout>
                 <ButtonGroup layout='horizontal-nowrap' alignment='spaced'>

@@ -1,9 +1,10 @@
-import {RecipeInput} from 'widget/recipeInput'
-import {Subject} from 'rxjs'
 import PropTypes from 'prop-types'
 import React from 'react'
+import {Subject} from 'rxjs'
 
-export default class RecipeSection extends React.Component {
+import {RecipeInput} from '~/widget/recipeInput'
+
+export class RecipeSection extends React.Component {
     constructor(props) {
         super(props)
         this.recipeChanged$ = new Subject()
@@ -14,9 +15,8 @@ export default class RecipeSection extends React.Component {
         return (
             <RecipeInput
                 input={recipe}
-                filter={type => type.id === 'CCDC'}
+                filter={type => ['CCDC', 'ASSET_MOSAIC'].includes(type.id)}
                 autoFocus
-                errorMessage
             />
         )
     }

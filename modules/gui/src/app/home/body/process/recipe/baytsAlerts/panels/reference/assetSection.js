@@ -1,15 +1,15 @@
-import {AssetSelect} from 'widget/assetSelect'
-import {Subject} from 'rxjs'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {msg} from 'translate'
-import {toVisualizations} from 'app/home/map/imageLayerSource/assetVisualizationParser'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
-import guid from 'guid'
+import {Subject} from 'rxjs'
 
-class AssetSection extends React.Component {
+import {toVisualizations} from '~/app/home/map/imageLayerSource/assetVisualizationParser'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {msg} from '~/translate'
+import {uuid} from '~/uuid'
+import {Form} from '~/widget/form'
+
+class _AssetSection extends React.Component {
     constructor(props) {
         super(props)
         this.assetChanged$ = new Subject()
@@ -19,12 +19,12 @@ class AssetSection extends React.Component {
     render() {
         const {inputs: {asset}} = this.props
         return (
-            <AssetSelect
+            <Form.AssetCombo
                 input={asset}
                 label={msg('process.baytsAlerts.panel.reference.form.asset.label')}
                 placeholder={msg('process.baytsAlerts.panel.reference.form.asset.placeholder')}
                 autoFocus
-                expectedType={['Image', 'ImageCollection']}
+                allowedTypes={['Image', 'ImageCollection']}
                 onLoaded={this.onLoaded}
             />
         )
@@ -51,15 +51,15 @@ export const toAssetReference = (bands, properties) => {
         startDate: properties.startDate,
         endDate: properties.endDate,
         visualizations: toVisualizations(properties, bands)
-            .map(visualization => ({...visualization, id: guid()}))
+            .map(visualization => ({...visualization, id: uuid()}))
     }
 }
+
+export const AssetSection = compose(
+    _AssetSection,
+    connect()
+)
 
 AssetSection.propTypes = {
     inputs: PropTypes.object.isRequired
 }
-
-export default compose(
-    AssetSection,
-    connect()
-)

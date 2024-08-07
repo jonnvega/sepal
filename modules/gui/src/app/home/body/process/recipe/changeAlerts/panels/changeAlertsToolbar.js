@@ -1,24 +1,26 @@
-import {RecipeActions} from '../changeAlertsRecipe'
-import {Retrieve} from './retrieve/retrieve'
-import {RetrieveButton} from '../../retrieveButton'
-import {Toolbar} from 'widget/toolbar/toolbar'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import {setInitialized} from 'app/home/body/process/recipe'
-import {withRecipe} from 'app/home/body/process/recipeContext'
-import ChartPixel from './chartPixel'
-import ChartPixelButton from '../../ccdc/panels/chartPixelButton'
-import Date from './date/date'
-import OpticalPreprocess from './preProcessingOptions/preProcessingOptions'
-import Options from './options/options'
-import PanelWizard from 'widget/panelWizard'
-import RadarPreprocess from 'app/home/body/process/recipe/mosaic/panels/radarMosaicOptions/options'
-import React from 'react'
-import Reference from './reference/reference'
-import Sources from './sources/sources'
 import _ from 'lodash'
+import React from 'react'
+
+import {setInitialized} from '~/app/home/body/process/recipe'
+import {Options as RadarPreprocess} from '~/app/home/body/process/recipe/mosaic/panels/radarMosaicOptions/options'
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {PanelWizard} from '~/widget/panelWizard'
+import {Toolbar} from '~/widget/toolbar/toolbar'
+
+import {ChartPixelButton} from '../../ccdc/panels/chartPixelButton'
+import {RetrieveButton} from '../../retrieveButton'
+import {RecipeActions} from '../changeAlertsRecipe'
 import styles from './changeAlertsToolbar.module.css'
+import {ChartPixel} from './chartPixel'
+import {Date} from './date/date'
+import {Options} from './options/options'
+import {PreProcessingOptions as OpticalPreprocess} from './preProcessingOptions/preProcessingOptions'
+import {Reference} from './reference/reference'
+import {Retrieve} from './retrieve/retrieve'
+import {Sources} from './sources/sources'
 
 const mapRecipeToProps = recipe => ({
     initialized: selectFrom(recipe, 'ui.initialized'),
@@ -26,7 +28,7 @@ const mapRecipeToProps = recipe => ({
     sources: selectFrom(recipe, 'model.sources'),
 })
 
-class ChangeAlertsToolbar extends React.Component {
+class _ChangeAlertsToolbar extends React.Component {
     constructor(props) {
         super(props)
         this.recipeActions = RecipeActions(props.recipeId)
@@ -95,9 +97,9 @@ class ChangeAlertsToolbar extends React.Component {
     }
 }
 
-ChangeAlertsToolbar.propTypes = {}
-
-export default compose(
-    ChangeAlertsToolbar,
+export const ChangeAlertsToolbar = compose(
+    _ChangeAlertsToolbar,
     withRecipe(mapRecipeToProps)
 )
+    
+ChangeAlertsToolbar.propTypes = {}

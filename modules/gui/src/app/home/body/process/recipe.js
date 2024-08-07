@@ -1,19 +1,21 @@
-import {Subject, debounceTime, groupBy, map, mergeMap, switchMap} from 'rxjs'
-import {addTab, closeTab} from 'widget/tabs/tabs'
-import {compose} from 'compose'
-import {connect, select, subscribe} from 'store'
-import {deserialize, serialize} from 'serialize'
-import {downloadObjectZip$} from 'widget/download'
-import {gzip$, ungzip$} from 'gzip'
-import {msg} from 'translate'
-import {publishEvent} from 'eventPublisher'
-import {selectFrom} from 'stateUtils'
-import Notifications from 'widget/notifications'
-import React from 'react'
 import _ from 'lodash'
-import actionBuilder, {scopedActionBuilder} from 'action-builder'
-import api from 'api'
-import guid from 'guid'
+import React from 'react'
+import {debounceTime, groupBy, map, mergeMap, Subject, switchMap} from 'rxjs'
+
+import {actionBuilder, scopedActionBuilder} from '~/action-builder'
+import api from '~/apiRegistry'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {publishEvent} from '~/eventPublisher'
+import {gzip$, ungzip$} from '~/gzip'
+import {deserialize, serialize} from '~/serialize'
+import {selectFrom} from '~/stateUtils'
+import {select, subscribe} from '~/store'
+import {msg} from '~/translate'
+import {uuid} from '~/uuid'
+import {downloadObjectZip$} from '~/widget/download'
+import {Notifications} from '~/widget/notifications'
+import {addTab, closeTab} from '~/widget/tabs/tabActions'
 
 const saveToBackend$ = (() => {
     const save$ = new Subject()
@@ -206,7 +208,7 @@ export const duplicateRecipe = sourceRecipe => {
     publishEvent('duplicate_recipe', {recipe_type: sourceRecipe.type})
     return addRecipe({
         ...sourceRecipe,
-        id: guid(),
+        id: uuid(),
         placeholder: `${sourceRecipe.title || sourceRecipe.placeholder}_copy`,
         title: null,
         ui: {...sourceRecipe.ui, unsaved: true, initialized: true}
@@ -266,7 +268,7 @@ const findPrevRecipe = recipe =>
     prevRecipes.find(prevRecipe => prevRecipe.id === recipe.id) || {}
 
 const persistentProps = recipe =>
-    _.pick(recipe, ['model', 'layers'])
+    _.pick(recipe, ['model', 'layers', 'retile'])
 
 const isToBeSaved = (prevRecipe, recipe) =>
     persistentProps(prevRecipe)

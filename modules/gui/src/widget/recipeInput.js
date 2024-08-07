@@ -1,16 +1,19 @@
-import {Buttons} from 'widget/buttons'
-import {Form} from './form/form'
-import {Subject, map, switchMap, takeUntil} from 'rxjs'
-import {compose} from 'compose'
-import {connect, select} from 'store'
-import {getRecipeType} from 'app/home/body/process/recipeTypes'
-import {msg} from 'translate'
-import {recipeAccess} from 'app/home/body/process/recipeAccess'
-import {withRecipe} from 'app/home/body/process/recipeContext'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
-import api from 'api'
+import {map, Subject, switchMap, takeUntil} from 'rxjs'
+
+import api from '~/apiRegistry'
+import {recipeAccess} from '~/app/home/body/process/recipeAccess'
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {getRecipeType} from '~/app/home/body/process/recipeTypeRegistry'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {select} from '~/store'
+import {msg} from '~/translate'
+import {Buttons} from '~/widget/buttons'
+
+import {Form} from './form'
 
 const mapStateToProps = () => {
     return {
@@ -41,7 +44,7 @@ class _RecipeInput extends React.Component {
         const {all} = this.state
         const options = this.getOptions()
 
-        const additionalButtons = [
+        const buttons = [
             <Buttons
                 key={'inverted'}
                 selected={[all]}
@@ -67,9 +70,7 @@ class _RecipeInput extends React.Component {
                 placeholder={placeholder || msg('widget.recipeInput.placeholder')}
                 options={options}
                 autoFocus={autoFocus}
-                additionalButtons={additionalButtons}
-                errorMessage
-                matchGroups
+                buttons={buttons}
                 busyMessage={stream('LOAD_RECIPE').active}
                 onChange={({value}) => this.loadRecipe(value)}
             />
@@ -103,6 +104,7 @@ class _RecipeInput extends React.Component {
                     : msg('process.project.noProjectOption')
                 return {
                     label: group,
+                    filterOptions: isMatchingGroup => !isMatchingGroup,
                     options: groups[projectId]
                         .map(recipe => ({
                             value: recipe.id,

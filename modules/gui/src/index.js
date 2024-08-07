@@ -1,15 +1,27 @@
-import {App} from 'app/app'
-import {ErrorBoundary} from './errorBoundary'
+import '@fontsource/ubuntu/300.css'
+import '@fontsource/ubuntu/400.css'
+import '@fontsource/ubuntu/500.css'
+import '@fontsource/source-sans-pro/300.css'
+import '@fontsource/source-sans-pro/400.css'
+import '@fontsource/source-sans-pro/600.css'
+import '@fontsource/source-sans-pro/700.css'
+
+import {createBrowserHistory} from 'history'
+import {createRoot} from 'react-dom/client'
 import {Provider} from 'react-redux'
 import {Router} from 'react-router-dom'
 import {applyMiddleware, legacy_createStore as createStore} from 'redux'
-import {createBrowserHistory} from 'history'
-import {createRoot} from 'react-dom/client'
-import {initStore} from 'store'
-import {isDevelopment} from 'environment'
-import {syncHistoryAndStore} from 'route'
-import React from 'react'
-import TranslationProvider from 'translate'
+
+import {initApi} from '~/api'
+import {App} from '~/app/app'
+import {isDevelopment} from '~/environment'
+import {syncHistoryAndStore} from '~/route'
+import {initStore} from '~/store'
+import {TranslationProvider} from '~/translate'
+
+import {ErrorBoundary} from './errorBoundary'
+
+initApi()
 
 const rootReducer = (state = [], action) => {
     if ('reduce' in action)
@@ -34,14 +46,14 @@ const batchActions = () => next => action => {
     }
 }
 
-const useDevTools = middleware =>
+const devTools = middleware =>
     isDevelopment()
         ? require('@redux-devtools/extension').composeWithDevTools(middleware)
         : middleware
 
 const store = createStore(
     rootReducer,
-    useDevTools(applyMiddleware(batchActions))
+    devTools(applyMiddleware(batchActions))
 )
 
 initStore(store)

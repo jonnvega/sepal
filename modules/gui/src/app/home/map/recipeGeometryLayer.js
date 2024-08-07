@@ -1,10 +1,12 @@
-import {compose} from 'compose'
-import {withSubscriptions} from 'subscription'
-import {withTab} from 'widget/tabs/tabContext'
-import EarthEngineTableLayer from './layer/earthEngineTableLayer'
 import PropTypes from 'prop-types'
 import React from 'react'
-import api from 'api'
+
+import api from '~/apiRegistry'
+import {compose} from '~/compose'
+import {withSubscriptions} from '~/subscription'
+import {withTab} from '~/widget/tabs/tabContext'
+
+import {EarthEngineTableLayer} from './layer/earthEngineTableLayer'
 
 class _RecipeGeometryLayer extends React.Component {
     render() {
@@ -33,7 +35,7 @@ class _RecipeGeometryLayer extends React.Component {
     }
 
     createLayer() {
-        const {recipe, color, fillColor, layerIndex, map, tab: {busy$}} = this.props
+        const {recipe, color, fillColor, layerIndex, map, tab: {busy}} = this.props
         return recipe.ui.initialized
             ? new EarthEngineTableLayer({
                 map,
@@ -42,7 +44,7 @@ class _RecipeGeometryLayer extends React.Component {
                 }),
                 layerIndex,
                 watchedProps: recipe.model,
-                busy$
+                busy
             })
             : null
     }

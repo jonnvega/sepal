@@ -1,19 +1,21 @@
-import {Form} from 'widget/form/form'
-import {FormCombo} from 'widget/form/combo'
-import {Layout} from 'widget/layout'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import {validateExpression} from './expression'
-import {withRecipe} from 'app/home/body/process/recipeContext'
 import PropTypes from 'prop-types'
-import React, {Component} from 'react'
+import React from 'react'
+
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {FormCombo} from '~/widget/form/combo'
+import {Layout} from '~/widget/layout'
+
+import {validateExpression} from './expression'
 
 const mapRecipeToProps = recipe => ({
     legend: selectFrom(recipe, 'model.legend')
 })
 
-class ClassStep extends Component {
+class _ClassStep extends React.Component {
     state = {}
 
     render() {
@@ -37,7 +39,6 @@ class ClassStep extends Component {
                 placeholder={msg('Enter expression')}
                 tooltip={msg('Enter expression determining which rows to include, or leave empty')}
                 input={filterExpression}
-                errorMessage
                 onBlur={() => {
                     try {
                         validateExpression({expression: filterExpression.value, rows: inputData.value})
@@ -130,12 +131,12 @@ class ClassStep extends Component {
 
 }
 
+export const ClassStep = compose(
+    _ClassStep,
+    withRecipe(mapRecipeToProps)
+)
+
 ClassStep.propTypes = {
     children: PropTypes.any,
     inputs: PropTypes.any
 }
-
-export default compose(
-    ClassStep,
-    withRecipe(mapRecipeToProps)
-)

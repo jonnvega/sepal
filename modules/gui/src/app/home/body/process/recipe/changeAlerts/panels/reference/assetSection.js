@@ -1,21 +1,21 @@
-import {AssetSelect} from 'widget/assetSelect'
-import {Form} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {Subject} from 'rxjs'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {msg} from 'translate'
-import {toVisualizations} from 'app/home/map/imageLayerSource/assetVisualizationParser'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
-import guid from 'guid'
+import {Subject} from 'rxjs'
+
+import {toVisualizations} from '~/app/home/map/imageLayerSource/assetVisualizationParser'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {msg} from '~/translate'
+import {uuid} from '~/uuid'
+import {Form} from '~/widget/form'
+import {Layout} from '~/widget/layout'
 
 const J_DAYS = 0
 const FRACTIONAL_YEARS = 1
 const UNIX_TIME_MILLIS = 2
 
-class AssetSection extends React.Component {
+class _AssetSection extends React.Component {
     constructor(props) {
         super(props)
         this.assetChanged$ = new Subject()
@@ -26,12 +26,12 @@ class AssetSection extends React.Component {
         const {inputs: {asset, dateFormat}} = this.props
         return (
             <Layout>
-                <AssetSelect
+                <Form.AssetCombo
                     input={asset}
                     label={msg('process.changeAlerts.panel.reference.form.asset.label')}
                     placeholder={msg('process.changeAlerts.panel.reference.form.asset.placeholder')}
                     autoFocus
-                    expectedType={['Image', 'ImageCollection']}
+                    allowedTypes={['Image', 'ImageCollection']}
                     onLoaded={this.onLoaded}
                 />
                 <Form.Buttons
@@ -105,15 +105,15 @@ export const toAssetReference = (bands, properties) => {
         startDate: properties.startDate,
         endDate: properties.endDate,
         visualizations: toVisualizations(properties, bands)
-            .map(visualization => ({...visualization, id: guid()}))
+            .map(visualization => ({...visualization, id: uuid()}))
     }
 }
+
+export const AssetSection = compose(
+    _AssetSection,
+    connect()
+)
 
 AssetSection.propTypes = {
     inputs: PropTypes.object.isRequired
 }
-
-export default compose(
-    AssetSection,
-    connect()
-)

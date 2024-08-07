@@ -1,13 +1,15 @@
-import {Form} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {Panel} from 'widget/panel/panel'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {compose} from 'compose'
-import {maxDate, minDate, momentDate} from 'widget/form/datePicker'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import React from 'react'
 import moment from 'moment'
+import React from 'react'
+
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {maxDate, minDate, momentDate} from '~/widget/form/datePicker'
+import {Layout} from '~/widget/layout'
+import {Panel} from '~/widget/panel/panel'
+
 import styles from './date.module.css'
 
 const DATE_FORMAT = 'YYYY-MM-DD'
@@ -34,7 +36,7 @@ const mapRecipeToProps = recipe => ({
     segmentsEndDate: selectFrom(recipe, 'model.source.endDate')
 })
 
-class Date extends React.Component {
+class _Date extends React.Component {
     render() {
         return (
             <RecipeFormPanel
@@ -99,7 +101,6 @@ class Date extends React.Component {
                     input={startDate}
                     startDate={fromStart}
                     endDate={fromEnd}
-                    errorMessage
                 />
                 <Form.DatePicker
                     label={msg('process.ccdcSlice.panel.date.form.endDate.label')}
@@ -108,7 +109,6 @@ class Date extends React.Component {
                     input={endDate}
                     startDate={toStart}
                     endDate={toEnd}
-                    errorMessage
                 />
             </Layout>
         )
@@ -124,7 +124,6 @@ class Date extends React.Component {
                 input={date}
                 startDate={segmentsStartDate || '1982-08-22'}
                 endDate={moment().add(1, 'year')}
-                errorMessage
             />
         )
     }
@@ -179,9 +178,9 @@ const modelToValues = model => ({
     ...model
 })
 
-Date.propTypes = {}
-
-export default compose(
-    Date,
+export const Date = compose(
+    _Date,
     recipeFormPanel({id: 'date', fields, mapRecipeToProps, modelToValues})
 )
+
+Date.propTypes = {}

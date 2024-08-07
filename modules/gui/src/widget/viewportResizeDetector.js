@@ -1,7 +1,9 @@
-import {compose} from 'compose'
-import {connect, select} from 'store'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {select} from '~/store'
 
 const mapStateToProps = () => ({
     dimensions: select('dimensions') || []

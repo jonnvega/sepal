@@ -1,11 +1,13 @@
-import {ActivationButton} from './activationButton'
-import {Context} from './context'
-import {ToolbarButton} from './toolbarButton'
-import Portal from 'widget/portal'
 import PropTypes from 'prop-types'
 import React from 'react'
-import lookStyles from 'style/look.module.css'
+
+import lookStyles from '~/style/look.module.css'
+import {Portal} from '~/widget/portal'
+
+import {ActivationButton} from './activationButton'
+import {Context} from './context'
 import styles from './toolbar.module.css'
+import {ToolbarButton} from './toolbarButton'
 
 export class Toolbar extends React.Component {
     panelContainer = React.createRef()

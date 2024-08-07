@@ -1,21 +1,23 @@
-import {Button} from 'widget/button'
-import {Buttons} from 'widget/buttons'
-import {Item} from 'widget/item'
-import {Layout} from 'widget/layout'
-import {Panel} from 'widget/panel/panel'
-import {compose} from 'compose'
-import {getImageLayerSource} from './imageLayerSource/imageLayerSource'
-import {msg} from 'translate'
-import {recipePath} from '../body/process/recipe'
-import {withActivatable} from 'widget/activation/activatable'
-import {withActivators} from 'widget/activation/activator'
-import {withLayers} from '../body/process/withLayers'
-import {withRecipe} from '../body/process/recipeContext'
-import FloatingBox from 'widget/floatingBox'
-import Keybinding from 'widget/keybinding'
 import PropTypes from 'prop-types'
 import React from 'react'
-import actionBuilder from 'action-builder'
+
+import {actionBuilder} from '~/action-builder'
+import {compose} from '~/compose'
+import {msg} from '~/translate'
+import {withActivatable} from '~/widget/activation/activatable'
+import {withActivators} from '~/widget/activation/activator'
+import {Button} from '~/widget/button'
+import {Buttons} from '~/widget/buttons'
+import {CrudItem} from '~/widget/crudItem'
+import {FloatingBox} from '~/widget/floatingBox'
+import {Keybinding} from '~/widget/keybinding'
+import {Layout} from '~/widget/layout'
+import {Panel} from '~/widget/panel/panel'
+
+import {getImageLayerSource} from '../body/process/imageLayerSourceRegistry'
+import {recipePath} from '../body/process/recipe'
+import {withRecipe} from '../body/process/recipeContext'
+import {withLayers} from '../body/process/withLayers'
 import styles from './mapAreaMenu.module.css'
 
 class _MapAreaMenuPanel extends React.Component {
@@ -24,7 +26,7 @@ class _MapAreaMenuPanel extends React.Component {
         return (
             <FloatingBox
                 element={element}
-                vPlacement='above-otherwise-below'
+                vPlacement='above-or-below'
                 hPlacement='center'
                 onBlur={deactivate}
             >
@@ -165,7 +167,7 @@ class _MapAreaMenu extends React.Component {
         const source = imageLayerSources.find(({id}) => id === imageLayer.sourceId)
         const {description} = getImageLayerSource({recipe, source})
         return (
-            <Item title={msg(`imageLayerSources.${source.type}.label`)} description={description}/>
+            <CrudItem title={msg(`imageLayerSources.${source.type}.label`)} description={description}/>
         )
     }
 

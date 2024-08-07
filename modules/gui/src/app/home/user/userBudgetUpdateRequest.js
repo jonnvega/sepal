@@ -1,17 +1,20 @@
-import {Form, withForm} from 'widget/form/form'
-import {Input} from 'widget/input'
-import {Layout} from 'widget/layout'
-import {Message} from 'widget/message'
-import {Panel} from 'widget/panel/panel'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {publishEvent} from 'eventPublisher'
-import {select} from 'store'
-import Notifications from 'widget/notifications'
+import moment from 'moment'
 import PropTypes from 'prop-types'
 import React from 'react'
-import api from 'api'
-import moment from 'moment'
+
+import api from '~/apiRegistry'
+import {compose} from '~/compose'
+import {publishEvent} from '~/eventPublisher'
+import {select} from '~/store'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {withForm} from '~/widget/form/form'
+import {Input} from '~/widget/input'
+import {Layout} from '~/widget/layout'
+import {Message} from '~/widget/message'
+import {Notifications} from '~/widget/notifications'
+import {Panel} from '~/widget/panel/panel'
+
 import styles from './userBudgetUpdateRequest.module.css'
 
 const fields = {
@@ -141,6 +144,7 @@ export class _BudgetUpdateRequest extends React.Component {
                     input={instanceSpending}
                     spellCheck={false}
                     prefix='US$/mo.'
+                    errorMessage={false}
                 />
                 <Form.Input
                     label={msg('user.userDetails.form.monthlyBudget.storageSpending.label')}
@@ -148,6 +152,7 @@ export class _BudgetUpdateRequest extends React.Component {
                     input={storageSpending}
                     spellCheck={false}
                     prefix='US$/mo.'
+                    errorMessage={false}
                 />
                 <Form.Input
                     label={msg('user.userDetails.form.monthlyBudget.storageQuota.label')}
@@ -155,6 +160,7 @@ export class _BudgetUpdateRequest extends React.Component {
                     input={storageQuota}
                     spellCheck={false}
                     prefix='GB'
+                    errorMessage={false}
                 />
             </Form.FieldSet>
         )
@@ -170,7 +176,6 @@ export class _BudgetUpdateRequest extends React.Component {
                 spellCheck={false}
                 minRows={3}
                 maxRows={10}
-                errorMessage={message}
             />
         )
 

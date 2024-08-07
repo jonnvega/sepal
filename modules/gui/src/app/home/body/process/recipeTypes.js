@@ -1,3 +1,4 @@
+import asset from './recipe/asset/asset'
 import baytsAlerts from './recipe/baytsAlerts/baytsAlerts'
 import baytsHistorical from './recipe/baytsHistorical/baytsHistorical'
 import ccdc from './recipe/ccdc/ccdc'
@@ -13,23 +14,23 @@ import planetMosaic from './recipe/planetMosaic/planetMosaic'
 import radarMosaic from './recipe/radarMosaic/radarMosaic'
 import remapping from './recipe/remapping/remapping'
 import timeSeries from './recipe/timeSeries/timeSeries'
+import {addRecipeType} from './recipeTypeRegistry'
 
-export const listRecipeTypes = () => ([
-    opticalMosaic(),
-    radarMosaic(),
-    planetMosaic(),
-    classification(),
-    timeSeries(),
-    ccdc(),
-    ccdcSlice(),
-    classChange(),
-    indexChange(),
-    remapping(),
-    changeAlerts(),
-    baytsHistorical(),
-    baytsAlerts(),
-    phenology(),
-    masking()
-])
-
-export const getRecipeType = id => listRecipeTypes().find(recipeType => recipeType.id === id)
+export const registerRecipeTypes = () => {
+    addRecipeType(opticalMosaic())
+    addRecipeType(radarMosaic())
+    addRecipeType(planetMosaic())
+    addRecipeType(classification())
+    addRecipeType(timeSeries())
+    addRecipeType(ccdc())
+    addRecipeType(ccdcSlice())
+    addRecipeType(classChange())
+    addRecipeType(indexChange())
+    addRecipeType(remapping())
+    addRecipeType(changeAlerts())
+    addRecipeType(baytsHistorical())
+    addRecipeType(baytsAlerts())
+    addRecipeType(phenology())
+    addRecipeType(masking())
+    addRecipeType(asset())
+}

@@ -1,19 +1,19 @@
-import {AssetSelect} from 'widget/assetSelect'
-import {Form} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {Subject} from 'rxjs'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {msg} from 'translate'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
+import {Subject} from 'rxjs'
+
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {Layout} from '~/widget/layout'
 
 const J_DAYS = 0
 const FRACTIONAL_YEARS = 1
 const UNIX_TIME_MILLIS = 2
 
-class AssetSection extends React.Component {
+class _AssetSection extends React.Component {
     constructor(props) {
         super(props)
         this.assetChanged$ = new Subject()
@@ -24,11 +24,11 @@ class AssetSection extends React.Component {
         const {inputs: {asset, dateFormat}} = this.props
         return (
             <Layout>
-                <AssetSelect
+                <Form.AssetCombo
                     input={asset}
                     label={msg('process.ccdcSlice.panel.source.form.asset.label')}
                     placeholder={msg('process.ccdcSlice.panel.source.form.asset.placeholder')}
-                    expectedType={['Image', 'ImageCollection']}
+                    allowedTypes={['Image', 'ImageCollection']}
                     autoFocus
                     onLoaded={this.onLoaded}
                 />
@@ -76,11 +76,11 @@ class AssetSection extends React.Component {
     }
 }
 
+export const AssetSection = compose(
+    _AssetSection,
+    connect()
+)
+
 AssetSection.propTypes = {
     inputs: PropTypes.object.isRequired
 }
-
-export default compose(
-    AssetSection,
-    connect()
-)

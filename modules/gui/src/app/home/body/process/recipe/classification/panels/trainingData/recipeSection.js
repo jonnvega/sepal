@@ -1,8 +1,9 @@
-import {RecipeInput} from 'widget/recipeInput'
 import PropTypes from 'prop-types'
 import React from 'react'
 
-export default class RecipeSection extends React.Component {
+import {RecipeInput} from '~/widget/recipeInput'
+
+export class RecipeSection extends React.Component {
     render() {
         const {recipeId, inputs: {name, recipe}, onLoading} = this.props
         return (
@@ -12,7 +13,6 @@ export default class RecipeSection extends React.Component {
                 autoFocus
                 onLoading={onLoading}
                 onLoaded={({recipe}) => name.set(recipe.title || recipe.placeholder)}
-                errorMessage
             />
         )
     }

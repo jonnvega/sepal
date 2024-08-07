@@ -1,21 +1,23 @@
-import {Legend} from '../legend/legend'
-import {RecipeActions} from '../classificationRecipe'
-import {Retrieve} from './retrieve/retrieve'
-import {RetrieveButton} from '../../retrieveButton'
-import {Toolbar} from 'widget/toolbar/toolbar'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import {setInitialized} from 'app/home/body/process/recipe'
-import {withRecipe} from 'app/home/body/process/recipeContext'
-import AuxiliaryImagery from './auxiliaryImagery/auxiliaryImagery'
-import Classifier from './classifier/classifier'
-import InputImagery from './inputImagery/inputImagery'
-import PanelWizard from 'widget/panelWizard'
 import PropTypes from 'prop-types'
 import React from 'react'
-import TrainingData from './trainingData/trainingData.js'
+
+import {setInitialized} from '~/app/home/body/process/recipe'
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {PanelWizard} from '~/widget/panelWizard'
+import {Toolbar} from '~/widget/toolbar/toolbar'
+
+import {RetrieveButton} from '../../retrieveButton'
+import {RecipeActions} from '../classificationRecipe'
+import {Legend} from '../legend/legend'
+import {AuxiliaryImagery} from './auxiliaryImagery/auxiliaryImagery'
 import styles from './classificationToolbar.module.css'
+import {Classifier} from './classifier/classifier'
+import {InputImagery} from './inputImagery/inputImagery'
+import {Retrieve} from './retrieve/retrieve'
+import {TrainingData} from './trainingData/trainingData.js'
 
 const mapRecipeToProps = recipe => ({
     recipeId: recipe.id,
@@ -23,7 +25,7 @@ const mapRecipeToProps = recipe => ({
     initialized: selectFrom(recipe, 'ui.initialized'),
 })
 
-class ClassificationToolbar extends React.Component {
+class _ClassificationToolbar extends React.Component {
     render() {
         const {recipeId, collecting, dataCollectionManager, initialized} = this.props
         return (
@@ -89,12 +91,11 @@ class ClassificationToolbar extends React.Component {
     }
 }
 
-ClassificationToolbar.propTypes = {
-    dataCollectionManager: PropTypes.object.isRequired,
-    recipeId: PropTypes.string.isRequired,
-}
-
-export default compose(
-    ClassificationToolbar,
+export const ClassificationToolbar = compose(
+    _ClassificationToolbar,
     withRecipe(mapRecipeToProps)
 )
+
+ClassificationToolbar.propTypes = {
+    dataCollectionManager: PropTypes.object.isRequired
+}

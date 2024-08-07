@@ -1,35 +1,35 @@
-import {CrudItem} from 'widget/crudItem'
-import {Layout} from 'widget/layout'
-import {ListItem} from 'widget/listItem'
-import {Padding} from 'widget/padding'
-import {Scrollable, ScrollableContainer} from 'widget/scrollable'
-import {compose} from 'compose'
-import {getImageLayerSource} from 'app/home/map/imageLayerSource/imageLayerSource'
-import {msg} from 'translate'
-import {recipeActionBuilder, recipePath} from 'app/home/body/process/recipe'
-import {removeArea} from './layerAreas'
-import {select} from 'store'
-import {withLayers} from '../withLayers'
-import {withRecipe} from 'app/home/body/process/recipeContext'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
-import guid from 'guid'
+
+import {recipeActionBuilder, recipePath} from '~/app/home/body/process/recipe'
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {select} from '~/store'
+import {msg} from '~/translate'
+import {uuid} from '~/uuid'
+import {CrudItem} from '~/widget/crudItem'
+import {Layout} from '~/widget/layout'
+import {ListItem} from '~/widget/listItem'
+import {Padding} from '~/widget/padding'
+import {Scrollable} from '~/widget/scrollable'
+
+import {getImageLayerSource} from '../imageLayerSourceRegistry'
+import {withLayers} from '../withLayers'
+import {removeArea} from './layerAreas'
 
 export class _ImageLayerSources extends React.Component {
     render() {
         const {standardImageLayerSources, additionalImageLayerSources} = this.props
         return (
-            <ScrollableContainer>
-                <Scrollable>
-                    <Padding noHorizontal>
-                        <Layout type='vertical' spacing='tight'>
-                            {standardImageLayerSources.map(source => this.renderSource({source, removable: false}))}
-                            {additionalImageLayerSources.map(source => this.renderSource({source, removable: true}))}
-                        </Layout>
-                    </Padding>
-                </Scrollable>
-            </ScrollableContainer>
+            <Scrollable direction='y'>
+                <Padding noHorizontal>
+                    <Layout type='vertical' spacing='tight'>
+                        {standardImageLayerSources.map(source => this.renderSource({source, removable: false}))}
+                        {additionalImageLayerSources.map(source => this.renderSource({source, removable: true}))}
+                    </Layout>
+                </Padding>
+            </Scrollable>
         )
     }
 
@@ -42,7 +42,7 @@ export class _ImageLayerSources extends React.Component {
                     key={source.id}
                     drag$={drag$}
                     dragValue={{
-                        id: guid(),
+                        id: uuid(),
                         imageLayer: {sourceId: source.id},
                         featureLayers: []
                     }}>

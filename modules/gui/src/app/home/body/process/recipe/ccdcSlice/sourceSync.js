@@ -1,17 +1,19 @@
-import {Subject, map, of, switchMap, takeUntil} from 'rxjs'
-import {compose} from 'compose'
-import {getAllVisualizations} from '../ccdc/ccdcRecipe'
-import {getAvailableBands} from 'sources'
-import {msg} from 'translate'
-import {recipeAccess} from '../../recipeAccess'
-import {selectFrom} from 'stateUtils'
-import {toVisualizations} from 'app/home/map/imageLayerSource/assetVisualizationParser'
-import {withRecipe} from '../../recipeContext'
-import Notifications from 'widget/notifications'
-import React from 'react'
 import _ from 'lodash'
-import api from 'api'
-import guid from 'guid'
+import React from 'react'
+import {map, of, Subject, switchMap, takeUntil} from 'rxjs'
+
+import api from '~/apiRegistry'
+import {toVisualizations} from '~/app/home/map/imageLayerSource/assetVisualizationParser'
+import {compose} from '~/compose'
+import {getAvailableBands} from '~/sources'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {uuid} from '~/uuid'
+import {Notifications} from '~/widget/notifications'
+
+import {recipeAccess} from '../../recipeAccess'
+import {withRecipe} from '../../recipeContext'
+import {getAllVisualizations} from '../ccdc/ccdcRecipe'
 
 const baseBandPattern = /(.*)_(coefs|intercept|slope|phase_\d|amplitude_\d|rmse|magnitude)$/
 
@@ -59,10 +61,10 @@ class _SourceSync extends React.Component {
             return
         }
         stream('LOAD',
-            api.gee.imageMetadata$({asset: source.id}).pipe(
+            api.gee.assetMetadata$({asset: source.id}).pipe(
                 takeUntil(this.cancel$)
             ),
-            metadata => this.updateAssetSource(source.id, metadata, source),
+            metadata => this.updateAssetSource(source.id, metadata),
             error => Notifications.error({message: msg('process.ccdcSlice.source.asset.loadError'), error})
         )
     }
@@ -87,11 +89,13 @@ class _SourceSync extends React.Component {
         const {stream, loadRecipe$} = this.props
         stream('LOAD',
             loadRecipe$(recipeId).pipe(
-                switchMap(ccdcRecipe => ccdcRecipe.model.sources.classification
-                    ? loadRecipe$(ccdcRecipe.model.sources.classification).pipe(
-                        map(classificationRecipe => ({ccdcRecipe, classificationRecipe}))
-                    )
-                    : of({ccdcRecipe})
+                switchMap(ccdcRecipe => {
+                    return ccdcRecipe.model.sources?.classification
+                        ? loadRecipe$(ccdcRecipe.model.sources.classification).pipe(
+                            map(classificationRecipe => ({ccdcRecipe, classificationRecipe}))
+                        )
+                        : of({ccdcRecipe})
+                }
                 ),
                 takeUntil(this.cancel$)
             ),
@@ -117,9 +121,8 @@ class _SourceSync extends React.Component {
         }
     }
 
-    updateAssetSource(id, metadata, source) {
-        const {recipeActionBuilder} = this.props
-        const bands = metadata.bands
+    toAssetSource(id, metadata) {
+        const bands = metadata.bandNames
         const bandAndType = _.chain(bands)
             .map(sourceBand => sourceBand.match(baseBandPattern))
             .filter(match => match)
@@ -139,9 +142,8 @@ class _SourceSync extends React.Component {
         const segmentBands = bands
             .filter(name => ['tStart', 'tEnd', 'tBreak', 'numObs', 'changeProb'].includes(name))
             .map(name => ({name}))
-        const assetDateFormat = metadata.properties.dateFormat
-        const dateFormat = assetDateFormat === undefined ? source.dateFormat : assetDateFormat
-        const sourceDetails = {
+        const dateFormat = metadata.properties.dateFormat
+        return {
             type: 'ASSET',
             id,
             bands,
@@ -151,8 +153,13 @@ class _SourceSync extends React.Component {
             startDate: metadata.properties.startDate,
             endDate: metadata.properties.endDate,
             visualizations: toVisualizations(metadata.properties, bands)
-                .map(visualization => ({...visualization, id: guid()}))
+                .map(visualization => ({...visualization, id: uuid()}))
         }
+    }
+    
+    updateAssetSource(id, metadata) {
+        const {recipeActionBuilder} = this.props
+        const sourceDetails = this.toAssetSource(id, metadata)
         recipeActionBuilder('UPDATE_SOURCE', {sourceDetails})
             .set('model.source', sourceDetails)
             .dispatch()
@@ -160,7 +167,9 @@ class _SourceSync extends React.Component {
 
     updateRecipeSource({ccdcRecipe, classificationRecipe}) {
         const {source, recipeActionBuilder} = this.props
-        const nextSource = this.recipeSource({ccdcRecipe, classificationRecipe})
+        const nextSource = ccdcRecipe.type === 'ASSET_MOSAIC'
+            ? this.assetRecipeSource(ccdcRecipe)
+            : this.ccdcRecipeSource({ccdcRecipe, classificationRecipe})
         if (!_.isEqual(source, nextSource)) {
             recipeActionBuilder('UPDATE_SOURCE', {source})
                 .set('model.source', nextSource)
@@ -168,7 +177,18 @@ class _SourceSync extends React.Component {
         }
     }
 
-    recipeSource({ccdcRecipe, classificationRecipe}) {
+    assetRecipeSource(recipe) {
+        const metadata = recipe.model.assetDetails.metadata
+        return {
+            ...this.toAssetSource(metadata.assetId, metadata),
+            ...metadata.properties,
+            targetType: 'ASSET_MOSAIC',
+            type: 'RECIPE_REF',
+            id: recipe.id,
+        }
+    }
+
+    ccdcRecipeSource({ccdcRecipe, classificationRecipe}) {
         const corrections = ccdcRecipe.model.options.corrections
         const baseBands = getAvailableBands({
             dataSets: Object.values(ccdcRecipe.model.sources.dataSets).flat(),

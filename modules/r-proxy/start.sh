@@ -1,10 +1,19 @@
 #!/usr/bin/env bash
 
 # remove locked libs
-rm -rf /usr/local/lib/R/site-library/00LOCK-*
+find /usr/local/lib/R/site-library/ -name "00LOCK-*" -print0 | xargs -0 rm -rf
 
-# remove cached sources
-rm -rf /R/cranroot/src/contrib/*
+# remove cached CRAN sources
+find /R -type f -path */cranroot/src/* -print0 | xargs -0 rm
+
+# remove cached GitHub sources
+find /R -maxdepth 4 -type d -path */github/src/* -print0 | xargs -0 rm -r
+
+source /etc/os-release
+
+# Java
+export SDKMAN_DIR=/usr/local/lib/sdkman
+source /usr/local/lib/sdkman/bin/sdkman-init.sh
 
 if [[ "${DEPLOY_ENVIRONMENT}" == "DEV" ]]
 then
@@ -16,15 +25,18 @@ then
     --watch "${SHARED}" \
     --inspect=0.0.0.0:9239 \
     src/main.js \
+    --os-release "${NAME}-${VERSION_ID}" \
     --cran-repo https://cran.r-project.org \
     --repo-path /R \
     --lib-path /usr/local/lib/R/site-library \
     --redis-uri redis://r-proxy-redis \
     --auto-update-interval-hours 24
+    # --update-now
 else
   echo "Starting node"
   exec node \
     src/main.js \
+    --os-release "${NAME}-${VERSION_ID}" \
     --cran-repo https://cran.r-project.org \
     --repo-path /R \
     --lib-path /usr/local/lib/R/site-library \

@@ -1,5 +1,6 @@
 {
     "reject": [
+        "prom-client",
         "react-router-dom"
     ]
 }

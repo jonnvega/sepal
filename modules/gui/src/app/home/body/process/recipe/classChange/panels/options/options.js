@@ -1,11 +1,13 @@
-import {Form} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {Panel} from 'widget/panel/panel'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {compose} from 'compose'
-import {hasConfidence} from 'app/home/body/process/recipe/classChange/classChangeRecipe'
-import {msg} from 'translate'
 import React from 'react'
+
+import {hasConfidence} from '~/app/home/body/process/recipe/classChange/classChangeRecipe'
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {Layout} from '~/widget/layout'
+import {Panel} from '~/widget/panel/panel'
+
 import styles from './options.module.css'
 
 const fields = {
@@ -14,7 +16,7 @@ const fields = {
 
 const mapRecipeToProps = recipe => ({recipe})
 
-class Options extends React.Component {
+class _Options extends React.Component {
     constructor(props) {
         super(props)
     }
@@ -54,7 +56,7 @@ class Options extends React.Component {
     }
 }
 
-export default compose(
-    Options,
+export const Options = compose(
+    _Options,
     recipeFormPanel({id: 'options', fields, mapRecipeToProps})
 )

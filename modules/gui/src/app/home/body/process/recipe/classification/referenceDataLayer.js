@@ -1,14 +1,16 @@
-import {RecipeActions} from './classificationRecipe'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import {withActivators} from 'widget/activation/activator'
-import {withDataCollectionManager} from './dataCollectionManager'
-import {withRecipe} from 'app/home/body/process/recipeContext'
-import MarkerClustererLayer from 'app/home/map/markerClustererLayer'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
+
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {MarkerClustererLayer} from '~/app/home/map/markerClustererLayer'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {withActivators} from '~/widget/activation/activator'
+
+import {RecipeActions} from './classificationRecipe'
+import {withDataCollectionManager} from './dataCollectionManager'
 
 const mapRecipeToProps = recipe => ({
     recipeId: recipe.id,
@@ -19,7 +21,7 @@ const mapRecipeToProps = recipe => ({
     countPerClass: selectFrom(recipe, 'ui.collect.countPerClass')
 })
 
-class ReferenceDataLayer extends React.Component {
+class _ReferenceDataLayer extends React.Component {
     state = {clickListener: null}
     constructor(props) {
         super(props)
@@ -187,14 +189,13 @@ class ReferenceDataLayer extends React.Component {
 
 const isClassified = marker => Object.keys(marker).includes('class') && _.isFinite(marker['class'])
 
-ReferenceDataLayer.propTypes = {
-    dataCollectionManager: PropTypes.object.isRequired,
-    recipeId: PropTypes.string,
-}
-
-export default compose(
-    ReferenceDataLayer,
+export const ReferenceDataLayer = compose(
+    _ReferenceDataLayer,
     withRecipe(mapRecipeToProps),
     withDataCollectionManager(),
     withActivators('collect')
 )
+
+ReferenceDataLayer.propTypes = {
+    recipeId: PropTypes.string
+}

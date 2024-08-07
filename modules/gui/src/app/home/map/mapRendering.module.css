@@ -1,0 +1,6 @@
+.container {
+    position: absolute;
+    top: .5rem;
+    left: .5rem;
+    pointer-events: all;
+}

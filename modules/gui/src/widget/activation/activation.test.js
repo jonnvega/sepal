@@ -1,5 +1,6 @@
+import {toPathList} from '~/stateUtils'
+
 import {collectActivatables as collect} from './activation'
-import {toPathList} from 'stateUtils'
 
 /* eslint-disable no-undef */
 

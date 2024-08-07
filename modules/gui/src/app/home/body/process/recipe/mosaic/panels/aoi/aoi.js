@@ -1,15 +1,18 @@
+import React from 'react'
+
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {countryEETable} from '~/app/home/map/aoiLayer'
+import {compose} from '~/compose'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {PanelSections} from '~/widget/panelSections'
+
+import styles from './aoi.module.css'
+import {AssetBoundsSection} from './assetBoundsSection'
 import {CountrySection} from './countrySection'
 import {EETableSection} from './eeTableSection'
-import {Form} from 'widget/form/form'
 import {PolygonSection} from './polygonSection'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
 import {SectionSelection} from './sectionSelection'
-import {compose} from 'compose'
-import {countryEETable} from 'app/home/map/aoiLayer'
-import {msg} from 'translate'
-import PanelSections from 'widget/panelSections'
-import React from 'react'
-import styles from './aoi.module.css'
 
 const fields = {
     section: new Form.Field()
@@ -41,35 +44,46 @@ const fields = {
         .notBlank('process.mosaic.panel.areaOfInterest.form.country.required')
 }
 
-class Aoi extends React.Component {
+class _Aoi extends React.Component {
     constructor(props) {
         super(props)
         this.state = {canceled: false}
     }
 
     render() {
-        const {recipeId, inputs, layerIndex = 1} = this.props
-        const sections = [{
-            component: <SectionSelection recipeId={recipeId} inputs={inputs}/>
-        }, {
-            value: 'COUNTRY',
-            label: msg('process.mosaic.panel.areaOfInterest.form.country.title'),
-            title: 'COUNTRY/PROVINCE',
-            component: <CountrySection recipeId={recipeId} inputs={inputs} layerIndex={layerIndex}/>
-        }, {
-            value: 'EE_TABLE',
-            label: msg('process.mosaic.panel.areaOfInterest.form.eeTable.title'),
-            title: 'EE TABLE',
-            component: <EETableSection
-                recipeId={recipeId}
-                inputs={inputs}
-                layerIndex={layerIndex}/>
-        }, {
-            value: 'POLYGON',
-            label: msg('process.mosaic.panel.areaOfInterest.form.polygon.title'),
-            title: 'POLYGON',
-            component: <PolygonSection recipeId={recipeId} inputs={inputs} layerIndex={layerIndex}/>
-        }]
+        const {assetBounds, recipeId, inputs, layerIndex = 1} = this.props
+        const sections = [
+            {
+                component: <SectionSelection recipeId={recipeId} inputs={inputs} assetBounds={assetBounds}/>
+            },
+            assetBounds ? {
+                value: 'ASSET_BOUNDS',
+                label: msg('process.mosaic.panel.areaOfInterest.form.assetBounds.title'),
+                title: 'ASSET BOUNDS',
+                component: <AssetBoundsSection recipeId={recipeId} inputs={inputs} layerIndex={layerIndex}/>
+            } : null,
+            {
+                value: 'COUNTRY',
+                label: msg('process.mosaic.panel.areaOfInterest.form.country.title'),
+                title: 'COUNTRY/PROVINCE',
+                component: <CountrySection recipeId={recipeId} inputs={inputs} layerIndex={layerIndex}/>
+            },
+            {
+                value: 'EE_TABLE',
+                label: msg('process.mosaic.panel.areaOfInterest.form.eeTable.title'),
+                title: 'EE TABLE',
+                component: <EETableSection
+                    recipeId={recipeId}
+                    inputs={inputs}
+                    layerIndex={layerIndex}/>
+            },
+            {
+                value: 'POLYGON',
+                label: msg('process.mosaic.panel.areaOfInterest.form.polygon.title'),
+                title: 'POLYGON',
+                component: <PolygonSection recipeId={recipeId} inputs={inputs} layerIndex={layerIndex}/>
+            }
+        ].filter(option => option)
         return (
             <RecipeFormPanel
                 className={styles.panel}
@@ -88,6 +102,10 @@ class Aoi extends React.Component {
 
 const valuesToModel = values => {
     switch (values.section) {
+    case 'ASSET_BOUNDS':
+        return {
+            type: 'ASSET_BOUNDS'
+        }
     case 'COUNTRY':
         return {
             type: 'EE_TABLE',
@@ -117,7 +135,9 @@ const valuesToModel = values => {
 }
 
 const modelToValues = (model = {}) => {
-    if (model.type === 'EE_TABLE')
+    if (model.type === 'ASSET_BOUNDS')
+        return {section: 'ASSET_BOUNDS'}
+    else if (model.type === 'EE_TABLE')
         if (model.id === countryEETable)
             return {
                 section: 'COUNTRY',
@@ -142,7 +162,7 @@ const modelToValues = (model = {}) => {
         return {}
 }
 
-export default compose(
-    Aoi,
+export const Aoi = compose(
+    _Aoi,
     recipeFormPanel({id: 'aoi', fields, modelToValues, valuesToModel})
 )

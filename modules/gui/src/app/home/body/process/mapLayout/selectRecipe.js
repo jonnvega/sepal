@@ -1,12 +1,15 @@
-import {Form, withForm} from 'widget/form/form'
-import {Panel} from 'widget/panel/panel'
-import {RecipeInput} from 'widget/recipeInput'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {v4 as uuid} from 'uuid'
-import {withActivatable} from 'widget/activation/activatable'
-import {withRecipe} from 'app/home/body/process/recipeContext'
 import React from 'react'
+
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {msg} from '~/translate'
+import {uuid} from '~/uuid'
+import {withActivatable} from '~/widget/activation/activatable'
+import {Form} from '~/widget/form'
+import {withForm} from '~/widget/form/form'
+import {Panel} from '~/widget/panel/panel'
+import {RecipeInput} from '~/widget/recipeInput'
+
 import styles from './selectRecipe.module.css'
 
 const fields = {

@@ -1,18 +1,21 @@
-import {Button} from 'widget/button'
-import {ButtonGroup} from 'widget/buttonGroup'
-import {Layout} from 'widget/layout'
-import {Panel} from 'widget/panel/panel'
-import {SearchBox} from 'widget/searchBox'
-import {Slider} from 'widget/slider'
-import {ToggleButton} from 'widget/toggleButton'
-import {compose} from 'compose'
-import {formatCoordinates, parseCoordinates} from 'coords'
-import {msg} from 'translate'
-import {withActivatable} from 'widget/activation/activatable'
-import {withMap} from './mapContext'
-import {withSubscriptions} from 'subscription'
-import Keybinding from 'widget/keybinding'
 import React from 'react'
+
+import {compose} from '~/compose'
+import {formatCoordinates, parseCoordinates} from '~/coords'
+import {withSubscriptions} from '~/subscription'
+import {msg} from '~/translate'
+import {withActivatable} from '~/widget/activation/activatable'
+import {Button} from '~/widget/button'
+import {ButtonGroup} from '~/widget/buttonGroup'
+import {Keybinding} from '~/widget/keybinding'
+import {Layout} from '~/widget/layout'
+import {Panel} from '~/widget/panel/panel'
+import {SearchBox} from '~/widget/searchBox'
+import {Slider} from '~/widget/slider'
+import {ToggleButton} from '~/widget/toggleButton'
+import {Toolbar} from '~/widget/toolbar/toolbar'
+
+import {withMap} from './mapContext'
 import styles from './mapZoom.module.css'
 
 class _MapZoomPanel extends React.Component {
@@ -223,7 +226,7 @@ class _MapZoomPanel extends React.Component {
         const {map, addSubscription} = this.props
         const {google} = map.getGoogle()
         this.autoComplete = new google.maps.places.AutocompleteService()
-        this.geoCoder = new google.maps.Geocoder()
+        this.geoCoder = new google.maps.geocoding.Geocoder()
         addSubscription(
             map.view$.subscribe(
                 view => this.setState({view})
@@ -252,7 +255,7 @@ class _MapZoomPanel extends React.Component {
                     </div>
                 ),
                 value: {
-                    coords: new google.maps.LatLng(candidate.lat, candidate.lng)
+                    coords: new google.maps.core.LatLng(candidate.lat, candidate.lng)
                 },
                 key: formatCoordinates(candidate)
             }))
@@ -324,6 +327,7 @@ class _MapZoomPanel extends React.Component {
 }
 
 const policy = () => ({
+    mapOptions: 'allow-then-deactivate',
     _: 'allow'
 })
 
@@ -336,4 +340,26 @@ export const MapZoomPanel = compose(
         policy,
         alwaysAllow: true
     })
+)
+
+class _MapZoomButton extends React.Component {
+    render() {
+        const {map} = this.props
+        return (
+            <Keybinding keymap={{
+                'Ctrl+Shift+=': map.zoomIn,
+                'Ctrl+Shift+_': map.zoomOut
+            }}>
+                <Toolbar.ActivationButton
+                    id='mapZoom'
+                    icon='search'
+                    tooltip={msg('process.mosaic.mapToolbar.zoom.tooltip')}/>
+            </Keybinding>
+        )
+    }
+}
+
+export const MapZoomButton = compose(
+    _MapZoomButton,
+    withMap()
 )

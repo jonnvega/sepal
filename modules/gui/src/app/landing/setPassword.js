@@ -1,25 +1,29 @@
-import {Button} from 'widget/button'
-import {ButtonGroup} from 'widget/buttonGroup'
-import {CenteredProgress} from 'widget/progress'
-import {Form, withForm} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {compose} from 'compose'
-import {credentialsPosted, resetPassword$, tokenUser, validateToken$} from 'user'
-import {history, query} from 'route'
-import {msg} from 'translate'
-import {switchMap} from 'rxjs'
-import {withRecaptcha} from 'widget/recaptcha'
-import Notifications from 'widget/notifications'
 import PropTypes from 'prop-types'
 import React from 'react'
-import actionBuilder from 'action-builder'
+import {switchMap} from 'rxjs'
+
+import {actionBuilder} from '~/action-builder'
+import {compose} from '~/compose'
+import {history, query} from '~/route'
+import {msg} from '~/translate'
+import {credentialsPosted, resetPassword$, tokenUser, validateToken$} from '~/user'
+import {Button} from '~/widget/button'
+import {ButtonGroup} from '~/widget/buttonGroup'
+import {Form} from '~/widget/form'
+import {FormContainer} from '~/widget/form/container'
+import {withForm} from '~/widget/form/form'
+import {Layout} from '~/widget/layout'
+import {Notifications} from '~/widget/notifications'
+import {CenteredProgress} from '~/widget/progress'
+import {withRecaptcha} from '~/widget/recaptcha'
+
 import styles from './setPassword.module.css'
 
 const fields = {
     username: null,
     password: new Form.Field()
         .notBlank('landing.reset-password.password.required')
-        .match(/^.{8,100}$/, 'landing.reset-password.password.invalid'),
+        .match(/^.{12,100}$/, 'landing.reset-password.password.invalid'),
     password2: new Form.Field()
         .notBlank('landing.reset-password.password2.required')
 
@@ -47,7 +51,7 @@ class _SetPassword extends React.Component {
     }
 
     componentDidMount() {
-        const {stream} = this.props
+        const {stream, inputs: {username}} = this.props
         const token = query().token
         stream('VALIDATE_TOKEN',
             validateToken$(token),
@@ -55,13 +59,14 @@ class _SetPassword extends React.Component {
                 actionBuilder('TOKEN_VALIDATED')
                     .set('user.tokenUser', user)
                     .dispatch()
+                username.set(user && user.username)
             },
             () => {
                 Notifications.error({
                     message: msg('landing.validate-token.error'),
                     timeout: 10
                 })
-                history().push('/process') // [TODO] fix this
+                history().push('/-/process') // [TODO] fix this
             }
         )
     }
@@ -87,7 +92,7 @@ class _SetPassword extends React.Component {
             ),
             user => {
                 credentialsPosted(user)
-                history().push('/process')
+                history().push('/-/process')
                 Notifications.success({message: msg('landing.reset-password.success')})
             },
             () => {
@@ -113,7 +118,7 @@ class _SetPassword extends React.Component {
         const {form, inputs: {username, password, password2}, stream} = this.props
         const resettingPassword = stream('RESET_PASSWORD').active
         return (
-            <Form
+            <FormContainer
                 className={styles.form}
                 onSubmit={this.submit}>
                 <Layout spacing='loose'>
@@ -121,7 +126,6 @@ class _SetPassword extends React.Component {
                         label={msg('landing.reset-password.username.label')}
                         input={username}
                         disabled={true}
-                        errorMessage
                     />
                     <Form.Input
                         label={msg('landing.reset-password.password.label')}
@@ -130,7 +134,6 @@ class _SetPassword extends React.Component {
                         placeholder={msg('landing.reset-password.password.placeholder')}
                         autoFocus
                         tabIndex={1}
-                        errorMessage
                     />
                     <Form.Input
                         label={msg('landing.reset-password.password2.label')}
@@ -153,7 +156,7 @@ class _SetPassword extends React.Component {
                         />
                     </ButtonGroup>
                 </Layout>
-            </Form>
+            </FormContainer>
         )
     }
 }

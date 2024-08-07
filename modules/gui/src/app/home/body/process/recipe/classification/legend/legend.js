@@ -1,17 +1,19 @@
-import {Form} from 'widget/form/form'
-import {LegendBuilder, defaultColor} from 'app/home/map/legendBuilder'
-import {Panel} from 'widget/panel/panel'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {compose} from 'compose'
-import {downloadCsv} from 'widget/download'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import {withActivators} from 'widget/activation/activator'
-import ButtonSelect from 'widget/buttonSelect'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
-import guid from 'guid'
+
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {defaultColor, LegendBuilder} from '~/app/home/map/legendBuilder'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {uuid} from '~/uuid'
+import {withActivators} from '~/widget/activation/activator'
+import {ButtonSelect} from '~/widget/buttonSelect'
+import {downloadCsv} from '~/widget/download'
+import {Form} from '~/widget/form'
+import {Panel} from '~/widget/panel/panel'
+
 import styles from './legend.module.css'
 
 const fields = {
@@ -109,7 +111,7 @@ class _Legend extends React.Component {
 
     addEntry() {
         const {inputs: {entries}} = this.props
-        const id = guid()
+        const id = uuid()
         const max = _.maxBy(entries.value, 'value')
         const value = max ? max.value + 1 : 1
         const color = defaultColor(entries.value.length)

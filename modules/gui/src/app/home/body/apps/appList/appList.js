@@ -1,35 +1,36 @@
-import {AppDetails} from './appDetails'
-import {AppItem} from './appItem'
-import {Button} from 'widget/button'
-import {Buttons} from 'widget/buttons'
-import {CenteredProgress} from 'widget/progress'
-import {Content, SectionLayout} from 'widget/sectionLayout'
-import {CrudItem} from 'widget/crudItem'
-import {FastList} from 'widget/fastList'
-import {Layout} from 'widget/layout'
-import {ListItem} from 'widget/listItem'
-import {Scrollable, ScrollableContainer, Unscrollable} from 'widget/scrollable'
-import {SearchBox} from 'widget/searchBox'
-import {compose} from 'compose'
-import {connect, select} from 'store'
-import {currentUser} from 'user'
-import {getLanguage, msg} from 'translate'
-import {loadApps$} from 'apps'
-import {simplifyString, splitString} from 'string'
-import {userDetailsHint} from 'app/home/user/userDetails'
-import Icon from 'widget/icon'
-import Notifications from 'widget/notifications'
+import _ from 'lodash'
+import memoizeOne from 'memoize-one'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
-import actionBuilder from 'action-builder'
-import memoizeOne from 'memoize-one'
+
+import {actionBuilder} from '~/action-builder'
+import {userDetailsHint} from '~/app/home/user/userDetails'
+import {loadApps$} from '~/apps'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {select} from '~/store'
+import {simplifyString, splitString} from '~/string'
+import {getLanguage, msg} from '~/translate'
+import {isServiceAccount} from '~/user'
+import {Button} from '~/widget/button'
+import {Buttons} from '~/widget/buttons'
+import {CrudItem} from '~/widget/crudItem'
+import {FastList} from '~/widget/fastList'
+import {Icon} from '~/widget/icon'
+import {Layout} from '~/widget/layout'
+import {ListItem} from '~/widget/listItem'
+import {Notifications} from '~/widget/notifications'
+import {CenteredProgress} from '~/widget/progress'
+import {SearchBox} from '~/widget/searchBox'
+import {Content, SectionLayout} from '~/widget/sectionLayout'
+
+import {AppDetails} from './appDetails'
+import {AppItem} from './appItem'
 import styles from './appList.module.css'
 
 const IGNORE = 'IGNORE'
 
 const mapStateToProps = () => ({
-    user: currentUser(),
     apps: select('apps.list'),
     tags: select('apps.tags'),
     tabs: select('apps.tabs'),
@@ -99,21 +100,19 @@ class _AppList extends React.Component {
         const itemKey = app => `${app.path}|${this.getHighlightMatcher()}`
         return this.hasData()
             ? (
-                <ScrollableContainer>
-                    <Unscrollable>
+                <Layout type='vertical' spacing='compact'>
+                    <div className={styles.header}>
                         {this.renderHeader(apps)}
-                    </Unscrollable>
-                    <Scrollable direction='x'>
-                        <FastList
-                            items={apps}
-                            itemKey={itemKey}
-                            itemRenderer={this.renderApp}
-                            spacing='tight'
-                            overflow={50}
-                            onEnter={this.handleSelect}
-                        />
-                    </Scrollable>
-                </ScrollableContainer>
+                    </div>
+                    <FastList
+                        items={apps}
+                        itemKey={itemKey}
+                        itemRenderer={this.renderApp}
+                        spacing='tight'
+                        overflow={50}
+                        onEnter={this.handleSelect}
+                    />
+                </Layout>
             )
             : null
     }
@@ -126,7 +125,9 @@ class _AppList extends React.Component {
     renderHeader(apps) {
         const {tags} = this.props
         return (
-            <Layout className={styles.header} type='vertical' spacing='compact'>
+            <Layout
+                type='vertical'
+                spacing='compact'>
                 <Layout type='horizontal' spacing='compact'>
                     {this.renderSearch()}
                     {this.renderGoogleAccountFilter()}
@@ -152,7 +153,7 @@ class _AppList extends React.Component {
 
     renderGoogleAccountFilter() {
         const {googleAccountFilter} = this.props
-        return this.isUsingServiceAccount() ? (
+        return isServiceAccount() ? (
             <Button
                 look={googleAccountFilter ? 'cancel' : 'default'}
                 shape='pill'
@@ -286,16 +287,11 @@ class _AppList extends React.Component {
     }
 
     isDisallowed(app) {
-        return app.googleAccountRequired && this.isUsingServiceAccount()
+        return app.googleAccountRequired && isServiceAccount()
     }
 
     isAvailable(app) {
         return !this.isDisabled(app) && !this.isDisallowed(app)
-    }
-
-    isUsingServiceAccount() {
-        const {user} = this.props
-        return !user.googleTokens
     }
 
     showInfo(app) {

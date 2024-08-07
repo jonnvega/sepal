@@ -1,28 +1,29 @@
-import {CrudItem} from 'widget/crudItem'
-import {ListItem} from 'widget/listItem'
-import {NoData} from 'widget/noData'
-import {Scrollable, ScrollableContainer} from 'widget/scrollable'
-import {compose} from 'compose'
-import {connect, select} from 'store'
-import {msg} from 'translate'
-import {stopCurrentUserSession$} from 'user'
-import Notifications from 'widget/notifications'
 import React from 'react'
-import actionBuilder from 'action-builder'
-import format from 'format'
+
+import {actionBuilder} from '~/action-builder'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import format from '~/format'
+import {select} from '~/store'
+import {msg} from '~/translate'
+import {stopCurrentUserSession$} from '~/user'
+import {CrudItem} from '~/widget/crudItem'
+import {ListItem} from '~/widget/listItem'
+import {NoData} from '~/widget/noData'
+import {Notifications} from '~/widget/notifications'
+import {Scrollable} from '~/widget/scrollable'
 
 const mapStateToProps = () => ({
     sessions: select('user.currentUserReport.sessions')
 })
 
-class UserSessions extends React.Component {
+class _UserSessions extends React.Component {
     stopSession(session) {
         const {stream, onClose} = this.props
         stream('STOP_USER_SESSION',
             stopCurrentUserSession$(session),
             () => {
                 Notifications.success({message: msg('user.userSession.stop.success')})
-                onClose()
             },
             error => Notifications.error({message: msg('user.userSession.stop.error'), error})
         )
@@ -69,11 +70,9 @@ class UserSessions extends React.Component {
 
     renderSessions(sessions) {
         return (
-            <ScrollableContainer>
-                <Scrollable>
-                    {sessions.map(session => this.renderSession(session))}
-                </Scrollable>
-            </ScrollableContainer>
+            <Scrollable direction='y'>
+                {sessions.map(session => this.renderSession(session))}
+            </Scrollable>
         )
     }
 
@@ -85,9 +84,9 @@ class UserSessions extends React.Component {
     }
 }
 
-UserSessions.propTypes = {}
-
-export default compose(
-    UserSessions,
+export const UserSessions = compose(
+    _UserSessions,
     connect(mapStateToProps)
 )
+
+UserSessions.propTypes = {}

@@ -1,21 +1,23 @@
-import {AssetDestination} from 'widget/assetDestination'
-import {Button} from 'widget/button'
-import {Form} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {NumberButtons} from 'widget/numberButtons'
-import {Panel} from 'widget/panel/panel'
-import {RecipeActions} from '../../ccdcSliceRecipe'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {WorkspaceDestination} from 'widget/workspaceDestination'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {currentUser} from 'user'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import {updateProject} from 'app/home/body/process/recipeList/projects'
+import _ from 'lodash'
 import Path from 'path'
 import React from 'react'
-import _ from 'lodash'
+
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {updateProject} from '~/app/home/body/process/recipeList/projects'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {isGoogleAccount} from '~/user'
+import {AssetDestination} from '~/widget/assetDestination'
+import {Button} from '~/widget/button'
+import {Form} from '~/widget/form'
+import {Layout} from '~/widget/layout'
+import {NumberButtons} from '~/widget/numberButtons'
+import {Panel} from '~/widget/panel/panel'
+import {WorkspaceDestination} from '~/widget/workspaceDestination'
+
+import {RecipeActions} from '../../ccdcSliceRecipe'
 import styles from './retrieve.module.css'
 
 const fields = {
@@ -34,6 +36,9 @@ const fields = {
         .skip((v, {destination}) => destination !== 'GEE')
         .notBlank(),
     assetType: new Form.Field()
+        .skip((v, {destination}) => destination !== 'GEE')
+        .notBlank(),
+    sharing: new Form.Field()
         .skip((v, {destination}) => destination !== 'GEE')
         .notBlank(),
     strategy: new Form.Field()
@@ -74,7 +79,6 @@ const mapStateToProps = state => ({
 const mapRecipeToProps = recipe => ({
     baseBands: selectFrom(recipe, 'model.source.baseBands'),
     segmentBands: selectFrom(recipe, 'model.source.segmentBands'),
-    user: currentUser(),
     projectId: recipe.projectId
 })
 
@@ -131,6 +135,7 @@ class _Retrieve extends React.Component {
                 {destination.value === 'SEPAL' ? this.renderWorkspaceDestination() : null}
                 {destination.value === 'GEE' ? this.renderAssetType() : null}
                 {destination.value === 'GEE' ? this.renderAssetDestination() : null}
+                {destination.value === 'GEE' ? this.renderSharing() : null}
                 {more && destination.value === 'GEE' && assetType.value === 'ImageCollection' ? this.renderTileSize() : null}
                 {more && destination.value === 'GEE' ? this.renderShardSize() : null}
                 {more && destination.value === 'SEPAL' ? this.renderFileDimensionsMultiple() : null}
@@ -150,7 +155,6 @@ class _Retrieve extends React.Component {
                 placeholder={msg('process.retrieve.form.crs.placeholder')}
                 tooltip={msg('process.retrieve.form.crs.tooltip')}
                 input={crs}
-                errorMessage
             />
         )
     }
@@ -163,7 +167,6 @@ class _Retrieve extends React.Component {
                 placeholder={msg('process.retrieve.form.crsTransform.placeholder')}
                 tooltip={msg('process.retrieve.form.crsTransform.tooltip')}
                 input={crsTransform}
-                errorMessage
             />
         )
     }
@@ -178,7 +181,6 @@ class _Retrieve extends React.Component {
                 input={shardSize}
                 options={[4, 16, 32, 64, 128, 256, 512, {value: 1024, label: '1k'}]}
                 suffix={msg('process.retrieve.form.shardSize.suffix')}
-                errorMessage
             />
         )
     }
@@ -208,13 +210,12 @@ class _Retrieve extends React.Component {
                 input={tileSize}
                 options={[0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10]}
                 suffix={msg('process.retrieve.form.tileSize.suffix')}
-                errorMessage
             />
         )
     }
 
     renderDestination() {
-        const {user, inputs: {destination}} = this.props
+        const {inputs: {destination}} = this.props
         const destinationOptions = [
             {
                 value: 'SEPAL',
@@ -225,7 +226,7 @@ class _Retrieve extends React.Component {
                 label: msg('process.retrieve.form.destination.GEE')
             }
         ]
-            .filter(({value}) => user.googleTokens || value !== 'GEE')
+            .filter(({value}) => isGoogleAccount() || value !== 'GEE')
         return (
             <Form.Buttons
                 label={msg('process.retrieve.form.destination.label')}
@@ -279,6 +280,29 @@ class _Retrieve extends React.Component {
             <Form.Buttons
                 label={msg('process.retrieve.form.assetType.label')}
                 input={assetType}
+                multiple={false}
+                options={options}/>
+        )
+    }
+    
+    renderSharing() {
+        const {inputs: {sharing}} = this.props
+        const options = [
+            {
+                value: 'PRIVATE',
+                label: msg('process.retrieve.form.sharing.PRIVATE.label'),
+                tooltip: msg('process.retrieve.form.sharing.PRIVATE.tooltip')
+            },
+            {
+                value: 'PUBLIC',
+                label: msg('process.retrieve.form.sharing.PUBLIC.label'),
+                tooltip: msg('process.retrieve.form.sharing.PUBLIC.tooltip')
+            }
+        ]
+        return (
+            <Form.Buttons
+                label={msg('process.retrieve.form.sharing.label')}
+                input={sharing}
                 multiple={false}
                 options={options}/>
         )
@@ -428,7 +452,6 @@ class _Retrieve extends React.Component {
                 input={scale}
                 options={[1, 5, 10, 15, 20, 30, 60, 100]}
                 suffix={msg('process.retrieve.form.scale.suffix')}
-                errorMessage
             />
         )
     }
@@ -459,7 +482,8 @@ class _Retrieve extends React.Component {
         )
     }
     componentDidMount() {
-        const {defaultAssetType, defaultCrs, defaultScale, defaultShardSize, defaultFileDimensionsMultiple, defaultTileSize, inputs: {assetType, crs, crsTransform, scale, shardSize, fileDimensionsMultiple, tileSize}} = this.props
+        const {defaultAssetType, defaultCrs, defaultScale, defaultShardSize, defaultFileDimensionsMultiple, defaultTileSize,
+            inputs: {assetType, sharing, crs, crsTransform, scale, shardSize, fileDimensionsMultiple, tileSize}} = this.props
         const more = (crs.value && crs.value !== defaultCrs)
         || (crsTransform.value)
         || (shardSize.value && shardSize.value !== defaultShardSize)
@@ -484,6 +508,9 @@ class _Retrieve extends React.Component {
         if (defaultAssetType && !assetType.value) {
             assetType.set(defaultAssetType)
         }
+        if (!sharing.value) {
+            sharing.set('PRIVATE')
+        }
         this.update()
 
     }
@@ -493,9 +520,9 @@ class _Retrieve extends React.Component {
     }
 
     update() {
-        const {user, inputs: {destination, assetType}} = this.props
+        const {inputs: {destination, assetType}} = this.props
         if (!destination.value) {
-            destination.set(user.googleTokens ? 'GEE' : 'SEPAL')
+            destination.set(isGoogleAccount() ? 'GEE' : 'SEPAL')
         }
         if (!assetType.value && destination.value === 'GEE') {
             assetType.set('Image')

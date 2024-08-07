@@ -1,14 +1,16 @@
-import {Form} from 'widget/form/form'
-import {RecipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {RecipeSection} from './recipeSection'
-import {SectionSelection} from './sectionSelection'
-import {msg} from 'translate'
-import AssetSection from './assetSection'
-import ImageForm from './imageForm'
-import PanelSections from 'widget/panelSections'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import {RecipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {PanelSections} from '~/widget/panelSections'
+
+import {AssetSection} from './assetSection'
+import {ImageForm} from './imageForm'
 import styles from './inputImage.module.css'
+import {RecipeSection} from './recipeSection'
+import {SectionSelection} from './sectionSelection'
 
 const MAX_LEGEND_ENTRIES = 10
 

@@ -1,42 +1,45 @@
-import {Button} from 'widget/button'
-import {ElementResizeDetector} from 'widget/elementResizeDetector'
-import {Scrollable, ScrollableContainer} from 'widget/scrollable'
-import {Subject, merge} from 'rxjs'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {withSubscriptions} from 'subscription'
-import Keybinding from 'widget/keybinding'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
+import {distinctUntilChanged, fromEvent, merge, sample, Subject} from 'rxjs'
+
+import {compose} from '~/compose'
+import {isEqual} from '~/hash'
+import {withForwardedRef} from '~/ref'
+import {withSubscriptions} from '~/subscription'
+import {msg} from '~/translate'
+import {Button} from '~/widget/button'
+import {ElementResizeDetector} from '~/widget/elementResizeDetector'
+import {Keybinding} from '~/widget/keybinding'
+import {Scrollable} from '~/widget/scrollable'
+
 import styles from './list.module.css'
-import withForwardedRef from 'ref'
 
 class _ScrollableList extends React.Component {
     autoCenter$ = new Subject()
 
     constructor() {
         super()
+        this.ref = React.createRef()
         this.renderScrollable = this.renderScrollable.bind(this)
     }
 
     render() {
         const {className} = this.props
         return (
-            <ElementResizeDetector resize$={this.autoCenter$}>
-                <ScrollableContainer className={className}>
-                    <Scrollable
-                        className={styles.options}
-                        direction='y'>
-                        {this.renderScrollable}
-                    </Scrollable>
-                </ScrollableContainer>
+            <ElementResizeDetector targetRef={this.ref} resize$={this.autoCenter$}>
+                <Scrollable
+                    ref={this.ref}
+                    direction='y'
+                    containerClassName={[className, styles.options].join(' ')}>
+                    {this.renderScrollable}
+                </Scrollable>
             </ElementResizeDetector>
         )
     }
 
     renderScrollable(scrollable) {
-        const {className, ...props} = this.props
+        const {...props} = this.props
         return (
             <List
                 {...props}
@@ -46,6 +49,7 @@ class _ScrollableList extends React.Component {
         )
     }
 }
+
 export const ScrollableList = compose(
     _ScrollableList,
     withSubscriptions(),
@@ -55,7 +59,13 @@ export const ScrollableList = compose(
 ScrollableList.propTypes = {
     options: PropTypes.arrayOf(
         PropTypes.shape({
+            alias: PropTypes.any,
+            disabled: PropTypes.any,
+            group: PropTypes.any,
+            indent: PropTypes.any,
+            key: PropTypes.any,
             label: PropTypes.any,
+            render: PropTypes.func,
             value: PropTypes.any
         })
     ).isRequired,
@@ -68,9 +78,9 @@ ScrollableList.propTypes = {
     keyboard: PropTypes.any,
     noResults: PropTypes.string,
     overScroll: PropTypes.any,
-    selectedOption: PropTypes.any,
+    selectedValue: PropTypes.any,
     tooltip: PropTypes.any,
-    tooltipPlacement: PropTypes.oneOf(['left', 'right']),
+    tooltipPlacement: PropTypes.any,
     onCancel: PropTypes.func
 }
 
@@ -79,55 +89,61 @@ ScrollableList.defaultProps = {
     tooltipPlacement: 'right'
 }
 
-class List extends React.Component {
-    highlighted = React.createRef()
-    selected = React.createRef()
+class _List extends React.Component {
+    autoCenter$ = new Subject()
+    mouseOption$ = new Subject()
+
     state = {
-        highlightedOption: null,
-        overrideHover: false
+        highlightedOptionKey: null,
+        keyboardNavigation: true
     }
 
     constructor(props) {
         super(props)
         const {forwardedRef} = props
         this.list = forwardedRef || React.createRef()
-        this.autoCenter$ = new Subject()
+        this.highlighted = React.createRef()
+        this.selected = React.createRef()
+        this.selectHighlighted = this.selectHighlighted.bind(this)
+        this.highlightPreviousOption = this.highlightPreviousOption.bind(this)
+        this.highlightNextOption = this.highlightNextOption.bind(this)
+        this.highlightFirstOption = this.highlightFirstOption.bind(this)
+        this.highlightLastOption = this.highlightLastOption.bind(this)
     }
 
     render() {
-        const {scrollable: {containerHeight}, onCancel, keyboard} = this.props
+        const {scrollable: {clientHeight}, onCancel, keyboard} = this.props
         const keymap = {
             Escape: onCancel ? onCancel : null,
-            Enter: () => this.selectHighlighted(),
-            ArrowUp: () => this.highlightPrevious(),
-            ArrowDown: () => this.highlightNext(),
-            Home: () => this.highlightFirst(),
-            End: () => this.highlightLast()
+            Enter: this.selectHighlighted,
+            ArrowUp: this.highlightPreviousOption,
+            ArrowDown: this.highlightNextOption,
+            Home: this.highlightFirstOption,
+            End: this.highlightLastOption
         }
         return (
             <Keybinding keymap={keymap} disabled={keyboard === false}>
-                {this.renderList(containerHeight)}
+                {this.renderList(clientHeight)}
             </Keybinding>
         )
     }
 
-    renderList(containerHeight = 0) {
-        const {options, overScroll} = this.props
+    renderList(clientHeight = 0) {
+        const {overScroll} = this.props
         return (
             <ul
+                onMouseLeave={this.onMouseLeave}
                 ref={this.list}
                 style={{
-                    '--scrollable-container-height': overScroll ? containerHeight : 0
-                }}
-                onMouseLeave={() => this.autoCenter$.next(true)}
-            >
-                {this.renderOptions(options)}
+                    '--scrollable-container-height': overScroll ? clientHeight : 0
+                }}>
+                {this.renderOptions()}
             </ul>
         )
     }
 
-    renderOptions(options) {
-        const {noResults} = this.props
+    renderOptions() {
+        const {options, noResults} = this.props
         return options.length
             ? options.map((option, index) => this.renderOption(option, index))
             : this.renderOption({label: noResults || msg('widget.list.noResults')})
@@ -146,26 +162,44 @@ class List extends React.Component {
     renderGroup(option, index) {
         const {alignment, air} = this.props
         return (
-            <li key={option.key || index}>
+            <li key={option.key || index} className={styles.sticky} style={this.getOptionStyle(option)}>
                 <Button
+                    innerButton
                     chromeless
                     look='transparent'
                     air={air}
-                    additionalClassName={styles.group}
                     label={option.render ? option.render() : option.label}
+                    labelStyle='smallcaps'
                     width='max'
                     alignment={alignment}
-                    disabled
+                    tail={this.renderGroupTooltipIcon(option)}
                 />
             </li>
         )
     }
 
+    renderGroupTooltipIcon({tooltip, tooltipLinkUrl}) {
+        const {tooltipPlacement} = this.props
+        return tooltip || tooltipLinkUrl ? (
+            <Button
+                innerButton
+                chromeless
+                shape='none'
+                air='none'
+                icon='info-circle'
+                tooltip={tooltip}
+                tooltipPlacement={tooltipPlacement}
+                linkUrl={tooltipLinkUrl}
+            />
+        ) : null
+    }
+
     renderNonSelectableOption(option, index) {
         const {alignment, air} = this.props
         return (
-            <li key={option.key || option.value || index}>
+            <li key={option.key || option.value || index} style={this.getOptionStyle(option)}>
                 <Button
+                    innerButton
                     chromeless
                     look='transparent'
                     air={air}
@@ -180,30 +214,28 @@ class List extends React.Component {
 
     renderSeparator(option, index) {
         return (
-            <li key={option.key || index} className={styles.separator}/>
+            <li key={option.key || index} className={styles.separator} style={this.getOptionStyle(option)}/>
         )
     }
 
     renderSelectableOption(option, index) {
-        const {selectedOption, tooltipPlacement, alignment, air} = this.props
-        const {overrideHover} = this.state
+        const {tooltipPlacement, alignment, air} = this.props
+        const {keyboardNavigation} = this.state
+        const key = this.getOptionKey(option)
         const selected = this.isSelected(option)
         const highlighted = this.isHighlighted(option)
-        const hover = overrideHover && highlighted || null // three-state
-        const ref = selected
-            ? this.selected
-            : highlighted
-                ? this.highlighted
-                : null
+        const hover = keyboardNavigation
+            ? highlighted
+            : null // three-state: null = auto
+        const ref = (selected && this.selected) || (highlighted && this.highlighted) || null
         return (
-            <li
-                key={option.key || option.value || index}
-                data-option-value={option.value}
-                ref={ref}>
+            <li key={key || index} ref={ref} style={this.getOptionStyle(option)}>
                 <Button
+                    innerButton
                     chromeless={!selected}
                     look={selected ? 'selected' : 'highlight'}
                     air={air}
+                    dimmed={option.dimmed}
                     label={option.render ? null : option.label}
                     tooltip={option.tooltip}
                     tooltipPlacement={tooltipPlacement}
@@ -211,187 +243,192 @@ class List extends React.Component {
                     width='max'
                     alignment={alignment}
                     disableTransitions
-                    onMouseOver={() => this.highlightOption(option)}
-                    onMouseOut={() => this.highlightOption(selectedOption)}
-                    onClick={() => this.selectOption(option)}
-                >
+                    onMouseEnter={() => this.mouseOption$.next(key)}
+                    onClick={() => this.selectOption(key)}>
                     {option.render ? option.render() : null}
                 </Button>
             </li>
         )
     }
 
-    isSelected(option) {
-        const {selectedOption} = this.props
-        return option === selectedOption
-    }
-
-    isSelectable(option) {
-        return !option.group && option.value
-    }
-
-    isHighlighted(option) {
-        const {highlightedOption} = this.state
-        return highlightedOption && option && highlightedOption.value === option.value
-    }
-
-    selectHighlighted() {
-        const {highlightedOption} = this.state
-        if (highlightedOption) {
-            this.selectOption(highlightedOption)
+    getOptionStyle(option) {
+        return {
+            '--indent': option.indent
         }
     }
 
-    cancel() {
-        const {onCancel} = this.props
-        onCancel && onCancel()
+    getOptionKey(option) {
+        return option && (option.key || option.value || option.label)
+    }
+
+    isSelected(option) {
+        const {selectedValue} = this.props
+        return selectedValue && option.value === selectedValue && !option.alias
+    }
+
+    isSelectable(option) {
+        return !option.group && option.value && !option.disabled
+    }
+
+    isHighlighted(option) {
+        const {highlightedOptionKey} = this.state
+        return highlightedOptionKey === this.getOptionKey(option)
+    }
+
+    selectHighlighted() {
+        const {highlightedOptionKey} = this.state
+        if (highlightedOptionKey) {
+            this.selectOption(highlightedOptionKey)
+        }
     }
 
     getSelectedOption() {
-        const {options, selectedOption} = this.props
-        return _.find(options, option => option === selectedOption)
+        const {options, selectedValue} = this.props
+        return selectedValue
+            ? options.filter(({alias}) => !alias).find(({value}) => value === selectedValue)
+            : null
     }
 
-    getPreviousSelectableOption(option) {
+    getPreviousSelectableOptionKey(key) {
         const {options} = this.props
+        const option = this.getOption(key)
         const index = _.indexOf(options, option)
         const previousIndex =
             index === -1
                 ? options.length - 1
                 : Math.max(index - 1, 0)
-        return _.findLast(options, option => this.isSelectable(option), previousIndex) || option
+        return this.getOptionKey(_.findLast(options, option => this.isSelectable(option), previousIndex) || option)
     }
 
-    getNextSelectableOption(option) {
+    getNextSelectableOptionKey(key) {
         const {options} = this.props
+        const option = this.getOption(key)
         const nextIndex = Math.min(_.indexOf(options, option) + 1, options.length - 1)
-        return _.find(options, option => this.isSelectable(option), nextIndex) || option
+        return this.getOptionKey(_.find(options, option => this.isSelectable(option), nextIndex) || option)
     }
 
-    getFirstSelectableOption() {
+    getFirstSelectableOptionKey() {
         const {options} = this.props
-        return _.find(options, option => this.isSelectable(option))
+        return this.getOptionKey(_.find(options, option => this.isSelectable(option)))
     }
 
-    getLastSelectableOption() {
+    getLastSelectableOptionKey() {
         const {options} = this.props
-        return _.findLast(options, option => this.isSelectable(option))
+        return this.getOptionKey(_.findLast(options, option => this.isSelectable(option)))
     }
 
-    highlightOption(highlightedOption) {
+    highlightOption(highlightedOptionKey) {
         this.setState({
-            highlightedOption,
-            overrideHover: false
+            highlightedOptionKey,
+            keyboardNavigation: false
         })
     }
 
-    highlightPrevious() {
-        this.setState(({highlightedOption}) => ({
-            highlightedOption: this.getPreviousSelectableOption(highlightedOption),
-            overrideHover: true
-        }), this.scroll)
+    highlightPreviousOption() {
+        this.setState(({highlightedOptionKey}) => ({
+            highlightedOptionKey: this.getPreviousSelectableOptionKey(highlightedOptionKey),
+            keyboardNavigation: true
+        }), this.scrollHighlightedOption)
     }
 
-    highlightNext() {
-        this.setState(({highlightedOption}) => ({
-            highlightedOption: this.getNextSelectableOption(highlightedOption),
-            overrideHover: true
-        }), this.scroll)
+    highlightNextOption() {
+        this.setState(({highlightedOptionKey}) => ({
+            highlightedOptionKey: this.getNextSelectableOptionKey(highlightedOptionKey),
+            keyboardNavigation: true
+        }), this.scrollHighlightedOption)
     }
 
-    highlightFirst() {
+    highlightFirstOption() {
         this.setState({
-            highlightedOption: this.getFirstSelectableOption(),
-            overrideHover: true
-        }, this.scroll)
+            highlightedOptionKey: this.getFirstSelectableOptionKey(),
+            keyboardNavigation: true
+        }, this.scrollHighlightedOption)
     }
 
-    highlightLast() {
+    highlightLastOption() {
         this.setState({
-            highlightedOption: this.getLastSelectableOption(),
-            overrideHover: true
-        }, this.scroll)
-    }
-
-    onHover(element) {
-        if (element.parentElement.parentElement === this.list.current) {
-            const optionValue = element.parentElement.getAttribute('data-option-value')
-            this.highlightOptionByValue(optionValue)
-        }
-    }
-
-    highlightOptionByValue(value) {
-        const {options} = this.props
-        const highlightedOption = _.find(options, option => option.value === value)
-        if (highlightedOption) {
-            this.setState({
-                highlightedOption,
-                overrideHover: true
-            })
-        }
-    }
-
-    scroll() {
-        this.highlighted.current && this.highlighted.current.scrollIntoView({
-            behavior: 'auto',
-            block: 'nearest'
-        })
-    }
-
-    selectOption(option) {
-        const {onSelect} = this.props
-        option.onSelect && option.onSelect()
-        onSelect && onSelect(option)
+            highlightedOptionKey: this.getLastSelectableOptionKey(),
+            keyboardNavigation: true
+        }, this.scrollHighlightedOption)
     }
 
     highlightSelectedOption() {
         const {autoHighlight} = this.props
-        const highlightedOption = this.getSelectedOption() || (autoHighlight && this.getFirstSelectableOption())
+        const selectedOption = this.getSelectedOption()
+        const highlightedOptionKey = selectedOption
+            ? this.getOptionKey(selectedOption)
+            : (autoHighlight && this.getFirstSelectableOptionKey())
         this.setState({
-            highlightedOption,
-            overrideHover: true
-        }, () => this.autoCenter$.next(false))
+            highlightedOptionKey,
+            keyboardNavigation: true
+        }, () => this.autoCenter$.next())
+    }
+
+    getOption(key) {
+        const {options} = this.props
+        return options.find(option => this.getOptionKey(option) === key)
+    }
+
+    selectOption(key) {
+        const {onSelect} = this.props
+        const option = this.getOption(key)
+        option.onSelect && option.onSelect()
+        onSelect && onSelect(option)
     }
 
     centerSelectedOption() {
         const {scrollable} = this.props
         scrollable.centerElement(this.selected.current)
     }
+    
+    scrollHighlightedOption() {
+        const {scrollable} = this.props
+        scrollable.scrollElement(this.highlighted.current)
+    }
 
     initializeAutoCenter() {
-        const {addSubscription, scrollable, autoCenter$} = this.props
+        const {addSubscription, autoCenter$} = this.props
         addSubscription(
             merge(autoCenter$, this.autoCenter$)
-                .subscribe(reset => reset
-                    ? scrollable.reset(() => this.centerSelectedOption())
-                    : this.centerSelectedOption()
-                )
+                .subscribe(() => this.centerSelectedOption())
         )
         this.highlightSelectedOption()
     }
 
+    initializeMouseHandler() {
+        const {addSubscription, scrollable: {mouseAway$}} = this.props
+        const mouseActivity$ = merge(
+            fromEvent(document, 'mousemove'),
+            fromEvent(document, 'wheel')
+        )
+        const mouseOption$ = this.mouseOption$.pipe(
+            sample(mouseActivity$),
+            distinctUntilChanged()
+        )
+        addSubscription(
+            mouseOption$.subscribe(
+                key => this.highlightOption(key)
+            ),
+            mouseAway$.subscribe(
+                () => this.highlightSelectedOption()
+            )
+        )
+    }
+
     componentDidMount() {
         this.initializeAutoCenter()
+        this.initializeMouseHandler()
     }
 
-    shouldComponentUpdate(nextProps, nextState) {
-        if (!_.isEqual(nextProps, this.props)) {
-            return true
-        }
-        if (nextState.overrideHover !== this.state.overrideHover) {
-            return true
-        }
-        if (nextState.overrideHover && nextState.highlightedOption !== this.state.highlightedOption) {
-            return true
-        }
-        return false
-    }
-
-    componentDidUpdate() {
-        const {options} = this.props
-        const {highlightedOption} = this.state
-        if (highlightedOption && !_.find(options, ({value}) => value === highlightedOption.value)) {
+    componentDidUpdate({options: prevOptions, selectedValue: prevSelectedValue}) {
+        const {options, selectedValue} = this.props
+        if (selectedValue !== prevSelectedValue || !isEqual(options, prevOptions)) {
             this.highlightSelectedOption()
         }
     }
 }
+
+const List = compose(
+    _List,
+    withSubscriptions()
+)

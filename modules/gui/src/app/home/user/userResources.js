@@ -1,19 +1,22 @@
-import {Gauge} from 'widget/gauge'
-import {Layout} from 'widget/layout'
-import {Message} from 'widget/message'
-import {compose} from 'compose'
-import {connect, select} from 'store'
-import {msg} from 'translate'
-import Label from 'widget/label'
 import React from 'react'
-import format from 'format'
+
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import format from '~/format'
+import {select} from '~/store'
+import {msg} from '~/translate'
+import {Gauge} from '~/widget/gauge'
+import {Label} from '~/widget/label'
+import {Layout} from '~/widget/layout'
+import {Message} from '~/widget/message'
+
 import styles from './userResources.module.css'
 
 const mapStateToProps = () => ({
     userReport: select('user.currentUserReport') || {}
 })
 
-class UserResources extends React.Component {
+class _UserResources extends React.Component {
     render() {
         const {userReport: {spending}} = this.props
         return spending ? (
@@ -87,7 +90,7 @@ class UserResources extends React.Component {
     }
 }
 
-export default compose(
-    UserResources,
+export const UserResources = compose(
+    _UserResources,
     connect(mapStateToProps)
 )

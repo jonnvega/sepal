@@ -1,17 +1,20 @@
-import {Button} from 'widget/button'
-import {ColorElement} from 'widget/colorElement'
-import {Form, withForm} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {NoData} from 'widget/noData'
-import {PalettePreSets, pickColors} from './visParams/palettePreSets'
-import {Widget} from 'widget/widget'
-import {compose} from 'compose'
-import {msg} from 'translate'
 import Color from 'color'
-import React from 'react'
-import RemoveButton from 'widget/removeButton'
 import _ from 'lodash'
+import React from 'react'
+
+import {compose} from '~/compose'
+import {msg} from '~/translate'
+import {Button} from '~/widget/button'
+import {ColorElement} from '~/widget/colorElement'
+import {Form} from '~/widget/form'
+import {withForm} from '~/widget/form/form'
+import {Layout} from '~/widget/layout'
+import {NoData} from '~/widget/noData'
+import {RemoveButton} from '~/widget/removeButton'
+import {Widget} from '~/widget/widget'
+
 import styles from './legendBuilder.module.css'
+import {PalettePreSets, pickColors} from './visParams/palettePreSets'
 
 export class LegendBuilder extends React.Component {
     state = {
@@ -252,7 +255,7 @@ class _Entry extends React.Component {
                 input={color}
                 errorMessage={[color, 'colorUnique']}
                 autoComplete={false}
-                onChange={e => this.notifyChange({color: e.target.value})}
+                onChange={value => this.notifyChange({color: value})}
             />
         )
     }
@@ -267,7 +270,7 @@ class _Entry extends React.Component {
                 errorMessage={[value, 'valueUnique']}
                 autoComplete={false}
                 disabled={locked}
-                onChange={e => this.notifyChange({value: e.target.value})}
+                onChange={value => this.notifyChange({value})}
             />
         )
     }
@@ -282,9 +285,7 @@ class _Entry extends React.Component {
                 autoFocus={!entry.label}
                 errorMessage={[label, 'labelUnique']}
                 autoComplete={false}
-                onChange={e => {
-                    this.notifyChange({label: e.target.value})
-                }}
+                onChange={value => this.notifyChange({label: value})}
             />
         )
     }
@@ -341,14 +342,12 @@ class ColorInput extends React.Component {
 
     render() {
         const {input, invalid, onChange} = this.props
-        const {swap} = this.state
         return (
             <ColorElement
                 color={input.value}
                 invalid={invalid}
                 tooltip={this.renderTooltip()}
                 tooltipPlacement='left'
-                onTooltipVisibleChange={visible => swap && !visible && this.setState({swap: false})}
                 onChange={value => {
                     input.set(value)
                     onChange(value)

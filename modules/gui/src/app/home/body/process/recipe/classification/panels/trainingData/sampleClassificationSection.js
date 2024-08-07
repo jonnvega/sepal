@@ -1,18 +1,19 @@
-import {AssetSelect} from 'widget/assetSelect'
-import {FormCombo} from 'widget/form/combo'
-import {Layout} from 'widget/layout'
-import {NumberButtons} from 'widget/numberButtons'
-import {Subject, takeUntil} from 'rxjs'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {withRecipe} from 'app/home/body/process/recipeContext'
 import PropTypes from 'prop-types'
-import React, {Component} from 'react'
-import api from 'api'
+import React from 'react'
+import {Subject, takeUntil} from 'rxjs'
+
+import api from '~/apiRegistry'
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {FormCombo} from '~/widget/form/combo'
+import {Layout} from '~/widget/layout'
+import {NumberButtons} from '~/widget/numberButtons'
 
 const mapRecipeToProps = recipe => ({recipe})
 
-class SampleClassificationSection extends Component {
+class _SampleClassificationSection extends React.Component {
     cancel$ = new Subject()
     state = {bands: []}
 
@@ -48,7 +49,6 @@ class SampleClassificationSection extends Component {
                 input={samplesPerClass}
                 options={options}
                 suffix={msg('process.classification.panel.trainingData.form.sampleClassification.samplesPerClass.suffix')}
-                errorMessage
                 onChange={count => this.loadInputData({
                     asset: this.props.inputs.assetToSample.value,
                     count,
@@ -69,7 +69,6 @@ class SampleClassificationSection extends Component {
                 input={sampleScale}
                 options={[3, 5, 10, 15, 20, 30, 60, 100, 200, 500]}
                 suffix={msg('process.classification.panel.trainingData.form.sampleClassification.sampleScale.suffix')}
-                errorMessage
                 onChange={scale => this.loadInputData({
                     asset: this.props.inputs.assetToSample.value,
                     count: this.props.inputs.samplesPerClass.value,
@@ -82,20 +81,21 @@ class SampleClassificationSection extends Component {
 
     renderAssetToSample() {
         const {inputs: {assetToSample}} = this.props
-        return <AssetSelect
-            label={msg('process.classification.panel.trainingData.form.sampleClassification.assetToSample.label')}
-            autoFocus
-            input={assetToSample}
-            placeholder={msg('process.classification.panel.trainingData.form.sampleClassification.assetToSample.placeholder')}
-            expectedType={['Image', 'ImageCollection']}
-            errorMessage
-            onLoading={() => this.setState({bands: []})}
-            onLoaded={({metadata}) => {
-                const bands = metadata.bands.map(({id}) => id) || []
-                this.setState({bands})
-            }}
-            busyMessage={this.props.stream('SAMPLE_IMAGE').active && msg('widget.loading')}
-        />
+        return (
+            <Form.AssetCombo
+                label={msg('process.classification.panel.trainingData.form.sampleClassification.assetToSample.label')}
+                autoFocus
+                input={assetToSample}
+                placeholder={msg('process.classification.panel.trainingData.form.sampleClassification.assetToSample.placeholder')}
+                allowedTypes={['Image', 'ImageCollection']}
+                onLoading={() => this.setState({bands: []})}
+                onLoaded={({metadata}) => {
+                    const bands = metadata.bands.map(({id}) => id) || []
+                    this.setState({bands})
+                }}
+                busyMessage={this.props.stream('SAMPLE_IMAGE').active && msg('widget.loading')}
+            />
+        )
     }
 
     renderValueColumnInput() {
@@ -172,12 +172,12 @@ class SampleClassificationSection extends Component {
     }
 }
 
+export const SampleClassificationSection = compose(
+    _SampleClassificationSection,
+    withRecipe(mapRecipeToProps),
+)
+
 SampleClassificationSection.propTypes = {
     children: PropTypes.any,
     inputs: PropTypes.any
 }
-
-export default compose(
-    SampleClassificationSection,
-    withRecipe(mapRecipeToProps),
-)

@@ -1,11 +1,13 @@
-import {compose} from 'compose'
-import Icon from 'widget/icon'
 import PropTypes from 'prop-types'
 import React from 'react'
-import Tooltip from 'widget/tooltip'
-import lookStyles from 'style/look.module.css'
+
+import {compose} from '~/compose'
+import {withForwardedRef} from '~/ref'
+import lookStyles from '~/style/look.module.css'
+import {Icon} from '~/widget/icon'
+import {Tooltip} from '~/widget/tooltip'
+
 import styles from './shape.module.css'
-import withForwardedRef from 'ref'
 
 class _Shape extends React.Component {
     classNames() {
@@ -22,16 +24,19 @@ class _Shape extends React.Component {
             lookStyles[look],
             chromeless ? lookStyles.chromeless : null,
             disableTransitions ? lookStyles.noTransitions : null,
-            disabled ? lookStyles.nonInteractive : null,
+            disabled ? lookStyles.disabled : null,
             disableHover ? lookStyles.hoverDisabled : null,
             additionalClassName
         ].join(' ')
     }
 
     renderTooltip(contents) {
-        const {tooltip, tooltipPlacement, tooltipDisabled, disabled} = this.props
+        const {tooltip, tooltipPlacement, tooltipDisabled, tooltipDelay, disabled} = this.props
         return tooltip && !tooltipDisabled && !disabled ? (
-            <Tooltip msg={tooltip} placement={tooltipPlacement}>
+            <Tooltip
+                msg={tooltip}
+                placement={tooltipPlacement}
+                delay={tooltipDelay}>
                 {contents}
             </Tooltip>
         ) : contents
@@ -51,11 +56,12 @@ class _Shape extends React.Component {
     }
 
     renderIcon() {
-        const {icon, iconType, iconAttributes} = this.props
+        const {icon, iconType, iconAttributes, iconVariant} = this.props
         return (
             <Icon
                 name={icon}
                 type={iconType}
+                variant={iconVariant}
                 attributes={iconAttributes}
             />
         )
@@ -112,12 +118,14 @@ Shape.propTypes = {
     iconAttributes: PropTypes.any,
     iconPlacement: PropTypes.oneOf(['left', 'right']),
     iconType: PropTypes.string,
+    iconVariant: PropTypes.string,
     look: PropTypes.oneOf(['default', 'highlight', 'selected', 'transparent', 'add', 'apply', 'cancel']),
     shape: PropTypes.oneOf(['rectangle', 'pill', 'circle', 'none']),
     shown: PropTypes.any,
     size: PropTypes.oneOf(['x-small', 'small', 'normal', 'large', 'x-large', 'xx-large']),
     tail: PropTypes.string,
     tooltip: PropTypes.any,
+    tooltipDelay: PropTypes.any,
     tooltipDisabled: PropTypes.any,
     tooltipPlacement: PropTypes.oneOf(['top', 'bottom', 'left', 'right']),
     width: PropTypes.oneOf(['fit', 'fill'])
@@ -127,6 +135,7 @@ Shape.defaultProps = {
     air: 'normal',
     alignment: 'left',
     iconPlacement: 'left',
+    iconVariant: 'normal',
     look: 'default',
     shape: 'rectangle',
     shown: true,

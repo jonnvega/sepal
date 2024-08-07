@@ -24,7 +24,7 @@ export const simplifyString = (s, {trim = true, removeAccents = true, removePunc
     return replacers.reduce((s, replacer) => replacer(s), removeAccents ? s.normalize('NFD') : s)
 }
 
-export const splitString = s => s ? s.split(/\s/) : []
+export const splitString = s => s ? s.split(/\s+/) : []
 
 export const toSafeString = s =>
     s
@@ -33,3 +33,6 @@ export const toSafeString = s =>
             removePunctuation: false
         }).replace(/[^\w-.]/g, '_')
         : s
+
+export const escapeRegExp = string =>
+    string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // $& means the whole matched string

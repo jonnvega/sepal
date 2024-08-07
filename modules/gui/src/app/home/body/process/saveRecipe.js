@@ -1,12 +1,15 @@
-import {Form, withForm} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {Panel} from 'widget/panel/panel'
-import {closeRecipe, saveRecipe} from './recipe'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {toSafeString} from 'string'
-import {withActivatable} from 'widget/activation/activatable'
 import React from 'react'
+
+import {compose} from '~/compose'
+import {toSafeString} from '~/string'
+import {msg} from '~/translate'
+import {withActivatable} from '~/widget/activation/activatable'
+import {Form} from '~/widget/form'
+import {withForm} from '~/widget/form/form'
+import {Layout} from '~/widget/layout'
+import {Panel} from '~/widget/panel/panel'
+
+import {closeRecipe, saveRecipe} from './recipe'
 import styles from './saveRecipe.module.css'
 
 const fields = {
@@ -20,7 +23,7 @@ const mapStateToProps = (state, ownProps) => ({
     }
 })
 
-class SaveRecipe extends React.Component {
+class _SaveRecipe extends React.Component {
     saveRecipe() {
         const {inputs: {name}, activatable} = this.props
         const title = toSafeString(name.value)
@@ -48,7 +51,6 @@ class SaveRecipe extends React.Component {
                         label={msg('process.saveRecipe.form.name.label')}
                         autoFocus
                         input={name}
-                        errorMessage
                     />
                 </Layout>
             </Panel.Content>
@@ -83,14 +85,14 @@ class SaveRecipe extends React.Component {
     }
 }
 
-SaveRecipe.propTypes = {}
-
 const policy = () => ({
     _: 'allow'
 })
 
-export default compose(
-    SaveRecipe,
+export const SaveRecipe = compose(
+    _SaveRecipe,
     withForm({fields, mapStateToProps}),
     withActivatable({id: 'saveRecipeDialog', policy})
 )
+
+SaveRecipe.propTypes = {}

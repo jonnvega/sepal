@@ -1,14 +1,17 @@
-import {Button} from 'widget/button'
-import {HexColorPicker} from 'react-colorful'
-import {isMobile} from 'widget/userAgent'
-import {msg} from 'translate'
-import FloatingBox from 'widget/floatingBox'
-import Icon from 'widget/icon'
-import Keybinding from 'widget/keybinding'
+import './colorElement.css'
+
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
-import _css from './colorElement.css'
+import {HexColorPicker} from 'react-colorful'
+
+import {msg} from '~/translate'
+import {Button} from '~/widget/button'
+import {FloatingBox} from '~/widget/floatingBox'
+import {Icon} from '~/widget/icon'
+import {Keybinding} from '~/widget/keybinding'
+import {isMobile} from '~/widget/userAgent'
+
 import styles from './colorElement.module.css'
 
 export class ColorElement extends React.Component {
@@ -39,7 +42,7 @@ export class ColorElement extends React.Component {
     }
 
     renderButton() {
-        const {className, tooltip, tooltipPlacement, onTooltipVisibleChange} = this.props
+        const {className, tooltip, tooltipPlacement} = this.props
         const {color} = this.state
         return (
             <Button
@@ -55,7 +58,6 @@ export class ColorElement extends React.Component {
                 tooltipClickTrigger={isMobile()}
                 tooltipDelay={0}
                 tooltipPlacement={tooltipPlacement}
-                tooltipVisible={onTooltipVisibleChange}
                 onClick={this.onClick}
             />
         )
@@ -164,8 +166,7 @@ ColorElement.propTypes = {
     tooltip: PropTypes.any,
     tooltipPlacement: PropTypes.any,
     onChange: PropTypes.func,
-    onClick: PropTypes.func,
-    onTooltipVisibleChange: PropTypes.func
+    onClick: PropTypes.func
 }
 
 ColorElement.defaultProps = {

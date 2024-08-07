@@ -1,7 +1,9 @@
-import {WMTSTileProvider} from './wmtsTileProvider'
-import {combineLatest, filter, map} from 'rxjs'
-import {toBandValues} from '../cursorValue'
 import ee from '@google/earthengine'
+import {combineLatest, filter, map} from 'rxjs'
+
+import {toBandValues} from '../cursorValue'
+import {handleError$} from './earthEngineError'
+import {WMTSTileProvider} from './wmtsTileProvider'
 
 const CONCURRENCY = 8
 const TILE_SIZE = ee.layers.AbstractOverlay.DEFAULT_TILE_EDGE_LENGTH
@@ -35,10 +37,7 @@ export class EarthEngineTileProvider extends WMTSTileProvider {
 
     getElementContext(element) {
         const ctx = element.getContext('2d', {willReadFrequently: true})
-        // ctx.imageSmoothingEnabled = false
-        // ctx.mozImageSmoothingEnabled = false
-        // ctx.webkitImageSmoothingEnabled = false
-        // ctx.msImageSmoothingEnabled = false
+        ctx.imageSmoothingEnabled = false
         return ctx
     }
 
@@ -61,6 +60,25 @@ export class EarthEngineTileProvider extends WMTSTileProvider {
             this.elements[element.id] = element
             this.updateOffset(element)
             this.getElementContext(element).drawImage(image, 0, 0, TILE_SIZE, TILE_SIZE, 0, 0, TILE_SIZE, TILE_SIZE)
+        }
+    }
+
+    handleError$(error, retryError) {
+        return handleError$(error, retryError)
+    }
+
+    renderErrorTile({element, _error}) {
+        const ctx = this.getElementContext(element)
+        ctx.fillStyle = 'red'
+        ctx.globalAlpha = .3
+        const C = 6
+        const STEP = TILE_SIZE / C
+        for (let x = 0; x < C; x++) {
+            for (let y = 0; y < C; y++) {
+                if ((x + y) % 2 == 0) {
+                    ctx.fillRect(x * STEP, y * STEP, STEP, STEP)
+                }
+            }
         }
     }
 

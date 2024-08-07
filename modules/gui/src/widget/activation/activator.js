@@ -1,13 +1,15 @@
-import {activationAllowed} from './activationPolicy'
-import {collectActivatables} from './activation'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {v4 as uuid} from 'uuid'
-import {withActivationContext} from './activationContext'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
-import actionBuilder from 'action-builder'
+
+import {actionBuilder} from '~/action-builder'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {uuid} from '~/uuid'
+
+import {collectActivatables} from './activation'
+import {withActivationContext} from './activationContext'
+import {activationAllowed} from './activationPolicy'
 
 const mapStateToProps = (state, ownProps) => {
     const {activationContext: {pathList}} = ownProps
@@ -17,11 +19,6 @@ const mapStateToProps = (state, ownProps) => {
 
 class _Activator extends React.Component {
     activatorId = uuid()
-
-    // shouldComponentUpdate({activatables: prevActivatables}) {
-    //     const {activatables} = this.props
-    //     return !isEqual(activatables, prevActivatables)
-    // }
 
     render() {
         const {children} = this.props

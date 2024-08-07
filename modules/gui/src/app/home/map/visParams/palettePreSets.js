@@ -1,10 +1,11 @@
-import {Button} from 'widget/button'
-import {Combo} from 'widget/combo'
-import {msg} from 'translate'
 import Color from 'color'
-import Label from 'widget/label'
-import React from 'react'
 import _ from 'lodash'
+
+import {msg} from '~/translate'
+import {Button} from '~/widget/button'
+import {Combo} from '~/widget/combo'
+import {Label} from '~/widget/label'
+
 import styles from './palettePreSets.module.css'
 
 export const pickColors = (count, colors) => {
@@ -47,7 +48,7 @@ export const PalettePreSets = ({onSelect, count, className, autoFocus, disabled}
             placeholder={msg('map.visParams.form.palette.preset.placeholder')}
             placement='above'
             options={allOptions}
-            additionalButtons={[
+            buttons={[
                 <Button
                     key={'attribution'}
                     chromeless
@@ -63,7 +64,6 @@ export const PalettePreSets = ({onSelect, count, className, autoFocus, disabled}
             ]}
             disabled={disabled}
             onChange={({value}) => onSelect(value)}
-            
         />
     )
 }

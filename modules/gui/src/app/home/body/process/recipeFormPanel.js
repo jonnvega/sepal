@@ -1,13 +1,15 @@
-import {Form, withForm} from 'widget/form/form'
-import {compose} from 'compose'
-import {initValues} from 'app/home/body/process/recipe'
-import {selectFrom} from 'stateUtils'
-import {withActivatable} from 'widget/activation/activatable'
-import {withPanelWizard} from 'widget/panelWizard'
-import {withRecipe} from 'app/home/body/process/recipeContext'
 import PropTypes from 'prop-types'
 import React from 'react'
-import actionBuilder from 'action-builder'
+
+import {actionBuilder} from '~/action-builder'
+import {initValues} from '~/app/home/body/process/recipe'
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {withActivatable} from '~/widget/activation/activatable'
+import {Form} from '~/widget/form'
+import {withForm} from '~/widget/form/form'
+import {withPanelWizard} from '~/widget/panelWizard'
 
 const Context = React.createContext()
 

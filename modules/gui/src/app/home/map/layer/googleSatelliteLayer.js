@@ -1,16 +1,34 @@
+import {of, tap} from 'rxjs'
+
 import {GoogleSatelliteTileProvider} from '../tileProvider/googleSatelliteTileProvider'
-import TileLayer from './tileLayer'
+import {GoogleMapsOverlay} from './googleMapsOverlay'
+import {TileLayer} from './tileLayer'
 
-export default class GoogleSatelliteLayer extends TileLayer {
-    constructor({map, busy$}) {
-        super({map, busy$})
+export class GoogleSatelliteLayer extends TileLayer {
+    constructor({map, layerIndex = 0, minZoom, maxZoom}) {
+        super()
+        this.map = map
+        this.layerIndex = layerIndex
+        this.minZoom = minZoom
+        this.maxZoom = maxZoom
     }
 
-    equals(o) {
-        return o === this || o instanceof GoogleSatelliteLayer
+    createTileProvider = () =>
+        new GoogleSatelliteTileProvider()
+
+    createOverlay = () => {
+        const {map, minZoom, maxZoom} = this
+        const tileProvider = this.createTileProvider()
+        const {google} = map.getGoogle()
+        return new GoogleMapsOverlay({name: 'GoogleSatelliteLayer', tileProvider, google, minZoom, maxZoom})
     }
 
-    createTileProvider() {
-        return new GoogleSatelliteTileProvider()
-    }
+    addToMap$ = () =>
+        of(true).pipe(
+            tap(() => this.addToMap())
+        )
+
+    equals = other =>
+        other === this
+            || other instanceof GoogleSatelliteLayer
 }

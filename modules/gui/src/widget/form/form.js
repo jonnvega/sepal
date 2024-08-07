@@ -1,21 +1,12 @@
-import {FormButtons} from 'widget/form/buttons'
-import {FormCheckbox} from 'widget/form/checkbox'
-import {FormCombo} from 'widget/form/combo'
-import {FormConstraint, FormField} from 'widget/form/property'
-import {FormContext} from 'widget/form/context'
-import {FormDatePicker} from 'widget/form/datePicker'
-import {FormError} from 'widget/form/error'
-import {FormFieldSet} from 'widget/form/fieldset'
-import {FormInput} from 'widget/form/input'
-import {FormPanel} from 'widget/form/panel'
-import {FormPanelButtons} from 'widget/form/panelButtons'
-import {FormSlider} from 'widget/form/slider'
-import {FormYearPicker} from 'widget/form/yearPicker'
-import {compose} from 'compose'
-import {connect} from 'store'
-import PropTypes from 'prop-types'
-import React from 'react'
 import _ from 'lodash'
+import React from 'react'
+
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {FormContext} from '~/widget/form/context'
+
+const getDisplayName = Component =>
+    Component.displayName || Component.name || 'Component'
 
 export const withForm = ({fields = {}, constraints = {}, mapStateToProps}) =>
     WrappedComponent => {
@@ -28,9 +19,9 @@ export const withForm = ({fields = {}, constraints = {}, mapStateToProps}) =>
             constructor(props) {
                 super(props)
                 const state = {
-                    initialValues: {...props.values} || {},
-                    values: {...props.values} || {},
-                    errors: {...props.errors} || {},
+                    initialValues: {...props.values},
+                    values: {...props.values},
+                    errors: {...props.errors},
                     invalid: {},
                     dirty: false,
                     gotDirty: {},
@@ -257,6 +248,19 @@ export const withForm = ({fields = {}, constraints = {}, mapStateToProps}) =>
                 Object.keys(fields).forEach(name => this.setInitialValue(name))
             }
 
+            getErrorMessage(input, errors) {
+                return _.chain([input])
+                    .flatten()
+                    .compact()
+                    .map(source =>
+                        _.isString(source)
+                            ? errors[source]
+                            : source.error
+                    )
+                    .find(error => error)
+                    .value() || ''
+            }
+
             render() {
                 const inputs = {}
                 Object.keys(fields).forEach(name => {
@@ -284,8 +288,10 @@ export const withForm = ({fields = {}, constraints = {}, mapStateToProps}) =>
                         }
                     }
                 })
+                const errors = this.filterErrors(this.state.errors)
+
                 const form = {
-                    errors: this.filterErrors(this.state.errors),
+                    errors,
                     isInvalid: this.isInvalid,
                     isDirty: () => this.isDirty(),
                     setInitialValues: values => this.setInitialValues(values),
@@ -297,7 +303,8 @@ export const withForm = ({fields = {}, constraints = {}, mapStateToProps}) =>
                         this.dirtyListeners.push(() => listener(true))
                         this.cleanListeners.push(() => listener(false))
                     },
-                    reset: () => this.reset()
+                    reset: () => this.reset(),
+                    getErrorMessage: input => this.getErrorMessage(input, errors)
                 }
                 const element = React.createElement(WrappedComponent, {
                     ...this.props, form, inputs
@@ -316,50 +323,3 @@ export const withForm = ({fields = {}, constraints = {}, mapStateToProps}) =>
             connect(mapStateToProps ? mapStateToProps : null)
         )
     }
-
-const getDisplayName = Component =>
-    Component.displayName || Component.name || 'Component'
-
-export class Form extends React.Component {
-    constructor() {
-        super()
-        this.onSubmit = this.onSubmit.bind(this)
-    }
-
-    render() {
-        const {className, children} = this.props
-        return (
-            <form
-                className={className}
-                onSubmit={this.onSubmit}>
-                {children}
-            </form>
-        )
-    }
-
-    onSubmit(e) {
-        const {onSubmit} = this.props
-        e.preventDefault()
-        onSubmit && onSubmit(e)
-    }
-}
-
-Form.propTypes = {
-    children: PropTypes.any.isRequired,
-    className: PropTypes.string,
-    onSubmit: PropTypes.func
-}
-
-Form.Buttons = FormButtons
-Form.Checkbox = FormCheckbox
-Form.Combo = FormCombo
-Form.Constraint = FormConstraint
-Form.DatePicker = FormDatePicker
-Form.Error = FormError
-Form.Field = FormField
-Form.FieldSet = FormFieldSet
-Form.Input = FormInput
-Form.Panel = FormPanel
-Form.PanelButtons = FormPanelButtons
-Form.Slider = FormSlider
-Form.YearPicker = FormYearPicker

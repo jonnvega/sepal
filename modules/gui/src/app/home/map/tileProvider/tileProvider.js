@@ -1,4 +1,4 @@
-import {v4 as uuid} from 'uuid'
+import {uuid} from '~/uuid'
 
 export class TileProvider {
     id = uuid()
@@ -25,12 +25,16 @@ export class TileProvider {
         element.innerHTML = `<img src="${(window.URL || window.webkitURL).createObjectURL(blob)}"/>`
     }
 
+    renderErrorTile({_element, _error}) {
+        // this.abstractMethodError('renderErrorTile')
+    }
+
     releaseTile(_tileElement) {
         // this.abstractMethodError('releaseTile')
     }
 
-    hide(_hidden) {
-        // this.abstractMethodError('hide')
+    setVisibility(_visible) {
+        // this.abstractMethodError('setVisibility')
     }
 
     close() {

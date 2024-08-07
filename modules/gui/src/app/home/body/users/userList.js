@@ -1,25 +1,27 @@
-import {Buttons} from 'widget/buttons'
-import {Content, SectionLayout} from 'widget/sectionLayout'
-import {FastList} from 'widget/fastList'
-import {Layout} from 'widget/layout'
-import {Scrollable, ScrollableContainer, Unscrollable} from 'widget/scrollable'
-import {SearchBox} from 'widget/searchBox'
-import {SortButton} from 'widget/sortButton'
-import {UserResourceUsage} from 'app/home/user/userResourceUsage'
-import {UserStatus} from './userStatus'
-import {msg} from 'translate'
-import {simplifyString, splitString} from 'string'
-import Highlight from 'react-highlighter'
-import Icon from 'widget/icon'
-import Label from 'widget/label'
-import PropTypes from 'prop-types'
-import React from 'react'
 import _ from 'lodash'
-import format from 'format'
-import lookStyles from 'style/look.module.css'
 import memoizeOne from 'memoize-one'
 import moment from 'moment'
+import PropTypes from 'prop-types'
+import React from 'react'
+import Highlight from 'react-highlighter'
+
+import {UserResourceUsage} from '~/app/home/user/userResourceUsage'
+import format from '~/format'
+import {simplifyString, splitString} from '~/string'
+import lookStyles from '~/style/look.module.css'
+import {msg} from '~/translate'
+import {Buttons} from '~/widget/buttons'
+import {FastList} from '~/widget/fastList'
+import {Icon} from '~/widget/icon'
+import {Label} from '~/widget/label'
+import {Layout} from '~/widget/layout'
+import {Scrollable} from '~/widget/scrollable'
+import {SearchBox} from '~/widget/searchBox'
+import {Content, SectionLayout} from '~/widget/sectionLayout'
+import {SortButton} from '~/widget/sortButton'
+
 import styles from './userList.module.css'
+import {UserStatus} from './userStatus'
 
 const IGNORE = 'IGNORE'
 
@@ -29,7 +31,7 @@ const getHighlightMatcher = memoizeOne(
         : ''
 )
 
-export default class UserList extends React.Component {
+export class UserList extends React.Component {
     state = {
         sortingOrder: 'updateTime',
         sortingDirection: -1,
@@ -313,22 +315,16 @@ export default class UserList extends React.Component {
         return (
             <SectionLayout>
                 <Content horizontalPadding verticalPadding menuPadding>
-                    <ScrollableContainer>
-                        <Unscrollable>
-                            <Layout type='horizontal' spacing='compact'>
-                                {this.renderTextFilter()}
-                                {this.renderStatusFilter()}
-                            </Layout>
-                        </Unscrollable>
-                        <Scrollable direction='x'>
-                            <ScrollableContainer className={styles.content}>
-                                <Scrollable direction='x' className={styles.users}>
-                                    {this.renderHeader(users)}
-                                    {this.renderUsers(users)}
-                                </Scrollable>
-                            </ScrollableContainer>
-                        </Scrollable>
-                    </ScrollableContainer>
+                    <Layout type='horizontal' spacing='compact'>
+                        {this.renderTextFilter()}
+                        {this.renderStatusFilter()}
+                    </Layout>
+                    <Scrollable
+                        direction='x'
+                        className={styles.users}>
+                        {this.renderHeader(users)}
+                        {this.renderUsers(users)}
+                    </Scrollable>
                 </Content>
             </SectionLayout>
         )
@@ -365,7 +361,7 @@ class UserItem extends React.PureComponent {
                     styles.grid,
                     styles.user,
                     status ? styles.clickable : null,
-                    hovered ? lookStyles.hoverForced : null
+                    hovered ? lookStyles.hoverForcedOn : null
                 ].join(' ')}
                 onClick={this.onClick}>
                 {this.renderName(name)}

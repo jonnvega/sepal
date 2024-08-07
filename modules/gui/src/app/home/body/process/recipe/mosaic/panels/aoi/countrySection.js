@@ -1,19 +1,22 @@
-import {Form} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {PreviewMap} from './previewMap'
-import {Subject, map, takeUntil} from 'rxjs'
-import {compose} from 'compose'
-import {connect, select} from 'store'
-import {countryEETable, countryToEETable} from 'app/home/map/aoiLayer'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import {withRecipe} from '../../../../recipeContext'
-import Notifications from 'widget/notifications'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
-import actionBuilder from 'action-builder'
-import api from 'api'
+import {map, Subject, takeUntil} from 'rxjs'
+
+import {actionBuilder} from '~/action-builder'
+import api from '~/apiRegistry'
+import {countryEETable, countryToEETable} from '~/app/home/map/aoiLayer'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {selectFrom} from '~/stateUtils'
+import {select} from '~/store'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {Layout} from '~/widget/layout'
+import {Notifications} from '~/widget/notifications'
+
+import {withRecipe} from '../../../../recipeContext'
+import {PreviewMap} from './previewMap'
 
 const mapRecipeToProps = recipe => ({
     overlay: selectFrom(recipe, 'layers.overlay'),
@@ -107,7 +110,6 @@ class _CountrySection extends React.Component {
                 <Form.Combo
                     label={msg('process.mosaic.panel.areaOfInterest.form.country.country.label')}
                     input={country}
-                    placement='below'
                     options={countries || []}
                     placeholder={countryPlaceholder}
                     busyMessage={loadingCountries}
@@ -122,7 +124,6 @@ class _CountrySection extends React.Component {
                 <Form.Combo
                     label={msg('process.mosaic.panel.areaOfInterest.form.country.area.label')}
                     input={area}
-                    placement='below'
                     options={(countryAreas || [])}
                     placeholder={areaPlaceholder}
                     busyMessage={loadingAreas}

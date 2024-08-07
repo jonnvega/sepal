@@ -1,7 +1,8 @@
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
 import _ from 'lodash'
 import moment from 'moment'
+
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
 
 export const sources = ['LANDSAT', 'SENTINEL_2']
 
@@ -103,7 +104,7 @@ const dataSetById = {
         SR: {
             bands: [
                 'blue', 'green', 'red', 'nir', 'swir1', 'swir2',
-                'aerosol', 'thermal', 'thermal2',
+                'aerosol', 'thermal',
                 'brightness', 'greenness', 'wetness', 'fourth', 'fifth', 'sixth'
             ]
         },
@@ -124,7 +125,7 @@ const dataSetById = {
         SR: {
             bands: [
                 'blue', 'green', 'red', 'nir', 'swir1', 'swir2',
-                'aerosol', 'thermal', 'thermal2',
+                'aerosol', 'thermal',
                 'brightness', 'greenness', 'wetness', 'fourth', 'fifth', 'sixth'
             ]
         },

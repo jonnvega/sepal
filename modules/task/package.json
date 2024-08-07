@@ -10,18 +10,16 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@google-cloud/storage": "^5.16.1",
-        "commander": "^8.3.0",
+        "@google-cloud/storage": "^7.12.0",
+        "commander": "^12.1.0",
         "fast-crc32c": "^2.0.0",
-        "googleapis": "^92.0.0",
-        "moment": "^2.29.1",
-        "rxjs": "^7.4.0",
+        "googleapis": "^140.0.1",
+        "lodash": "^4.17.21",
+        "moment": "^2.30.1",
+        "rxjs": "^7.8.1",
         "sepal": "../../lib/js/shared"
     },
     "devDependencies": {
-        "eslint": "^8.4.1",
-        "jest": "^27.4.5",
-        "jest-expect-message": "^1.0.2"
     },
     "jest": {
         "setupFilesAfterEnv": [

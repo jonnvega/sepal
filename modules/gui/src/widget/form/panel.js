@@ -1,13 +1,15 @@
-import {Form} from 'widget/form/form'
-import {Panel} from 'widget/panel/panel'
-import {PanelButtonContext} from 'widget/toolbar/panelButtonContext'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {isObservable} from 'rxjs'
-import {withPanelWizard} from '../panelWizard'
-import Icon from 'widget/icon'
 import PropTypes from 'prop-types'
 import React from 'react'
+import {isObservable} from 'rxjs'
+
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {FormContainer} from '~/widget/form/container'
+import {Icon} from '~/widget/icon'
+import {Panel} from '~/widget/panel/panel'
+import {PanelButtonContext} from '~/widget/toolbar/panelButtonContext'
+
+import {withPanelWizard} from '../panelWizard'
 import styles from './panel.module.css'
 
 export const FormPanelContext = React.createContext()
@@ -34,7 +36,7 @@ class _FormPanel extends React.Component {
     }
 
     apply(onSuccess) {
-        const {form, confirmation, onApply} = this.props
+        const {form, confirmation, onApply, onError} = this.props
         const {confirmed} = this.state
 
         if (confirmation && !confirmed) {
@@ -43,15 +45,17 @@ class _FormPanel extends React.Component {
             const result = onApply(form && form.values())
             this.autoCancel = false
             if (isObservable(result)) {
-                const result$ = result
-                this.props.stream('FORM_PANEL_APPLY', result$,
-                    () => null,
-                    _error => null,
-                    () => {
+                this.props.stream({
+                    name: 'FORM_PANEL_APPLY',
+                    stream$: result,
+                    onComplete: () => {
                         onSuccess && onSuccess()
                         this.close()
+                    },
+                    onError: error => {
+                        onError && onError(error)
                     }
-                )
+                })
             } else {
                 onSuccess && onSuccess()
                 this.close()
@@ -155,9 +159,9 @@ class _FormPanel extends React.Component {
                             id={this.props.id}
                             className={className}
                             type={placement || placementFromContext || type}>
-                            <Form onSubmit={this.onSubmit}>
+                            <FormContainer onSubmit={this.onSubmit}>
                                 {children}
-                            </Form>
+                            </FormContainer>
                             {this.renderSpinner()}
                         </Panel>
                     </FormPanelContext.Provider>
@@ -199,5 +203,6 @@ FormPanel.propTypes = {
     type: PropTypes.string,
     onApply: PropTypes.func,
     onCancel: PropTypes.func,
-    onClose: PropTypes.func
+    onClose: PropTypes.func,
+    onError: PropTypes.func,
 }

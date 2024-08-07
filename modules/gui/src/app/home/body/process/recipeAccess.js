@@ -1,13 +1,15 @@
-import {compose} from 'compose'
-import {connect} from 'store'
-import {initializeRecipe} from './recipe'
-import {map, of, switchMap, tap} from 'rxjs'
-import {selectFrom} from 'stateUtils'
-import {v4 as uuid} from 'uuid'
-import React from 'react'
 import _ from 'lodash'
-import actionBuilder from 'action-builder'
-import api from 'api'
+import React from 'react'
+import {map, of, switchMap, tap} from 'rxjs'
+
+import {actionBuilder} from '~/action-builder'
+import api from '~/apiRegistry'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {selectFrom} from '~/stateUtils'
+import {uuid} from '~/uuid'
+
+import {initializeRecipe} from './recipe'
 
 let componentIdsByRecipeId = {}
 
@@ -77,7 +79,7 @@ export const recipeAccess = () =>
             }
 
             loadSourceRecipe$(recipeId) {
-                const {getRecipeType} = require('./recipeTypes')
+                const {getRecipeType} = require('./recipeTypeRegistry')
                 return this.loadRecipe$(recipeId).pipe(
                     switchMap(recipe => {
                         const type = getRecipeType(recipe.type)

@@ -1,4 +1,4 @@
-FROM node:18-bullseye
+FROM node:20-bookworm
 
 EXPOSE 8001
 
@@ -10,8 +10,7 @@ RUN npm install -g nodemon
 
 RUN apt-get update && \
     apt-get install -y \
-        sudo \
-        net-tools
+        sudo
 
 RUN adduser node sudo
 

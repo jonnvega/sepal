@@ -1,17 +1,19 @@
-import {ElementResizeDetector} from 'widget/elementResizeDetector'
-import {Subject, animationFrames, distinctUntilChanged, map, of, scan, switchMap} from 'rxjs'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {selectFrom} from 'stateUtils'
-import {withCursorValue} from './cursorValue'
-import {withMapArea} from './mapAreaContext'
-import {withRecipe} from 'app/home/body/process/recipeContext'
-import {withSubscriptions} from 'subscription'
+import _ from 'lodash'
+import memoizeOne from 'memoize-one'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
-import format from 'format'
-import memoizeOne from 'memoize-one'
+import {animationFrames, distinctUntilChanged, map, of, scan, Subject, switchMap, throttleTime} from 'rxjs'
+
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import format from '~/format'
+import {selectFrom} from '~/stateUtils'
+import {withSubscriptions} from '~/subscription'
+import {ElementResizeDetector} from '~/widget/elementResizeDetector'
+
+import {withCursorValue} from './cursorValue'
+import {withMapArea} from './mapAreaContext'
 import styles from './paletteLayer.module.css'
 
 const mapRecipeToProps = recipe => ({
@@ -31,6 +33,7 @@ class _PaletteLayer extends React.Component {
 
     constructor(props) {
         super(props)
+        this.ref = React.createRef()
         const {cursorValue$, addSubscription} = props
         this.setPaletteWidth = this.setPaletteWidth.bind(this)
         addSubscription(
@@ -60,14 +63,16 @@ class _PaletteLayer extends React.Component {
             <div className={styles.container}>
                 <div className={styles.legend}>
                     {this.renderMinValue()}
-                    <div
-                        className={styles.palette}
-                        style={{'--palette': inverted
-                            ? palette.slice().reverse()
-                            : palette}}>
-                        <ElementResizeDetector onResize={this.setPaletteWidth}/>
-                        {this.renderCursorValues({dataType, min, max})}
-                    </div>
+                    <ElementResizeDetector targetRef={this.ref} onResize={this.setPaletteWidth}>
+                        <div
+                            ref={this.ref}
+                            className={styles.palette}
+                            style={{'--palette': inverted
+                                ? palette.slice().reverse()
+                                : palette}}>
+                            {this.renderCursorValues({dataType, min, max})}
+                        </div>
+                    </ElementResizeDetector>
                     {this.renderMaxValue()}
                 </div>
             </div>
@@ -172,13 +177,14 @@ class _CursorValue extends React.Component {
         const {addSubscription} = this.props
         addSubscription(
             this.targetPosition$.pipe(
+                throttleTime(200, null, {leading: true, trailing: true}),
                 switchMap(targetPosition => {
                     const {position} = this.state
                     return position === null
                         ? of(targetPosition)
                         : animationFrames().pipe(
                             map(() => targetPosition),
-                            scan(lerp(.1), position),
+                            scan(lerp(.3), position),
                             map(position => Math.round(position)),
                             distinctUntilChanged()
                         )

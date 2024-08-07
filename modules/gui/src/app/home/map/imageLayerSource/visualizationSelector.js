@@ -1,16 +1,18 @@
-import {Button} from 'widget/button'
-import {Combo} from 'widget/combo'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import {withActivators} from 'widget/activation/activator'
-import {withMapArea} from '../mapAreaContext'
-import {withRecipe} from 'app/home/body/process/recipeContext'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import RemoveButton from 'widget/removeButton'
-import _ from 'lodash'
-import guid from 'guid'
+
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {uuid} from '~/uuid'
+import {withActivators} from '~/widget/activation/activator'
+import {Button} from '~/widget/button'
+import {Combo} from '~/widget/combo'
+import {RemoveButton} from '~/widget/removeButton'
+
+import {withMapArea} from '../mapAreaContext'
 
 const mapRecipeToProps = (recipe, {source}) => ({
     userDefinedVisualizations: selectFrom(recipe, ['layers.userDefinedVisualizations', source.id]) || []
@@ -105,7 +107,7 @@ class _VisualizationSelector extends React.Component {
     editVisParams(visParamsToEdit, editMode) {
         const {recipe, source, activator: {activatables: {visParams: {activate}}}} = this.props
         const visParams = editMode === 'clone'
-            ? {...visParamsToEdit, id: guid()}
+            ? {...visParamsToEdit, id: uuid()}
             : visParamsToEdit
         activate({recipe, imageLayerSourceId: source.id, visParams})
     }
@@ -116,6 +118,7 @@ class _VisualizationSelector extends React.Component {
             .del(['layers.userDefinedVisualizations', source.id, {id: visParams.id}])
             .dispatch()
         const options = this.flattenOptions(this.getOptions())
+            .filter(({value}) => value !== visParams.id)
         this.selectVisParams(options.length
             ? options[0].visParams
             : null

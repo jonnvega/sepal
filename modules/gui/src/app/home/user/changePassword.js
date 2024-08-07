@@ -1,16 +1,19 @@
-import {Button} from 'widget/button'
-import {EMPTY, switchMap, throwError} from 'rxjs'
-import {Form, withForm} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {Panel} from 'widget/panel/panel'
-import {withActivatable} from 'widget/activation/activatable'
-import {changeCurrentUserPassword$} from 'user'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {withActivators} from 'widget/activation/activator'
-import Notifications from 'widget/notifications'
 import PropTypes from 'prop-types'
 import React from 'react'
+import {EMPTY, switchMap, throwError} from 'rxjs'
+
+import {compose} from '~/compose'
+import {msg} from '~/translate'
+import {changeCurrentUserPassword$} from '~/user'
+import {withActivatable} from '~/widget/activation/activatable'
+import {withActivators} from '~/widget/activation/activator'
+import {Button} from '~/widget/button'
+import {Form} from '~/widget/form'
+import {withForm} from '~/widget/form/form'
+import {Layout} from '~/widget/layout'
+import {Notifications} from '~/widget/notifications'
+import {Panel} from '~/widget/panel/panel'
+
 import styles from './changePassword.module.css'
 
 const fields = {
@@ -18,7 +21,7 @@ const fields = {
         .notBlank('user.changePassword.form.oldPassword.required'),
     newPassword: new Form.Field()
         .notBlank('user.changePassword.form.newPassword.required')
-        .match(/^.{8,100}$/, 'user.changePassword.form.newPassword.invalid'),
+        .match(/^.{12,100}$/, 'user.changePassword.form.newPassword.invalid'),
     confirmPassword: new Form.Field()
         .notBlank('user.changePassword.form.confirmPassword.required')
 }
@@ -63,13 +66,11 @@ class _ChangePassword extends React.Component {
                     type='password'
                     autoFocus
                     input={oldPassword}
-                    errorMessage
                 />
                 <Form.Input
                     label={msg('user.changePassword.form.newPassword.label')}
                     type='password'
                     input={newPassword}
-                    errorMessage
                 />
                 <Form.Input
                     label={msg('user.changePassword.form.confirmPassword.label')}

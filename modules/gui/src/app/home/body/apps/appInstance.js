@@ -1,21 +1,23 @@
-import {ContentPadding} from 'widget/sectionLayout'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {forkJoin, map, of, switchMap, tap, timer} from 'rxjs'
-import {get$} from 'http-client'
-import {getLogger} from 'log'
-import {msg} from 'translate'
-import {publishEvent} from 'eventPublisher'
-import {runApp$} from 'apps'
-import {withTab} from 'widget/tabs/tabContext'
-import Notifications from 'widget/notifications'
 import PropTypes from 'prop-types'
 import React from 'react'
+import {forkJoin, map, of, switchMap, tap, timer} from 'rxjs'
+
+import {runApp$} from '~/apps'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {publishEvent} from '~/eventPublisher'
+import {get$} from '~/http-client'
+import {getLogger} from '~/log'
+import {msg} from '~/translate'
+import {Notifications} from '~/widget/notifications'
+import {ContentPadding} from '~/widget/sectionLayout'
+import {withTab} from '~/widget/tabs/tabContext'
+
 import styles from './appInstance.module.css'
 
 const log = getLogger('apps')
 
-class AppInstance extends React.Component {
+class _AppInstance extends React.Component {
     iFrameRef = React.createRef()
 
     state = {
@@ -78,19 +80,19 @@ class AppInstance extends React.Component {
     }
 
     componentDidMount() {
-        const {app: {endpoint, path}, tab: {busy$}, stream} = this.props
+        const {app: {id, endpoint, path}, tab: {busy}, stream} = this.props
         if (!endpoint) {
             this.setState({appState: 'INITIALIZED', src: path}, () =>
                 stream('RUN_APP', of())
             )
         } else {
-            busy$.next(true)
+            busy.set(id, true)
             this.runApp()
         }
     }
 
     componentDidUpdate(_prevProps, prevState) {
-        const {tab: {busy$}} = this.props
+        const {app: {id}, tab: {busy}} = this.props
         const {srcDoc} = this.state
         const iFrame = this.iFrameRef.current
         if (!this.useIFrameSrc() && srcDoc && !prevState.srcDoc && iFrame) {
@@ -98,7 +100,7 @@ class AppInstance extends React.Component {
             doc.open()
             doc.write(srcDoc)
             doc.close()
-            busy$.next(false)
+            busy.set(id, false)
         }
     }
 
@@ -108,10 +110,10 @@ class AppInstance extends React.Component {
     }
 
     iFrameLoaded() {
-        const {tab: {busy$}} = this.props
+        const {app: {id}, tab: {busy}} = this.props
         const {src} = this.state
         if (this.useIFrameSrc() && src) {
-            busy$.next(false)
+            busy.set(id, false)
             this.setState({appState: 'READY'})
         }
     }
@@ -129,7 +131,7 @@ class AppInstance extends React.Component {
                     if (this.useIFrameSrc()) {
                         return of({src: `/api${app.path}`})
                     } else {
-                        return get$(`api${app.path}`, {responseType: 'text', retries: 9}).pipe(
+                        return get$(`/api${app.path}`, {responseType: 'text', maxRetries: 9}).pipe(
                             map(srcDoc => ({srcDoc}))
                         )
                     }
@@ -142,13 +144,19 @@ class AppInstance extends React.Component {
     }
 
     onError(error) {
-        const {app, tab: {busy$}} = this.props
+        const {app: {id, label, alt}, tab: {busy}} = this.props
         log.error('Failed to load app', error)
         this.setState({appState: 'FAILED'})
-        Notifications.error({message: msg('apps.run.error', {label: app.label || app.alt})})
-        busy$.next(false)
+        Notifications.error({message: msg('apps.run.error', {label: label || alt})})
+        busy.set(id, false)
     }
 }
+
+export const AppInstance = compose(
+    _AppInstance,
+    connect(),
+    withTab()
+)
 
 AppInstance.propTypes = {
     app: PropTypes.shape({
@@ -163,9 +171,3 @@ AppInstance.contextTypes = {
     active: PropTypes.bool,
     focus: PropTypes.func
 }
-
-export default compose(
-    AppInstance,
-    connect(),
-    withTab()
-)

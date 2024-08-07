@@ -1,13 +1,15 @@
-import {Form} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {Panel} from 'widget/panel/panel'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {SceneSelectionType} from 'app/home/body/process/recipe/opticalMosaic/opticalMosaicRecipe'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import {SceneSelectionType} from '~/app/home/body/process/recipe/opticalMosaic/opticalMosaicRecipe'
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {Layout} from '~/widget/layout'
+import {Panel} from '~/widget/panel/panel'
+
 import styles from './sceneSelectionOptions.module.css'
 
 const fields = {
@@ -21,7 +23,7 @@ const mapRecipeToProps = recipe => ({
     alwaysAll: Object.keys(selectFrom(recipe, 'model.sources.dataSets') || {}).length > 1
 })
 
-class SceneSelectionOptions extends React.Component {
+class _SceneSelectionOptions extends React.Component {
     render() {
         return (
             <RecipeFormPanel
@@ -82,13 +84,13 @@ class SceneSelectionOptions extends React.Component {
     }
 }
 
+const additionalPolicy = () => ({sceneSelection: 'allow'})
+
+export const SceneSelectionOptions = compose(
+    _SceneSelectionOptions,
+    recipeFormPanel({id: 'sceneSelectionOptions', fields, additionalPolicy, mapRecipeToProps})
+)
+
 SceneSelectionOptions.propTypes = {
     recipeId: PropTypes.string
 }
-
-const additionalPolicy = () => ({sceneSelection: 'allow'})
-
-export default compose(
-    SceneSelectionOptions,
-    recipeFormPanel({id: 'sceneSelectionOptions', fields, additionalPolicy, mapRecipeToProps})
-)

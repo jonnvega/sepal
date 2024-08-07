@@ -1,22 +1,24 @@
-import {Button} from 'widget/button'
-import {ButtonGroup} from 'widget/buttonGroup'
-import {ElementResizeDetector} from 'widget/elementResizeDetector'
-import {Layout} from 'widget/layout'
-import {Panel} from 'widget/panel/panel'
-import {Widget} from 'widget/widget'
-import {compose} from 'compose'
-import {debounceTime, throttleTime} from 'rxjs'
-import {formatCoordinates} from 'coords'
-import {msg} from 'translate'
-import {withActivatable} from 'widget/activation/activatable'
-import {withActivators} from 'widget/activation/activator'
-import {withMap} from './mapContext'
-import {withSubscriptions} from 'subscription'
-import Keybinding from 'widget/keybinding'
-import Notifications from 'widget/notifications'
 import React from 'react'
-import clipboard from 'clipboard'
-import format from 'format'
+import {debounceTime, throttleTime} from 'rxjs'
+
+import {copyToClipboard} from '~/clipboard'
+import {compose} from '~/compose'
+import {formatCoordinates} from '~/coords'
+import format from '~/format'
+import {withSubscriptions} from '~/subscription'
+import {msg} from '~/translate'
+import {withActivatable} from '~/widget/activation/activatable'
+import {withActivators} from '~/widget/activation/activator'
+import {Button} from '~/widget/button'
+import {ButtonGroup} from '~/widget/buttonGroup'
+import {ElementResizeDetector} from '~/widget/elementResizeDetector'
+import {Keybinding} from '~/widget/keybinding'
+import {Layout} from '~/widget/layout'
+import {Notifications} from '~/widget/notifications'
+import {Panel} from '~/widget/panel/panel'
+import {Widget} from '~/widget/widget'
+
+import {withMap} from './mapContext'
 import styles from './mapInfo.module.css'
 
 const THROTTLE_TIME_MS = 100
@@ -123,23 +125,25 @@ class _MapInfoPanel extends React.Component {
         )
     }
 
-    copyPlainCenterCoordinates(center) {
-        clipboard.copy(this.formatCenter(center))
-        this.notify()
+    copyPlainCenterCoordinates({lat, lng}) {
+        copyToClipboard(
+            `[${lng}, ${lat}]`,
+            msg('map.info.coordinatesCopied')
+        )
     }
 
-    copyEECenterCoordinates(center) {
-        clipboard.copy(`ee.Geometry.Point(${this.formatCenter(center)})`)
-        this.notify()
+    copyEECenterCoordinates({lat, lng}) {
+        copyToClipboard(
+            `ee.Geometry.Point([${lng}, ${lat}])`,
+            msg('map.info.coordinatesCopied')
+        )
     }
-
+    
     copyEESetCenter({lat, lng}, zoom) {
-        clipboard.copy(`Map.setCenter(${lng}, ${lat}, ${zoom})`)
-        this.notify()
-    }
-
-    formatCenter({lat, lng}) {
-        return `[${lng}, ${lat}]`
+        copyToClipboard(
+            `Map.setCenter(${lng}, ${lat}, ${zoom})`,
+            msg('map.info.coordinatesCopied')
+        )
     }
 
     notify() {
@@ -166,6 +170,12 @@ const MapInfoPanel = compose(
 )
 
 class _MapInfo extends React.PureComponent {
+    constructor(props) {
+        super(props)
+        this.ref = React.createRef()
+        this.onResize = this.onResize.bind(this)
+    }
+
     state = {
         view: {},
         width: null
@@ -183,39 +193,42 @@ class _MapInfo extends React.PureComponent {
     }
 
     render() {
-        const {view: {scale}} = this.state
-        return scale
-            ? (
-                <div className={styles.container}>
-                    <MapInfoPanel/>
-                    {this.renderButton()}
-                </div>
-            )
-            : null
+        return (
+            <div className={styles.container}>
+                <MapInfoPanel/>
+                {this.renderScale()}
+            </div>
+        )
     }
 
-    renderButton() {
+    onResize({width}) {
+        this.setState({width})
+    }
+
+    renderScale() {
         const {activator: {activatables: {mapInfo: {active, toggle}}}} = this.props
         const {view: {scale}, width} = this.state
-        return (
-            <Button
-                look='default'
-                shape='rectangle'
-                size='x-small'
-                additionalClassName={styles.button}
-                air='less'
-                tooltip={active ? null : msg('map.info.tooltip')}
-                tooltipPlacement='bottomLeft'
-                onClick={toggle}>
-                <ElementResizeDetector onResize={({width}) => this.setState({width})}>
-                    <div className={styles.content}>
-                        <div>{format.number({value: scale, unit: 'm/px'})}</div>
-                        <div className={styles.scale}></div>
-                        <div>{format.number({value: width * scale, unit: 'm'})}</div>
-                    </div>
-                </ElementResizeDetector>
-            </Button>
-        )
+        return scale
+            ? (
+                <Button
+                    look='default'
+                    shape='rectangle'
+                    size='x-small'
+                    additionalClassName={styles.button}
+                    air='less'
+                    tooltip={active ? null : msg('map.info.tooltip')}
+                    tooltipPlacement='bottomLeft'
+                    onClick={toggle}>
+                    <ElementResizeDetector targetRef={this.ref} onResize={this.onResize}>
+                        <div ref={this.ref} className={styles.content}>
+                            <div>{format.number({value: scale, unit: 'm/px'})}</div>
+                            <div className={styles.scale}></div>
+                            <div>{format.number({value: width * scale, unit: 'm'})}</div>
+                        </div>
+                    </ElementResizeDetector>
+                </Button>
+            )
+            : null
     }
 }
 

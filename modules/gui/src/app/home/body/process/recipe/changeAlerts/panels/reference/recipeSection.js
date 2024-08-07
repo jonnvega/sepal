@@ -1,11 +1,12 @@
-import {RecipeInput} from 'widget/recipeInput'
-import {Subject} from 'rxjs'
-import {compose} from 'compose'
-import {recipeAccess} from 'app/home/body/process/recipeAccess'
 import PropTypes from 'prop-types'
 import React from 'react'
+import {Subject} from 'rxjs'
 
-class RecipeSection extends React.Component {
+import {recipeAccess} from '~/app/home/body/process/recipeAccess'
+import {compose} from '~/compose'
+import {RecipeInput} from '~/widget/recipeInput'
+
+class _RecipeSection extends React.Component {
     constructor(props) {
         super(props)
         this.recipeChanged$ = new Subject()
@@ -26,11 +27,11 @@ class RecipeSection extends React.Component {
     }
 }
 
+export const RecipeSection = compose(
+    _RecipeSection,
+    recipeAccess()
+)
+
 RecipeSection.propTypes = {
     inputs: PropTypes.object.isRequired
 }
-
-export default compose(
-    RecipeSection,
-    recipeAccess()
-)

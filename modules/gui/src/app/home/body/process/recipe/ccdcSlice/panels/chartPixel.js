@@ -1,17 +1,20 @@
-import {CCDCGraph} from '../../ccdc/ccdcGraph'
-import {Form, withForm} from 'widget/form/form'
-import {Panel} from 'widget/panel/panel'
-import {RecipeActions, loadCCDCSegments$} from '../ccdcSliceRecipe'
-import {Subject, takeUntil} from 'rxjs'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import {withRecipe} from '../../../recipeContext'
-import Icon from 'widget/icon'
-import Notifications from 'widget/notifications'
-import React from 'react'
 import _ from 'lodash'
 import moment from 'moment'
+import React from 'react'
+import {Subject, takeUntil} from 'rxjs'
+
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {withForm} from '~/widget/form/form'
+import {Icon} from '~/widget/icon'
+import {Notifications} from '~/widget/notifications'
+import {Panel} from '~/widget/panel/panel'
+
+import {withRecipe} from '../../../recipeContext'
+import {CCDCGraph} from '../../ccdc/ccdcGraph'
+import {loadCCDCSegments$, RecipeActions} from '../ccdcSliceRecipe'
 import styles from './chartPixel.module.css'
 
 const fields = {
@@ -34,7 +37,7 @@ const mapRecipeToProps = recipe => ({
     recipe
 })
 
-class ChartPixel extends React.Component {
+class _ChartPixel extends React.Component {
     constructor(props) {
         super(props)
         this.cancel$ = new Subject()
@@ -65,10 +68,10 @@ class ChartPixel extends React.Component {
                 <Panel.Content className={loading ? styles.loading : null}
                     scrollable={false}
                     noVerticalPadding>
-                    <Form className={styles.form}>
+                    <form className={styles.form}>
                         {this.renderBandOptions()}
                         {this.renderChart()}
-                    </Form>
+                    </form>
                 </Panel.Content>
 
                 <Panel.Buttons>
@@ -170,10 +173,10 @@ class ChartPixel extends React.Component {
     }
 }
 
-ChartPixel.propTypes = {}
-
-export default compose(
-    ChartPixel,
+export const ChartPixel = compose(
+    _ChartPixel,
     withRecipe(mapRecipeToProps),
     withForm({fields})
 )
+
+ChartPixel.propTypes = {}

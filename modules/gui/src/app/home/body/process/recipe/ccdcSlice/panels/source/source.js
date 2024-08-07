@@ -1,12 +1,14 @@
-import {Form} from 'widget/form/form'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {SectionSelection} from './sectionSelection'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import AssetSection from './assetSection'
-import PanelSections from 'widget/panelSections'
 import React from 'react'
-import RecipeSection from './recipeSection'
+
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {PanelSections} from '~/widget/panelSections'
+
+import {AssetSection} from './assetSection'
+import {RecipeSection} from './recipeSection'
+import {SectionSelection} from './sectionSelection'
 import styles from './source.module.css'
 
 const fields = {
@@ -29,7 +31,7 @@ const fields = {
     visualizations: new Form.Field(),
 }
 
-class Source extends React.Component {
+class _Source extends React.Component {
     render() {
         return (
             <RecipeFormPanel
@@ -111,9 +113,10 @@ const valuesToModel = ({type, section, asset, recipe, bands, dateFormat, baseBan
         return null
     }
 }
-Source.propTypes = {}
 
-export default compose(
-    Source,
+export const Source = compose(
+    _Source,
     recipeFormPanel({id: 'source', fields, valuesToModel, modelToValues})
 )
+
+Source.propTypes = {}

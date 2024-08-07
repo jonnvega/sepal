@@ -1,22 +1,24 @@
-import {Button} from 'widget/button'
-import {ButtonGroup} from 'widget/buttonGroup'
-import {Layout} from 'widget/layout'
-import {LegendItem} from 'widget/legend/legendItem'
-import {ListItem} from 'widget/listItem'
-import {Panel} from 'widget/panel/panel'
-import {RecipeActions, hasTrainingData} from '../../classificationRecipe'
-import {Subject, takeUntil} from 'rxjs'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import {withMap} from 'app/home/map/mapContext'
-import {withRecipe} from 'app/home/body/process/recipeContext'
-import Icon from 'widget/icon'
-import Notifications from 'widget/notifications'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
-import api from 'api'
+import {Subject, takeUntil} from 'rxjs'
+
+import api from '~/apiRegistry'
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {withMap} from '~/app/home/map/mapContext'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {Button} from '~/widget/button'
+import {ButtonGroup} from '~/widget/buttonGroup'
+import {Icon} from '~/widget/icon'
+import {Layout} from '~/widget/layout'
+import {LegendItem} from '~/widget/legend/legendItem'
+import {ListItem} from '~/widget/listItem'
+import {Notifications} from '~/widget/notifications'
+import {Panel} from '~/widget/panel/panel'
+
+import {hasTrainingData, RecipeActions} from '../../classificationRecipe'
 import styles from './collectPanel.module.css'
 
 const mapRecipeToProps = recipe => {
@@ -32,7 +34,7 @@ const mapRecipeToProps = recipe => {
     })
 }
 
-class CollectPanel extends React.Component {
+class _CollectPanel extends React.Component {
     state = {}
     close$ = new Subject()
 
@@ -226,7 +228,7 @@ class CollectPanel extends React.Component {
     // moveMap(point) {
     //     const {map} = this.props
     //     const {google} = map.getGoogle()
-    //     const center = new google.maps.LatLng(point.y, point.x)
+    //     const center = new google.maps.core.LatLng(point.y, point.x)
     //     map.setView({center, zoom: 16})
     // }
 
@@ -306,13 +308,13 @@ class CollectPanel extends React.Component {
     }
 }
 
+export const CollectPanel = compose(
+    _CollectPanel,
+    withRecipe(mapRecipeToProps),
+    withMap()
+)
+
 CollectPanel.propTypes = {
     dataCollectionManager: PropTypes.object.isRequired,
     recipeId: PropTypes.string,
 }
-
-export default compose(
-    CollectPanel,
-    withRecipe(mapRecipeToProps),
-    withMap()
-)

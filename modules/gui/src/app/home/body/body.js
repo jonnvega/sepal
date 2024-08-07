@@ -1,32 +1,35 @@
-import {Browse} from './browse/browse'
-import {CenteredProgress} from 'widget/progress'
-import {Maps} from 'app/home/map/maps'
-import {Section} from './section'
-import {StaticMap} from '../map/staticMap'
-import {Users} from './users/users'
-import {compose} from 'compose'
-import {connect, select} from 'store'
-import {history, location} from 'route'
-import {msg} from 'translate'
-import Apps from './apps/apps'
-import Notifications from 'widget/notifications'
-import Process from './process/process'
 import PropTypes from 'prop-types'
 import React from 'react'
-import Tasks from './tasks/tasks'
-import Terminal from './terminal/terminal'
+
+import {Maps} from '~/app/home/map/maps'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {history, location} from '~/route'
+import {select} from '~/store'
+import {msg} from '~/translate'
+import {Notifications} from '~/widget/notifications'
+import {CenteredProgress} from '~/widget/progress'
+
+import {StaticMap} from '../map/staticMap'
+import {Apps} from './apps/apps'
 import styles from './body.module.css'
+import {Browse} from './browse/browse'
+import {Process} from './process/process'
+import {Section} from './section'
+import {Tasks} from './tasks/tasks'
+import {Terminal} from './terminal/terminal'
+import {Users} from './users/users'
 
 const mapStateToProps = () => ({
     location: location(),
     budgetExceeded: select('user.budgetExceeded'),
 })
 
-class Body extends React.Component {
+class _Body extends React.Component {
     componentDidUpdate() {
         const {budgetExceeded, location} = this.props
-        if (this.props.location.pathname === '/' || budgetExceeded && !['/process', '/browse', '/users'].includes(location.pathname)) {
-            history().replace('/process')
+        if (this.props.location.pathname === '/' || budgetExceeded && !['/-/process', '/-/browse', '/-/users'].includes(location.pathname)) {
+            history().replace('/-/process')
         }
     }
 
@@ -36,22 +39,22 @@ class Body extends React.Component {
             <div className={className}>
                 <div className={styles.sections}>
                     <StaticMap/>
-                    <Section path='/process'>
+                    <Section path='/-/process'>
                         <Process/>
                     </Section>
-                    <Section path='/browse'>
+                    <Section path='/-/browse'>
                         <Browse/>
                     </Section>
-                    <Section path='/app-launch-pad'>
+                    <Section path='/-/app-launch-pad'>
                         <Apps/>
                     </Section>
-                    <Section path='/terminal'>
+                    <Section path='/-/terminal'>
                         <Terminal/>
                     </Section>
-                    <Section path='/tasks'>
+                    <Section path='/-/tasks'>
                         <Tasks/>
                     </Section>
-                    <Section path='/users'>
+                    <Section path='/-/users'>
                         <Users/>
                     </Section>
                 </div>
@@ -78,12 +81,12 @@ class Body extends React.Component {
     }
 }
 
+export const Body = compose(
+    _Body,
+    connect(mapStateToProps)
+)
+
 Body.propTypes = {
     className: PropTypes.string,
     location: PropTypes.object
 }
-
-export default compose(
-    Body,
-    connect(mapStateToProps)
-)

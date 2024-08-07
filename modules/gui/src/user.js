@@ -1,14 +1,18 @@
 import {catchError, map, of, switchMap, tap} from 'rxjs'
-import {msg} from 'translate'
-import {publishCurrentUserEvent, publishEvent} from 'eventPublisher'
-import {select} from 'store'
-import Notifications from 'widget/notifications'
-import actionBuilder from 'action-builder'
-import api from 'api'
+
+import {actionBuilder} from '~/action-builder'
+import api from '~/apiRegistry'
+import {publishCurrentUserEvent, publishEvent} from '~/eventPublisher'
+import {select} from '~/store'
+import {msg} from '~/translate'
+import {Notifications} from '~/widget/notifications'
 
 export const currentUser = () => select('user.currentUser')
 export const invalidCredentials = () => select('user.login.invalidCredentials')
 export const tokenUser = () => select('user.tokenUser')
+export const isGoogleAccount = () => !!(currentUser()?.googleTokens)
+export const isServiceAccount = () => !isGoogleAccount()
+export const googleProjectId = () => currentUser()?.googleTokens?.projectId
 
 export const loadUser$ = () =>
     api.user.loadCurrentUser$().pipe(
@@ -16,7 +20,21 @@ export const loadUser$ = () =>
             Notifications.error({message: msg('landing.loadCurrentUser.error')})
             return of(null)
         }),
-        tap(user => updateUser(user))
+        tap(user => updateUser(user)),
+        switchMap(() =>
+            googleProjectId()
+                ? api.gee.healthcheck$()
+                : of(true)
+        ),
+        catchError(() => {
+            Notifications.error({
+                title: msg('user.googleAccount.unavailable.title'),
+                message: msg('user.googleAccount.unavailable.message'),
+                link: `http://code.earthengine.google.com/register?project=${googleProjectId()}`,
+                timeout: 0
+            })
+            return of(null)
+        })
     )
 
 export const login$ = ({username, password}) => {
@@ -41,6 +59,9 @@ export const resetPassword$ = ({token, username, password, type, recaptchaToken}
         ),
         switchMap(() =>
             login$({username, password})
+        ),
+        switchMap(() =>
+            api.user.invalidateOtherSessions$()
         )
     )
 }
@@ -102,25 +123,28 @@ export const validateEmail$ = ({email, recaptchaToken}) =>
         map(({valid}) => valid)
     )
 
-export const updateCurrentUserDetails$ = ({name, email, organization, intendedUse, emailNotificationsEnabled}) =>
-    api.user.updateCurrentUserDetails$({name, email, organization, intendedUse, emailNotificationsEnabled}).pipe(
-        map(({name, email, organization}) =>
+export const updateCurrentUserDetails$ = ({name, email, organization, intendedUse, emailNotificationsEnabled, manualMapRenderingEnabled}) =>
+    api.user.updateCurrentUserDetails$({name, email, organization, intendedUse, emailNotificationsEnabled, manualMapRenderingEnabled}).pipe(
+        tap(({name, email, organization}) =>
             actionBuilder('UPDATE_USER_DETAILS', {name, email, organization, intendedUse})
                 .set('user.currentUser.name', name)
                 .set('user.currentUser.email', email)
                 .set('user.currentUser.organization', organization)
                 .set('user.currentUser.intendedUse', intendedUse)
                 .set('user.currentUser.emailNotificationsEnabled', emailNotificationsEnabled)
+                .set('user.currentUser.manualMapRenderingEnabled', manualMapRenderingEnabled)
                 .dispatch()
         )
     )
 
 export const changeCurrentUserPassword$ = ({oldPassword, newPassword}) =>
-    api.user.changePassword$({oldPassword, newPassword})
+    api.user.changePassword$({oldPassword, newPassword}).pipe(
+        switchMap(() => api.user.invalidateOtherSessions$())
+    )
 
 export const updateCurrentUserSession$ = session =>
     api.user.updateCurrentUserSession$(session).pipe(
-        map(() =>
+        tap(() =>
             actionBuilder('UPDATE_USER_SESSION_POSTED', {session})
                 .assign(['user.currentUserReport.sessions', {id: session.id}], {
                     earliestTimeoutHours: session.keepAlive
@@ -131,7 +155,7 @@ export const updateCurrentUserSession$ = session =>
 
 export const stopCurrentUserSession$ = session =>
     api.user.stopCurrentUserSession$(session).pipe(
-        map(() =>
+        tap(() =>
             actionBuilder('STOP_USER_SESSION_POSTED', {session})
                 .del(['user.currentUserReport.sessions', {id: session.id}])
                 .dispatch()
@@ -144,3 +168,16 @@ export const credentialsPosted = user =>
         .set('user.login.invalidCredentials', !user)
         .set('user.loggedOn', !!user)
         .dispatch()
+
+export const updateGoogleProject$ = projectId =>
+    api.user.updateGoogleProject$(projectId, !projectId).pipe(
+        tap(() =>
+            actionBuilder('UPDATE_GOOGLE_PROJECT')
+                .set('user.currentUser.googleTokens.projectId', projectId)
+                .dispatch()
+        ),
+        switchMap(() => loadUser$())
+    )
+
+export const projects$ = () =>
+    api.gee.projects$()

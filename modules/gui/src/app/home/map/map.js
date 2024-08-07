@@ -1,52 +1,59 @@
-import {BehaviorSubject, Subject, combineLatest, concat, distinctUntilChanged, filter, finalize,
-    first, last, of, pipe, map as rxMap, share, switchMap, takeUntil, windowTime} from 'rxjs'
-import {Button} from 'widget/button'
-import {Content, SectionLayout} from 'widget/sectionLayout'
-import {ElementResizeDetector} from 'widget/elementResizeDetector'
+import _ from 'lodash'
+import PropTypes from 'prop-types'
+import React from 'react'
+import {BehaviorSubject, combineLatest, concat, distinctUntilChanged, filter, finalize,
+    first, last, map, map as rxMap, of, pipe, scan, share, Subject, switchMap, takeUntil, windowTime} from 'rxjs'
+
+import {actionBuilder} from '~/action-builder'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {withEnableDetector} from '~/enabled'
+import {getLogger} from '~/log'
+import {selectFrom} from '~/stateUtils'
+import {withSubscriptions} from '~/subscription'
+import {areaTag, mapTag} from '~/tag'
+import {msg} from '~/translate'
+import {currentUser} from '~/user'
+import {uuid} from '~/uuid'
+import {Button} from '~/widget/button'
+import {ElementResizeDetector} from '~/widget/elementResizeDetector'
+import {Content, SectionLayout} from '~/widget/sectionLayout'
+import {SplitView} from '~/widget/split/splitView'
+import {getTabsInfo} from '~/widget/tabs/tabs'
+
+import {getImageLayerSource} from '../body/process/imageLayerSourceRegistry'
+import {recipePath} from '../body/process/recipe'
+import {withRecipe} from '../body/process/recipeContext'
+import {withLayers} from '../body/process/withLayers'
 import {LegendImport} from './legendImport'
+import styles from './map.module.css'
 import {MapApiKeyContext} from './mapApiKeyContext'
 import {MapAreaContext} from './mapAreaContext'
 import {MapContext} from './mapContext'
 import {MapInfo} from './mapInfo'
-import {SplitView} from 'widget/split/splitView'
-import {VisParamsPanel} from './visParams/visParamsPanel'
-import {areaTag, mapTag} from 'tag'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {getImageLayerSource} from './imageLayerSource/imageLayerSource'
-import {getLogger} from 'log'
-import {getProcessTabsInfo} from '../body/process/process'
-import {msg} from 'translate'
-import {recipePath} from '../body/process/recipe'
-import {selectFrom} from 'stateUtils'
-import {v4 as uuid} from 'uuid'
-import {withEnableDetector} from 'enabled'
-import {withLayers} from '../body/process/withLayers'
+import {MapRendering} from './mapRendering'
 import {withMapsContext} from './maps'
-import {withRecipe} from '../body/process/recipeContext'
-import {withSubscriptions} from 'subscription'
-import MapToolbar from './mapToolbar'
-import PropTypes from 'prop-types'
-import React from 'react'
-import _ from 'lodash'
-import actionBuilder from 'action-builder'
-import styles from './map.module.css'
+import {MapToolbar} from './mapToolbar'
+import {VisParamsPanel} from './visParams/visParamsPanel'
 
 // _.memoize.Cache = WeakMap
 
 const log = getLogger('map')
 
 const mapRecipeToProps = recipe => ({
+    user: currentUser(),
     bounds: selectFrom(recipe, 'ui.bounds'),
     recipe
 })
 
 const OVERLAY_ID = 'overlay-layer-id'
-const OVERLAY_AREA = OVERLAY_AREA
+const OVERLAY_AREA = 'overlay-area'
 
 class _Map extends React.Component {
     viewUpdates$ = new BehaviorSubject({})
     linked$ = new BehaviorSubject(false)
+    renderingEnabled$ = new BehaviorSubject(false)
+    renderingStatus$ = new Subject()
     draggingMap$ = new BehaviorSubject(false)
     viewChanged$ = new Subject()
     splitPosition$ = new BehaviorSubject()
@@ -56,6 +63,15 @@ class _Map extends React.Component {
 
     filteredViewUpdates$ = this.viewUpdates$.pipe(
         distinctUntilChanged(_.isEqual)
+    )
+
+    renderingProgress$ = this.renderingStatus$.pipe(
+        scan((acc, {tileProviderId, pending}) => ({
+            ...acc, [tileProviderId]: pending
+        }), {}),
+        map(pending =>
+            Object.values(pending).reduce((totalPending, pending) => totalPending + pending, 0)
+        )
     )
 
     state = {
@@ -72,8 +88,11 @@ class _Map extends React.Component {
 
     constructor() {
         super()
+        this.ref = React.createRef()
+        this.onResize = this.onResize.bind(this)
         this.mapDelegate = this.mapDelegate.bind(this)
-        this.toggleLinked = this.toggleLinked.bind(this)
+        this.setLinked = this.setLinked.bind(this)
+        this.toggleRendering = this.toggleRendering.bind(this)
         this.enableZoomArea = this.enableZoomArea.bind(this)
         this.disableZoomArea = this.disableZoomArea.bind(this)
         this.isZoomArea = this.isZoomArea.bind(this)
@@ -93,6 +112,8 @@ class _Map extends React.Component {
         return map && ({
             view$: this.filteredViewUpdates$,
             linked$: this.linked$,
+            renderingEnabled$: this.renderingEnabled$,
+            renderingProgress$: this.renderingProgress$,
             scrollWheelEnabled$: this.scrollWheelEnabled$,
             zoomIn: map.zoomIn,
             zoomOut: map.zoomOut,
@@ -102,7 +123,8 @@ class _Map extends React.Component {
             fitBounds: map.fitBounds,
             getBounds: map.getBounds,
             getGoogle: map.getGoogle,
-            toggleLinked: this.toggleLinked,
+            setLinked: this.setLinked,
+            toggleRendering: this.toggleRendering,
             enableZoomArea: this.enableZoomArea,
             disableZoomArea: this.disableZoomArea,
             isZoomArea: this.isZoomArea,
@@ -199,7 +221,7 @@ class _Map extends React.Component {
             gestureHandling: 'auto'
         } : null
         const style = isOverlay ? 'overlayStyle' : 'sepalStyle'
-        const map = createSepalMap({element, options, style})
+        const map = createSepalMap({element, options, style, renderingEnabled$: this.renderingEnabled$, renderingStatus$: this.renderingStatus$})
 
         this.withFirstAreaMap(firstMap => map.setView(firstMap.getView())) // Make sure a new map is synchronized
 
@@ -253,7 +275,7 @@ class _Map extends React.Component {
             const area = this.getArea(id)
             log.debug(() => `Removing ${mapTag(this.state.mapId, id)} from ${areaTag(area)}`)
             listeners.forEach(listener =>
-                google.maps.event.removeListener(listener)
+                google.maps.core.event.removeListener(listener)
             )
             subscriptions.forEach(subscription =>
                 subscription.unsubscribe()
@@ -365,7 +387,6 @@ class _Map extends React.Component {
             const {drawingMode, callback} = activeInstance
             this.withAllMaps(({map}) => map.disableDrawingMode())
             if (this.isStackMode()) {
-                // this.setState({drawingMode}, () => {
                 this.setState({drawingMode, overlayActive: true}, () => {
                     this.withOverlayMap(callback)
                 })
@@ -380,7 +401,6 @@ class _Map extends React.Component {
     enableDrawingMode({drawingMode, callback}) {
         log.debug('enableDrawingMode:', drawingMode)
         if (this.isStackMode()) {
-            // this.setState({drawingMode}, () => {
             this.setState({drawingMode, overlayActive: true}, () => {
                 this.withOverlayMap(callback)
             })
@@ -394,12 +414,10 @@ class _Map extends React.Component {
     disableDrawingMode() {
         log.debug('disableDrawingMode')
         if (this.isStackMode()) {
-            // this.setState({drawingMode: null}, () => {
             this.setState({drawingMode: null, overlayActive: false}, () => {
                 this.withOverlayMap(({map}) => map.disableDrawingMode())
             })
         } else {
-            // this.setState({drawingMode: null, overlayActive: true}, () => {
             this.setState({drawingMode: null, overlayActive: false}, () => {
                 this.withAreaMaps(({map}) => map.disableDrawingMode())
             })
@@ -562,13 +580,28 @@ class _Map extends React.Component {
             .dispatch()
     }
 
-    setLinked(linked) {
-        this.linked$.next(linked)
+    setLinked(linked, synchronize) {
+        this.linked$.next({linked, synchronize})
     }
 
-    toggleLinked() {
-        const linked = this.linked$.getValue()
-        this.setLinked(!linked)
+    setRendering(rendering) {
+        this.renderingEnabled$.next(rendering)
+    }
+
+    toggleRendering() {
+        const rendering = this.renderingEnabled$.getValue()
+        this.setRendering(!rendering)
+    }
+
+    updateRendering(pendingTiles) {
+        const {user: {manualMapRenderingEnabled}} = this.props
+        if (manualMapRenderingEnabled && this.renderingEnabled$.getValue() && !pendingTiles) {
+            this.setRendering(false)
+        }
+    }
+
+    onResize(size) {
+        this.setState({size})
     }
 
     render() {
@@ -580,27 +613,27 @@ class _Map extends React.Component {
             )
             .filter(mapComponent => mapComponent)
         return (
-            <ElementResizeDetector onResize={size => this.setState({size})}>
-                <MapApiKeyContext
-                    googleMapsApiKey={googleMapsApiKey}
-                    nicfiPlanetApiKey={nicfiPlanetApiKey}>
-                    <MapContext map={this.mapDelegate()}>
-                        {imageLayerSourceComponents}
-                        <SplitView
-                            className={styles.view}
-                            areas={this.renderAreas()}
-                            overlay={this.renderOverlay()}
-                            mode={layers.mode}
-                            position$={this.splitPosition$}
-                            dragging$={this.draggingSplit$}>
-                            <div className={styles.content}>
+            <MapApiKeyContext
+                googleMapsApiKey={googleMapsApiKey}
+                nicfiPlanetApiKey={nicfiPlanetApiKey}>
+                <MapContext map={this.mapDelegate()}>
+                    {imageLayerSourceComponents}
+                    <SplitView
+                        className={styles.view}
+                        areas={this.renderAreas()}
+                        overlay={this.renderOverlay()}
+                        mode={layers.mode}
+                        position$={this.splitPosition$}
+                        dragging$={this.draggingSplit$}>
+                        <ElementResizeDetector targetRef={this.ref} onResize={this.onResize}>
+                            <div ref={this.ref} className={styles.content}>
                                 {this.isInitialized() ? this.renderRecipe() : null}
                                 {this.renderDrawingModeIndicator()}
                             </div>
-                        </SplitView>
-                    </MapContext>
-                </MapApiKeyContext>
-            </ElementResizeDetector>
+                        </ElementResizeDetector>
+                    </SplitView>
+                </MapContext>
+            </MapApiKeyContext>
         )
     }
 
@@ -653,6 +686,7 @@ class _Map extends React.Component {
         return (
             <SectionLayout>
                 <Content className={styles.recipe}>
+                    <MapRendering/>
                     <MapToolbar statePath={[recipeStatePath, 'ui']}/>
                     <MapInfo/>
                     <LegendImport/>
@@ -714,17 +748,25 @@ class _Map extends React.Component {
         return drawingMode ? (
             <div className={styles.drawingMode}>
                 <Button
-                    air='less'
+                    size='small'
                     label={msg(`map.drawingMode.${drawingMode}`)}
+                    icon='pencil'
                 />
             </div>
         ) : null
     }
 
+    updateManualMapRendering(prevManualMapRenderingEnabled) {
+        const {user: {manualMapRenderingEnabled}} = this.props
+        if (manualMapRenderingEnabled !== prevManualMapRenderingEnabled) {
+            this.renderingEnabled$.next(!manualMapRenderingEnabled)
+        }
+    }
+
     componentDidMount() {
         const {mapsContext: {createMapContext}, enableDetector: {onEnable, onDisable}} = this.props
         const {mapId, googleMapsApiKey, nicfiPlanetApiKey, view$, updateView$, linked$, scrollWheelEnabled$} = createMapContext()
-        this.setLinked(getProcessTabsInfo().single)
+        this.setLinked(getTabsInfo('process').single)
         this.scrollWheelEnabled$ = scrollWheelEnabled$
 
         this.setState({
@@ -736,10 +778,11 @@ class _Map extends React.Component {
             onEnable(() => this.setVisibility(true))
             onDisable(() => this.setVisibility(false))
         })
+
+        this.updateManualMapRendering()
     }
 
-    componentDidUpdate(prevProps) {
-        const {areas: prevAreas, mode: prevMode} = selectFrom(prevProps, 'layers') || {}
+    componentDidUpdate({layers: {areas: prevAreas, mode: prevMode} = {}, user: {manualMapRenderingEnabled: prevManualMapRenderingEnabled}}) {
         const {layers: {areas, mode}} = this.props
         const previousAreaIds = Object.values(prevAreas).map(({id}) => id)
         const currentAreaIds = Object.values(areas).map(({id}) => id)
@@ -753,6 +796,8 @@ class _Map extends React.Component {
         if (addedAreaIds.length || modeChanged) {
             this.reassignDrawingMode()
         }
+
+        this.updateManualMapRendering(prevManualMapRenderingEnabled)
     }
 
     componentWillUnmount() {
@@ -773,7 +818,10 @@ class _Map extends React.Component {
             this.linked$.pipe(
                 finalize(() => linked$.next({linked: false}))
             ).subscribe(
-                linked => linked$.next({linked, view: this.viewUpdates$.getValue()})
+                ({linked, synchronize}) => linked$.next({linked, synchronize, view: this.viewUpdates$.getValue()})
+            ),
+            this.renderingProgress$.subscribe(
+                pendingTiles => this.updateRendering(pendingTiles)
             )
         )
     }

@@ -1,16 +1,17 @@
-import {AssetSelect} from 'widget/assetSelect'
-import {Form} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {NICFI_ASSETS} from 'app/home/body/process/recipe/planetMosaic/planetMosaicRecipe'
-import {Panel} from 'widget/panel/panel'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {getDataSetOptions as planetDataSetOptions} from 'app/home/body/process/recipe/planetMosaic/sources'
-import {selectFrom} from 'stateUtils'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
+
+import {NICFI_ASSETS} from '~/app/home/body/process/recipe/planetMosaic/planetMosaicRecipe'
+import {getDataSetOptions as planetDataSetOptions} from '~/app/home/body/process/recipe/planetMosaic/sources'
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {Layout} from '~/widget/layout'
+import {Panel} from '~/widget/panel/panel'
+
 import styles from './sources.module.css'
 
 const fields = {
@@ -27,7 +28,7 @@ const mapRecipeToProps = recipe => ({
     dates: selectFrom(recipe, 'model.dates')
 })
 
-class Sources extends React.Component {
+class _Sources extends React.Component {
     render() {
         return (
             <RecipeFormPanel
@@ -71,11 +72,11 @@ class Sources extends React.Component {
     renderAssetId() {
         const {inputs: {asset, validAsset}} = this.props
         return (
-            <AssetSelect
+            <Form.AssetCombo
                 input={asset}
                 label={msg('process.planetMosaic.panel.sources.form.asset.label')}
                 placeholder={msg('process.planetMosaic.panel.sources.form.asset.placeholder')}
-                expectedType='ImageCollection'
+                allowedTypes={['ImageCollection']}
                 autoFocus
                 onLoading={() => validAsset.set('')}
                 onLoaded={() => validAsset.set('valid')}
@@ -109,11 +110,11 @@ const modelToValues = model => {
     }
 }
 
+export const Sources = compose(
+    _Sources,
+    recipeFormPanel({id: 'sources', fields, mapRecipeToProps, modelToValues, valuesToModel})
+)
+
 Sources.propTypes = {
     recipeId: PropTypes.string
 }
-
-export default compose(
-    Sources,
-    recipeFormPanel({id: 'sources', fields, mapRecipeToProps, modelToValues, valuesToModel})
-)

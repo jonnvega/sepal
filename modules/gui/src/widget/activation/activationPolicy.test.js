@@ -1,6 +1,11 @@
-import {activationAllowed} from './activationPolicy'
+import _ from 'lodash'
+
+import {activationAllowed as originalActivationAllowed} from './activationPolicy'
 
 /* eslint-disable no-undef */
+
+const activationAllowed = (id, activatables) =>
+    originalActivationAllowed(id, _.mapValues(activatables, (activatable, id) => ({...activatable, id})))
 
 it('throw error when policy is missing the fallback behavior (_) ', () => {
     expect(() => activationAllowed('a', {

@@ -1,10 +1,12 @@
-import {Button} from 'widget/button'
-import {ButtonGroup} from './buttonGroup'
-import {msg} from 'translate'
-import FloatingBox from './floatingBox'
-import Keybinding from 'widget/keybinding'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import {msg} from '~/translate'
+import {Button} from '~/widget/button'
+import {Keybinding} from '~/widget/keybinding'
+
+import {ButtonGroup} from './buttonGroup'
+import {FloatingBox} from './floatingBox'
 import styles from './inlineConfirmationButton.module.css'
 
 export class InlineConfirmationButton extends React.Component {
@@ -24,7 +26,7 @@ export class InlineConfirmationButton extends React.Component {
     }
 
     renderConfirmationButton() {
-        const {icon, confirmationLabel, onConfirm} = this.props
+        const {icon, size, air, confirmationLabel, onConfirm} = this.props
         const {showConfirmation} = this.state
         return showConfirmation ? (
             <FloatingBox
@@ -38,6 +40,8 @@ export class InlineConfirmationButton extends React.Component {
                             <Button
                                 shape='pill'
                                 look='cancel'
+                                size={size}
+                                air={air}
                                 icon={icon}
                                 label={confirmationLabel || msg('button.confirm')}
                                 onClick={onConfirm}/>
@@ -81,7 +85,7 @@ export class InlineConfirmationButton extends React.Component {
     }
 
     renderButton() {
-        const {busy, chromeless, disabled, icon, iconType, label, shape, size, tooltip, tooltipPlacement, width} = this.props
+        const {busy, chromeless, air, disabled, icon, iconType, label, shape, size, tooltip, tooltipPlacement, width} = this.props
         const {showConfirmation} = this.state
         return (
             <Button
@@ -94,6 +98,7 @@ export class InlineConfirmationButton extends React.Component {
                 shape={shape}
                 size={size}
                 width={width}
+                air={air}
                 disabled={disabled}
                 tooltip={tooltip}
                 tooltipDisabled={showConfirmation}
@@ -105,13 +110,14 @@ export class InlineConfirmationButton extends React.Component {
     }
 
     renderExitButton() {
-        const {chromeless, shape, size, width} = this.props
+        const {chromeless, shape, size, air, width} = this.props
         return (
             <Button
                 chromeless={chromeless}
                 icon='xmark'
                 shape={shape}
                 size={size}
+                air={air}
                 width={width}
                 onClick={this.hideConfirmation}
             />
@@ -133,6 +139,7 @@ InlineConfirmationButton.defaultProps = {
 
 InlineConfirmationButton.propTypes = {
     onConfirm: PropTypes.func.isRequired,
+    air: PropTypes.any,
     busy: PropTypes.any,
     chromeless: PropTypes.any,
     confirmationLabel: PropTypes.string,

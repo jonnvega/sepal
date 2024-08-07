@@ -1,6 +1,6 @@
+import {msg} from '~/translate'
+
 import {getAvailableIndexes} from './opticalIndexes'
-import {msg} from 'translate'
-import _ from 'lodash'
 
 export const BandSetSpec = {
     filter(bandSetSpec, availableBands = []) {

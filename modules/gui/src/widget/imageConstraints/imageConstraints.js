@@ -1,13 +1,16 @@
-import {Buttons} from '../buttons'
-import {Constraint} from './constraint'
-import {Layout} from 'widget/layout'
-import {Panel} from 'widget/panel/panel'
-import {compose} from 'compose'
-import {msg} from '../../translate'
-import {withActivatable} from 'widget/activation/activatable'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import guid from 'guid'
+
+import {compose} from '~/compose'
+import {uuid} from '~/uuid'
+import {withActivatable} from '~/widget/activation/activatable'
+import {Layout} from '~/widget/layout'
+import {Panel} from '~/widget/panel/panel'
+
+import {msg} from '../../translate'
+import {Buttons} from '../buttons'
+import {Constraint} from './constraint'
 import styles from './imageConstraints.module.css'
 
 class _ImageConstraints extends React.Component {
@@ -22,40 +25,44 @@ class _ImageConstraints extends React.Component {
         super(props)
         this.addConstraint = this.addConstraint.bind(this)
         this.apply = this.apply.bind(this)
+        this.close = this.close.bind(this)
     }
 
     render() {
-        const {icon, title, activatable: {deactivate}} = this.props
+        const {icon, title} = this.props
+        const {constraints} = this.state
         const invalid = this.isInvalid()
-        return (
-            <Panel type='modal' className={styles.panel}>
-                <Panel.Header
-                    icon={icon}
-                    title={title}
-                    label={this.renderBooleanOperators()}
-                />
-                <Panel.Content>
-                    {this.renderContent()}
-                </Panel.Content>
-                <Panel.Buttons>
-                    <Panel.Buttons.Add
-                        disabled={invalid}
-                        onClick={this.addConstraint}
+        return constraints
+            ? (
+                <Panel type='modal' className={styles.panel}>
+                    <Panel.Header
+                        icon={icon}
+                        title={title}
+                        label={this.renderBooleanOperators()}
                     />
-                    <Panel.Buttons.Main>
-                        <Panel.Buttons.Cancel
-                            keybinding='Escape'
-                            onClick={deactivate}
-                        />
-                        <Panel.Buttons.Apply
-                            keybinding='Enter'
+                    <Panel.Content>
+                        {this.renderContent()}
+                    </Panel.Content>
+                    <Panel.Buttons>
+                        <Panel.Buttons.Add
                             disabled={invalid}
-                            onClick={this.apply}
+                            onClick={this.addConstraint}
                         />
-                    </Panel.Buttons.Main>
-                </Panel.Buttons>
-            </Panel>
-        )
+                        <Panel.Buttons.Main>
+                            <Panel.Buttons.Cancel
+                                keybinding='Escape'
+                                onClick={this.close}
+                            />
+                            <Panel.Buttons.Apply
+                                keybinding='Enter'
+                                disabled={invalid}
+                                onClick={this.apply}
+                            />
+                        </Panel.Buttons.Main>
+                    </Panel.Buttons>
+                </Panel>
+            )
+            : null
     }
 
     renderBooleanOperators() {
@@ -74,16 +81,18 @@ class _ImageConstraints extends React.Component {
     }
 
     componentDidMount() {
-        const {booleanOperator, constraints = []} = this.props
-        this.setState({constraints})
+        const {constraintsId, booleanOperator, constraints = []} = this.props
         if (constraints.length) {
             this.setState({constraints})
         } else {
             this.addConstraint()
         }
-        if (booleanOperator) {
-            this.setState({booleanOperator})
-        }
+        this.setState({constraintsId, booleanOperator})
+    }
+
+    close() {
+        const {activatable: {deactivate}} = this.props
+        deactivate()
     }
 
     changeBooleanOperator(booleanOperator) {
@@ -97,15 +106,21 @@ class _ImageConstraints extends React.Component {
 
     addConstraint() {
         const {images = []} = this.props
-        const id = guid()
+        const id = uuid()
         const image = images.length === 1 ? images[0].id : null
-        const band = image && images[0].bands.length === 1 ? images[0].bands[0].name : null
+        const band = image && images[0].bands?.length === 1 ? images[0].bands[0].name : null
+        const property = image && images[0].properties?.length === 1 ? images[0].properties[0].name : null
+        const fromBitInclusive = true
+        const toBitInclusive = true
         const operator = band && images[0].bands[0].type === 'categorical'
             ? 'class'
-            : '<'
+            : '='
         const fromInclusive = true
         this.setState(({constraints}) => ({
-            constraints: [...constraints, {id, image, band, operator, fromInclusive}],
+            constraints: [
+                ...constraints, {
+                    id, image, band, property, fromBitInclusive, toBitInclusive, operator, fromInclusive
+                }],
             selected: id
         }))
     }
@@ -120,7 +135,7 @@ class _ImageConstraints extends React.Component {
     }
 
     renderConstraint(constraint) {
-        const {images} = this.props
+        const {images, applyOn} = this.props
         const {selected} = this.state
         return (
             <Constraint
@@ -128,6 +143,7 @@ class _ImageConstraints extends React.Component {
                 constraint={constraint}
                 images={images}
                 selected={selected === constraint.id}
+                applyOn={applyOn}
                 onClick={() => this.select(constraint.id)}
                 onRemove={() => this.remove(constraint.id)}
                 onValidate={invalid => this.setState(({invalidById}) => ({
@@ -167,10 +183,10 @@ class _ImageConstraints extends React.Component {
     }
 
     apply() {
-        const {onChange, activatable: {deactivate}} = this.props
+        const {constraintsId, onChange} = this.props
         const {constraints, booleanOperator} = this.state
-        deactivate()
-        onChange && onChange({constraints, booleanOperator})
+        this.close()
+        onChange && onChange({id: constraintsId, constraints, booleanOperator})
     }
 }
 
@@ -187,11 +203,31 @@ export const ImageConstraints = compose(
     })
 )
 
+export const renderConstraintsDescription = ({constraints, booleanOperator}) => {
+    const toDescriptions = () => {
+        const booleans = Array(constraints.length - 1).fill(booleanOperator)
+        return _.zip(constraints, booleans)
+            .map(([{id, description}, operator]) =>
+                <div key={id}>{description} {operator}</div>
+            )
+    }
+    const descriptions = constraints.length
+        ? toDescriptions()
+        : msg('process.asset.panel.mask.emptyConstraints')
+    return (
+        <div className={styles.constraintsDescriptions}>
+            {descriptions}
+        </div>
+    )
+}
+
 ImageConstraints.propTypes = {
     id: PropTypes.string.isRequired,
     images: PropTypes.array.isRequired,
     title: PropTypes.any.isRequired,
     onChange: PropTypes.func.isRequired,
-    booleanOperator: PropTypes.func,
-    icon: PropTypes.string,
+    applyOn: PropTypes.string,
+    booleanOperator: PropTypes.any,
+    constraints: PropTypes.array,
+    constraintsId: PropTypes.string,
 }

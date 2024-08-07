@@ -1,19 +1,21 @@
-import {CrudItem} from 'widget/crudItem'
-import {Form} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {ListItem} from 'widget/listItem'
-import {NoData} from 'widget/noData'
-import {Panel} from 'widget/panel/panel'
-import {RecipeActions} from '../../remappingRecipe'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import {withActivators} from 'widget/activation/activator'
-import InputImage from './inputImage'
 import React from 'react'
-import guid from 'guid'
+
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {uuid} from '~/uuid'
+import {withActivators} from '~/widget/activation/activator'
+import {CrudItem} from '~/widget/crudItem'
+import {Form} from '~/widget/form'
+import {Layout} from '~/widget/layout'
+import {ListItem} from '~/widget/listItem'
+import {NoData} from '~/widget/noData'
+import {Panel} from '~/widget/panel/panel'
+
+import {RecipeActions} from '../../remappingRecipe'
+import {InputImage} from './inputImage'
 import styles from './inputImagery.module.css'
 
 const mapRecipeToProps = recipe => ({
@@ -31,7 +33,7 @@ const mapStateToProps = (state, ownProps) => {
     return {recipeNameById}
 }
 
-class InputImagery extends React.Component {
+class _InputImagery extends React.Component {
     render() {
         const {images} = this.props
         return (
@@ -98,7 +100,7 @@ class InputImagery extends React.Component {
 
     addImage() {
         const {activator: {activatables: {inputImage}}} = this.props
-        inputImage.activate({imageId: guid()})
+        inputImage.activate({imageId: uuid()})
     }
 
     editImage(image) {
@@ -113,15 +115,16 @@ class InputImagery extends React.Component {
     }
 }
 
-InputImagery.propTypes = {}
 const additionalPolicy = () => ({_: 'allow'})
 // [HACK] This actually isn't a form, and we don't want to update the model. This prevents the selected images from
 // being overridden.
 const valuesToModel = null
 
-export default compose(
-    InputImagery,
+export const InputImagery = compose(
+    _InputImagery,
     connect(mapStateToProps),
     recipeFormPanel({id: 'inputImagery', mapRecipeToProps, valuesToModel, additionalPolicy}),
     withActivators('inputImage')
 )
+
+InputImagery.propTypes = {}

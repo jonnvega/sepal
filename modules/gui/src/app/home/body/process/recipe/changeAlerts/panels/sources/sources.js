@@ -1,20 +1,22 @@
-import {AssetSelect} from 'widget/assetSelect'
-import {Form} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {Panel} from 'widget/panel/panel'
-import {RecipeActions} from 'app/home/body/process/recipe/changeAlerts/changeAlertsRecipe'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {compose} from 'compose'
-import {connect, select} from 'store'
-import {groupedBandOptions, toSources} from 'sources'
-import {isOpticalDataSet, getDataSetOptions as opticalDataSetOptions} from 'app/home/body/process/recipe/opticalMosaic/sources'
-import {isRadarDataSet, getDataSetOptions as radarDataSetOptions} from 'app/home/body/process/recipe/radarMosaic/sources'
-import {msg} from 'translate'
-import {getDataSetOptions as planetDataSetOptions} from 'app/home/body/process/recipe/planetMosaic/sources'
-import {recipeAccess} from 'app/home/body/process/recipeAccess'
-import {selectFrom} from 'stateUtils'
-import React from 'react'
 import _ from 'lodash'
+import React from 'react'
+
+import {RecipeActions} from '~/app/home/body/process/recipe/changeAlerts/changeAlertsRecipe'
+import {getDataSetOptions as opticalDataSetOptions, isOpticalDataSet} from '~/app/home/body/process/recipe/opticalMosaic/sources'
+import {getDataSetOptions as planetDataSetOptions} from '~/app/home/body/process/recipe/planetMosaic/sources'
+import {getDataSetOptions as radarDataSetOptions, isRadarDataSet} from '~/app/home/body/process/recipe/radarMosaic/sources'
+import {recipeAccess} from '~/app/home/body/process/recipeAccess'
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {groupedBandOptions, toSources} from '~/sources'
+import {selectFrom} from '~/stateUtils'
+import {select} from '~/store'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {Layout} from '~/widget/layout'
+import {Panel} from '~/widget/panel/panel'
+
 import styles from './sources.module.css'
 
 const fields = {
@@ -46,7 +48,7 @@ const mapRecipeToProps = recipe => ({
     corrections: selectFrom(recipe, 'model.options.corrections')
 })
 
-class Sources extends React.Component {
+class _Sources extends React.Component {
     state = {}
 
     constructor(props) {
@@ -165,11 +167,11 @@ class Sources extends React.Component {
             return null
         }
         return (
-            <AssetSelect
+            <Form.AssetCombo
                 input={asset}
                 label={msg('process.planetMosaic.panel.sources.form.asset.label')}
                 placeholder={msg('process.planetMosaic.panel.sources.form.asset.placeholder')}
-                expectedType='ImageCollection'
+                allowedTypes={['ImageCollection']}
                 autoFocus
                 onLoading={() => validAsset.set('')}
                 onLoaded={() => validAsset.set('valid')}
@@ -209,14 +211,12 @@ class Sources extends React.Component {
         switch (dataSetType.value) {
         case 'OPTICAL': return opticalDataSetOptions({...dates})
         case 'RADAR': return radarDataSetOptions({...dates})
-        case 'PLANET': return planetDataSetOptions({...dates}).filter(({value}) => value !== 'NICFI')
+        case 'PLANET': return planetDataSetOptions({...dates})
         default: return []
         }
     }
 
 }
-
-Sources.propTypes = {}
 
 const valuesToModel = ({dataSetType, asset, dataSets, cloudPercentageThreshold, band}) => {
     return ({
@@ -247,9 +247,11 @@ const modelToValues = ({dataSetType, assets, dataSets, cloudPercentageThreshold,
     })
 }
 
-export default compose(
-    Sources,
+export const Sources = compose(
+    _Sources,
     connect(mapStateToProps),
     recipeFormPanel({id: 'sources', fields, mapRecipeToProps, modelToValues, valuesToModel}),
     recipeAccess()
 )
+
+Sources.propTypes = {}

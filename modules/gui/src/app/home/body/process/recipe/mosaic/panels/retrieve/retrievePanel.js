@@ -1,21 +1,22 @@
-import {AssetDestination} from 'widget/assetDestination'
-import {Button} from 'widget/button'
-import {Form} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {NumberButtons} from 'widget/numberButtons'
-import {Panel} from 'widget/panel/panel'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {WorkspaceDestination} from 'widget/workspaceDestination'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {currentUser} from 'user'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import {updateProject} from 'app/home/body/process/recipeList/projects'
 import Path from 'path'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
+
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {updateProject} from '~/app/home/body/process/recipeList/projects'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {isGoogleAccount} from '~/user'
+import {AssetDestination} from '~/widget/assetDestination'
+import {Button} from '~/widget/button'
+import {Form} from '~/widget/form'
+import {Layout} from '~/widget/layout'
+import {NumberButtons} from '~/widget/numberButtons'
+import {Panel} from '~/widget/panel/panel'
+import {WorkspaceDestination} from '~/widget/workspaceDestination'
+
 import styles from './retrievePanel.module.css'
 
 const fields = {
@@ -35,6 +36,9 @@ const fields = {
         .skip((v, {destination}) => destination !== 'GEE')
         .notBlank(),
     assetType: new Form.Field()
+        .skip((v, {destination}) => destination !== 'GEE')
+        .notBlank(),
+    sharing: new Form.Field()
         .skip((v, {destination}) => destination !== 'GEE')
         .notBlank(),
     strategy: new Form.Field()
@@ -69,7 +73,6 @@ const mapStateToProps = state => ({
 })
 
 const mapRecipeToProps = recipe => ({
-    user: currentUser(),
     projectId: recipe.projectId
 })
 
@@ -116,6 +119,7 @@ class _MosaicRetrievePanel extends React.Component {
                 {destination.value === 'SEPAL' ? this.renderWorkspaceDestination() : null}
                 {destination.value === 'GEE' ? this.renderAssetType() : null}
                 {destination.value === 'GEE' ? this.renderAssetDestination() : null}
+                {destination.value === 'GEE' ? this.renderSharing() : null}
                 {more && (allowTiling || (destination.value === 'GEE' && assetType.value === 'ImageCollection')) ? this.renderTileSize() : null}
                 {more ? this.renderShardSize() : null}
                 {more && destination.value === 'SEPAL' ? this.renderFileDimensionsMultiple() : null}
@@ -135,7 +139,6 @@ class _MosaicRetrievePanel extends React.Component {
                 placeholder={msg('process.retrieve.form.crs.placeholder')}
                 tooltip={msg('process.retrieve.form.crs.tooltip')}
                 input={crs}
-                errorMessage
             />
         )
     }
@@ -148,7 +151,6 @@ class _MosaicRetrievePanel extends React.Component {
                 placeholder={msg('process.retrieve.form.crsTransform.placeholder')}
                 tooltip={msg('process.retrieve.form.crsTransform.tooltip')}
                 input={crsTransform}
-                errorMessage
             />
         )
     }
@@ -163,7 +165,6 @@ class _MosaicRetrievePanel extends React.Component {
                 input={shardSize}
                 options={[4, 16, 32, 64, 128, 256, 512, {value: 1024, label: '1k'}]}
                 suffix={msg('process.retrieve.form.shardSize.suffix')}
-                errorMessage
             />
         )
     }
@@ -193,13 +194,12 @@ class _MosaicRetrievePanel extends React.Component {
                 input={tileSize}
                 options={[0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10]}
                 suffix={msg('process.retrieve.form.tileSize.suffix')}
-                errorMessage
             />
         )
     }
 
     renderDestination() {
-        const {toSepal, toEE, user, inputs: {destination}} = this.props
+        const {toSepal, toEE, inputs: {destination}} = this.props
         const destinationOptions = [
             {
                 value: 'SEPAL',
@@ -210,7 +210,7 @@ class _MosaicRetrievePanel extends React.Component {
                 label: msg('process.retrieve.form.destination.GEE')
             }
         ]
-            .filter(({value}) => user.googleTokens || value !== 'GEE')
+            .filter(({value}) => isGoogleAccount() || value !== 'GEE')
             .filter(({value}) => toSepal || value !== 'SEPAL')
             .filter(({value}) => toEE || value !== 'GEE')
         return (
@@ -245,6 +245,29 @@ class _MosaicRetrievePanel extends React.Component {
                 assetInput={assetId}
                 strategyInput={strategy}
             />
+        )
+    }
+
+    renderSharing() {
+        const {inputs: {sharing}} = this.props
+        const options = [
+            {
+                value: 'PRIVATE',
+                label: msg('process.retrieve.form.sharing.PRIVATE.label'),
+                tooltip: msg('process.retrieve.form.sharing.PRIVATE.tooltip')
+            },
+            {
+                value: 'PUBLIC',
+                label: msg('process.retrieve.form.sharing.PUBLIC.label'),
+                tooltip: msg('process.retrieve.form.sharing.PUBLIC.tooltip')
+            }
+        ]
+        return (
+            <Form.Buttons
+                label={msg('process.retrieve.form.sharing.label')}
+                input={sharing}
+                multiple={false}
+                options={options}/>
         )
     }
 
@@ -296,13 +319,14 @@ class _MosaicRetrievePanel extends React.Component {
                 input={scale}
                 options={scaleTicks}
                 suffix={msg('process.retrieve.form.scale.suffix')}
-                errorMessage
             />
         )
     }
     
     componentDidMount() {
-        const {allBands, defaultAssetType, defaultCrs, defaultScale, defaultShardSize, defaultFileDimensionsMultiple, defaultTileSize, inputs: {assetType, crs, crsTransform, scale, shardSize, fileDimensionsMultiple, tileSize, useAllBands}} = this.props
+        const {allBands, defaultAssetType, defaultCrs, defaultScale, defaultShardSize, defaultFileDimensionsMultiple, defaultTileSize,
+            inputs: {assetType, sharing, crs, crsTransform, scale, shardSize, fileDimensionsMultiple, tileSize, useAllBands}
+        } = this.props
         const more = (crs.value && crs.value !== defaultCrs)
             || (crsTransform.value)
             || (shardSize.value && shardSize.value !== defaultShardSize)
@@ -327,6 +351,9 @@ class _MosaicRetrievePanel extends React.Component {
         if (defaultAssetType && !assetType.value) {
             assetType.set(defaultAssetType)
         }
+        if (!sharing.value) {
+            sharing.set('PRIVATE')
+        }
         if (allBands) {
             useAllBands.set(true)
         }
@@ -338,10 +365,10 @@ class _MosaicRetrievePanel extends React.Component {
     }
 
     update() {
-        const {toEE, toSepal, user, inputs: {destination, assetType}} = this.props
+        const {toEE, toSepal, inputs: {destination, assetType}} = this.props
         if (toSepal && !destination.value) {
             destination.set('SEPAL')
-        } else if (user.googleTokens && toEE && !destination.value) {
+        } else if (isGoogleAccount() && toEE && !destination.value) {
             destination.set('GEE')
         }
         if (!assetType.value && destination.value === 'GEE') {

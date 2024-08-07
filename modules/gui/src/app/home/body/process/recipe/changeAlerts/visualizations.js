@@ -1,10 +1,11 @@
-import {msg} from 'translate'
-import {normalize} from 'app/home/map/visParams/visParams'
-import {visualizationOptions as opticalVisualizationOptions} from 'app/home/body/process/recipe/opticalMosaic/visualizations'
-import {visualizationOptions as planetVisualizationOptions} from 'app/home/body/process/recipe/planetMosaic/visualizations'
-import {visualizationOptions as radarVisualizationOptions} from 'app/home/body/process/recipe/radarMosaic/visualizations'
-import {selectFrom} from 'stateUtils'
 import moment from 'moment'
+
+import {visualizationOptions as opticalVisualizationOptions} from '~/app/home/body/process/recipe/opticalMosaic/visualizations'
+import {visualizationOptions as planetVisualizationOptions} from '~/app/home/body/process/recipe/planetMosaic/visualizations'
+import {visualizationOptions as radarVisualizationOptions} from '~/app/home/body/process/recipe/radarMosaic/visualizations'
+import {normalize} from '~/app/home/map/visParams/visParams'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
 
 const DATE_FORMAT = 'YYYY-MM-DD'
 
@@ -13,12 +14,12 @@ export const getPreSetVisualizations = recipe => getChangeVisualizations(recipe)
     .flat()
 
 const toFractionalYear = date => {
+    const year = moment(date).get('year')
     const startOfYear = moment(date, DATE_FORMAT).startOf(year)
     const startOfNextYear = moment(startOfYear).add(1, 'years')
     const dayOfYear = moment(date).dayOfYear()
     const daysInYear = moment(startOfNextYear).diff(moment(startOfYear), 'days')
     const fraction = dayOfYear / daysInYear
-    const year = moment(date).get('year')
     return year + fraction
 }
 

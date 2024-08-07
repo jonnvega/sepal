@@ -1,10 +1,12 @@
-import {Button} from 'widget/button'
-import {compose} from 'compose'
-import {connect, select} from 'store'
-import {msg} from 'translate'
 import PropTypes from 'prop-types'
 import React from 'react'
-import actionBuilder from 'action-builder'
+
+import {actionBuilder} from '~/action-builder'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {select} from '~/store'
+import {msg} from '~/translate'
+import {Button} from '~/widget/button'
 
 export function isFloating() {
     return select('menu.floating') === null ? false : !!select('menu.floating')
@@ -14,7 +16,7 @@ const mapStateToProps = () => ({
     floating: isFloating()
 })
 
-class MenuMode extends React.Component {
+class _MenuMode extends React.Component {
     toggle(state) {
         actionBuilder('TOGGLE_MENU')
             .set('menu.floating', !state)
@@ -40,12 +42,12 @@ class MenuMode extends React.Component {
     }
 }
 
+export const MenuMode = compose(
+    _MenuMode,
+    connect(mapStateToProps)
+)
+
 MenuMode.propTypes = {
     className: PropTypes.string,
     floating: PropTypes.bool
 }
-
-export default compose(
-    MenuMode,
-    connect(mapStateToProps)
-)

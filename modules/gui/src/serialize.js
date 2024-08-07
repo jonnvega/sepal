@@ -1,5 +1,4 @@
-import {addHash} from 'hash'
-import _ from 'lodash'
+import {addHash} from '~/hash'
 
 const deserializer = (_key, value) => {
     addHash(value)

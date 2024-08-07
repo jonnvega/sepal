@@ -1,25 +1,26 @@
-import {Button} from 'widget/button'
-import {Content, SectionLayout, TopBar} from 'widget/sectionLayout'
-import {CrudItem} from 'widget/crudItem'
-import {FastList} from 'widget/fastList'
-import {InlineConfirmationButton} from 'widget/inlineConfirmationButton'
-import {ListItem} from 'widget/listItem'
-import {Scrollable, ScrollableContainer} from 'widget/scrollable'
-import {Shape} from 'widget/shape'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {msg} from 'translate'
-import Notifications from 'widget/notifications'
 import React from 'react'
-import api from 'api'
-import clipboard from 'clipboard'
+
+import api from '~/apiRegistry'
+import {copyToClipboard} from '~/clipboard'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {msg} from '~/translate'
+import {Button} from '~/widget/button'
+import {CrudItem} from '~/widget/crudItem'
+import {FastList} from '~/widget/fastList'
+import {InlineConfirmationButton} from '~/widget/inlineConfirmationButton'
+import {ListItem} from '~/widget/listItem'
+import {Scrollable} from '~/widget/scrollable'
+import {Content, SectionLayout, TopBar} from '~/widget/sectionLayout'
+import {Shape} from '~/widget/shape'
+
 import styles from './tasks.module.css'
 
 const mapStateToProps = state => ({
     tasks: state.tasks
 })
 
-class Tasks extends React.Component {
+class _Tasks extends React.Component {
     constructor(props) {
         super(props)
         this.renderTask = this.renderTask.bind(this)
@@ -93,7 +94,7 @@ class Tasks extends React.Component {
                     title={task.name}
                     description={this.getDescription(task)}
                     icon={icon}
-                    iconSize='lg'
+                    iconSize='xl'
                     iconVariant={iconVariant}
                     // timestamp={recipe.updateTime}
                     inlineComponents={[
@@ -163,11 +164,9 @@ class Tasks extends React.Component {
                     {this.renderToolbar()}
                 </TopBar>
                 <Content horizontalPadding verticalPadding menuPadding>
-                    <ScrollableContainer>
-                        <Scrollable direction='x'>
-                            {this.renderTasks()}
-                        </Scrollable>
-                    </ScrollableContainer>
+                    <Scrollable direction='x'>
+                        {this.renderTasks()}
+                    </Scrollable>
                 </Content>
             </SectionLayout>
         )
@@ -200,8 +199,10 @@ class Tasks extends React.Component {
     }
 
     copyToClipboard(task) {
-        clipboard.copy(JSON.stringify(task, null, '  '))
-        Notifications.success({message: msg('tasks.copyToClipboard.success')})
+        copyToClipboard(
+            JSON.stringify(task, null, '  '),
+            msg('tasks.copyToClipboard.success')
+        )
     }
 
     removeTask(task) {
@@ -255,7 +256,7 @@ class Tasks extends React.Component {
     }
 }
 
-export default compose(
-    Tasks,
+export const Tasks = compose(
+    _Tasks,
     connect(mapStateToProps)
 )

@@ -1,12 +1,15 @@
-import {Button} from 'widget/button'
-import {ButtonGroup} from 'widget/buttonGroup'
-import {CheckButton} from './checkButton'
-import {Item} from 'widget/item'
+import moment from 'moment'
 import PropTypes from 'prop-types'
 import React from 'react'
-import RemoveButton from 'widget/removeButton'
-import _ from 'lodash'
+import Highlight from 'react-highlighter'
+
+import {Button} from '~/widget/button'
+import {ButtonGroup} from '~/widget/buttonGroup'
+import {RemoveButton} from '~/widget/removeButton'
+
+import {CheckButton} from './checkButton'
 import styles from './crudItem.module.css'
+import {Icon} from './icon'
 
 export class CrudItem extends React.Component {
     render() {
@@ -31,25 +34,113 @@ export class CrudItem extends React.Component {
     }
 
     renderDefaultContent() {
-        const {title, description, icon, iconSize, iconType, iconVariant, image, timestamp, highlight, highlightClassName, highlightTitle, highlightDescription, onClick} = this.props
         return (
-            <Item
-                className={styles.content}
-                title={title}
-                description={description}
-                icon={icon}
-                iconSize={iconSize}
-                iconType={iconType}
-                iconVariant={iconVariant}
-                image={image}
-                timestamp={timestamp}
-                highlight={highlight}
-                highlightClassName={highlightClassName}
-                highlightTitle={highlightTitle}
-                highlightDescription={highlightDescription}
-                nonClickable={!onClick}
-            />
+            <div className={styles.item}>
+                {this.renderIcon()}
+                {this.renderImage()}
+                {this.renderInfo()}
+                {this.renderTimestamp()}
+                {this.renderInline()}
+            </div>
         )
+    }
+
+    renderIcon() {
+        const {icon, iconSize, iconType, iconVariant, iconDimmed, iconTooltip, tooltipPlacement} = this.props
+        return icon
+            ? (
+                <div className={styles.icon}>
+                    <Icon
+                        name={icon}
+                        size={iconSize}
+                        type={iconType}
+                        variant={iconVariant}
+                        dimmed={iconDimmed}
+                        tooltip={iconTooltip}
+                        tooltipPlacement={tooltipPlacement}
+                    />
+                </div>
+            )
+            : null
+    }
+
+    renderImage() {
+        const {image} = this.props
+        return image
+            ? (
+                <div className={styles.image}>
+                    {image}
+                </div>
+            )
+            : null
+    }
+
+    renderTitle() {
+        const {title, highlightTitle} = this.props
+        return title
+            ? (
+                <div className={styles.title}>
+                    {this.renderHighlight(title, highlightTitle)}
+                </div>
+            )
+            : null
+    }
+
+    renderDescription() {
+        const {description, highlightDescription} = this.props
+        return description
+            ? (
+                <div className={styles.description}>
+                    {this.renderHighlight(description, highlightDescription)}
+                </div>
+            )
+            : null
+    }
+
+    renderInfo() {
+        const {title, description} = this.props
+        return title || description
+            ? (
+                <div className={styles.info}>
+                    {this.renderTitle()}
+                    {this.renderDescription()}
+                </div>
+            )
+            : null
+    }
+
+    renderTimestamp() {
+        const {timestamp} = this.props
+        return timestamp
+            ? (
+                <div className={styles.timestamp}>
+                    {moment(timestamp).fromNow()}
+                </div>
+            )
+            : null
+    }
+
+    renderInline() {
+        const {children} = this.props
+        return (
+            <div className={styles.inline}>
+                {children}
+            </div>
+        )
+    }
+
+    renderHighlight(content, enabled) {
+        const {highlight, highlightClassName} = this.props
+        return highlight && enabled
+            ? (
+                <Highlight
+                    search={highlight}
+                    ignoreDiacritics={true}
+                    matchClass={highlightClassName || styles.highlight}>
+                    {content}
+                </Highlight>
+            )
+            : content
     }
 
     renderButtons() {
@@ -176,12 +267,14 @@ CrudItem.propTypes = {
     highlightDescription: PropTypes.any,
     highlightTitle: PropTypes.any,
     icon: PropTypes.any,
+    iconDimmed: PropTypes.any,
     iconSize: PropTypes.any,
+    iconTooltip: PropTypes.any,
     iconType: PropTypes.any,
     iconVariant: PropTypes.any,
     image: PropTypes.any,
     infoDisabled: PropTypes.any,
-    infotooltip: PropTypes.any,
+    infoTooltip: PropTypes.any,
     inlineComponents: PropTypes.any,
     removeContent: PropTypes.any,
     removeDisabled: PropTypes.any,
@@ -190,7 +283,7 @@ CrudItem.propTypes = {
     removetooltip: PropTypes.any,
     selectDisabled: PropTypes.any,
     selected: PropTypes.any,
-    selecttooltip: PropTypes.any,
+    selectTooltip: PropTypes.any,
     title: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
     tooltipPlacement: PropTypes.string,
     unsafeRemove: PropTypes.any,
@@ -202,5 +295,7 @@ CrudItem.propTypes = {
 }
 
 CrudItem.defaultProps = {
+    highlightDescription: true,
+    highlightTitle: true,
     tooltipPlacement: 'left'
 }

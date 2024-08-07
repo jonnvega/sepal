@@ -1,33 +1,41 @@
-import {ActivationContext} from 'widget/activation/activationContext'
-import {PortalContainer} from 'widget/portal'
-import {catchError, exhaustMap, map, mergeMap, of, pipe, range, retryWhen, throwError, timer, zip} from 'rxjs'
-import {compose} from 'compose'
-import {connect, select} from 'store'
-import {getLogger} from 'log'
-import {isFloating} from './menu/menuMode'
-import {msg} from 'translate'
-import Body from './body/body'
-import Footer from './footer/footer'
-import Menu from './menu/menu'
-import Notifications from 'widget/notifications'
+import moment from 'moment'
 import PropTypes from 'prop-types'
 import React from 'react'
-import actionBuilder from 'action-builder'
-import api from 'api'
-import moment from 'moment'
-import styles from './home.module.css'
+import {exhaustMap, map, timer} from 'rxjs'
 
-const log = getLogger('schedule')
+import {actionBuilder} from '~/action-builder'
+import api from '~/apiRegistry'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {autoRetry} from '~/rxjsutils'
+import {msg} from '~/translate'
+import {ActivationContext} from '~/widget/activation/activationContext'
+import {Assets} from '~/widget/assets'
+import {Notifications} from '~/widget/notifications'
+import {PortalContainer} from '~/widget/portal'
+
+import {Body} from './body/body'
+import {Footer} from './footer/footer'
+import styles from './home.module.css'
+import {Menu} from './menu/menu'
+import {isFloating} from './menu/menuMode'
 
 const mapStateToProps = () => ({
     floatingMenu: isFloating(),
     floatingFooter: false
 })
 
-const timedRefresh$ = (api$, refreshSeconds = 60, name) =>
+const RETRY_CONFIG = {
+    minRetryDelay: 500,
+    maxRetryDelay: 10000,
+    retryDelayFactor: 2,
+    maxRetries: Number.MAX_SAFE_INTEGER
+}
+
+const timedRefresh$ = (task$, refreshSeconds = 60, _name) =>
     timer(0, refreshSeconds * 1000).pipe(
-        exhaustMap(() => api$()),
-        retry({description: `Failed to refresh ${name}`})
+        exhaustMap(count => task$(count)),
+        autoRetry(RETRY_CONFIG)
     )
 
 const updateUserReport$ = () =>
@@ -95,7 +103,7 @@ const updateTasks$ = () =>
         )
     )
 
-class Home extends React.Component {
+class _Home extends React.Component {
     constructor(props) {
         super(props)
         const {stream} = props
@@ -120,36 +128,19 @@ class Home extends React.Component {
                         <Footer className={styles.footer}/>
                     </div>
                     <PortalContainer/>
+                    <Assets/>
                 </div>
             </ActivationContext>
         )
     }
 }
 
-const retry = ({minDelay = 500, maxDelay = 30000, exponentiality = 2, description} = {}) => pipe(
-    retryWhen(error$ =>
-        zip(
-            error$,
-            timer(0, 0)
-        ).pipe(
-            mergeMap(
-                ([error, retry]) => {
-                    const exponentialBackoff = Math.pow(exponentiality, retry) * minDelay
-                    const cappedExponentialBackoff = Math.min(exponentialBackoff, maxDelay)
-                    console.error(`Retrying ${description ? `${description} ` : ''}(${retry}) in ${cappedExponentialBackoff}ms`, error)
-                    return timer(cappedExponentialBackoff)
-                }
-            )
-        )
-    )
+export const Home = compose(
+    _Home,
+    connect(mapStateToProps)
 )
 
 Home.propTypes = {
-    floatingFooter: PropTypes.bool.isRequired,
-    floatingMenu: PropTypes.bool.isRequired
+    floatingFooter: PropTypes.bool,
+    floatingMenu: PropTypes.bool
 }
-
-export default compose(
-    Home,
-    connect(mapStateToProps)
-)

@@ -1,24 +1,31 @@
-import {CrudItem} from 'widget/crudItem'
-import {HoverDetector} from 'widget/hover'
-import {ListItem} from 'widget/listItem'
-import {Padding} from 'widget/padding'
-import {Subject, distinctUntilChanged, filter, map, switchMap, takeUntil} from 'rxjs'
-import {assignArea, removeArea, swapAreas, validAreas} from './layerAreas'
-import {compose} from 'compose'
-import {getImageLayerSource} from 'app/home/map/imageLayerSource/imageLayerSource'
-import {msg} from 'translate'
-import {withLayers} from '../withLayers'
-import {withRecipe} from 'app/home/body/process/recipeContext'
-import {withSubscriptions} from 'subscription'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
+import {distinctUntilChanged, filter, map, Subject, switchMap, takeUntil} from 'rxjs'
+
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {withSubscriptions} from '~/subscription'
+import {msg} from '~/translate'
+import {CrudItem} from '~/widget/crudItem'
+import {HoverDetector} from '~/widget/hover'
+import {ListItem} from '~/widget/listItem'
+import {Padding} from '~/widget/padding'
+
+import {getImageLayerSource} from '../imageLayerSourceRegistry'
+import {withLayers} from '../withLayers'
 import styles from './areas.module.css'
+import {assignArea, removeArea, swapAreas, validAreas} from './layerAreas'
 
 const AREA = Symbol('area')
 const SOURCE = Symbol('source')
 
 class _Areas extends React.Component {
+    constructor(props) {
+        super(props)
+        this.onHover = this.onHover.bind(this)
+    }
+
     state = {
         dragging: null,
         dropArea: null,
@@ -43,6 +50,10 @@ class _Areas extends React.Component {
 
     areaDrag$ = new Subject()
 
+    onHover(hovering) {
+        this.setState({hovering})
+    }
+
     render() {
         const {dragging, hovering} = this.state
         return (
@@ -53,7 +64,7 @@ class _Areas extends React.Component {
                         dragging ? [styles.dragging, styles[dragging.description]] : null,
                         hovering ? styles.hovering : null
                     ]).join(' ')}
-                    onHover={hovering => this.setState({hovering})}>
+                    onHover={this.onHover}>
                     {this.renderCurrentAreas()}
                     {this.renderNextAreas()}
                 </HoverDetector>
@@ -146,12 +157,10 @@ class _Areas extends React.Component {
                 <div className={styles.areaContent}>
                     <ListItem
                         drag$={this.areaDrag$}
-                        dragValue={area}
-                    >
+                        dragValue={area}>
                         <CrudItem
                             title={msg(`imageLayerSources.${source.type}.label`)}
                             description={description}
-                            removeTooltip={msg('map.layout.area.remove.tooltip')}
                         />
                     </ListItem>
                 </div>

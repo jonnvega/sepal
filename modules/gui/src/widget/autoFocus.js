@@ -1,10 +1,12 @@
-import {compose} from 'compose'
-import {connect} from 'store'
-import {withEnableDetector} from 'enabled'
 import PropTypes from 'prop-types'
 import React from 'react'
 
-class AutoFocus extends React.Component {
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {withEnableDetector} from '~/enabled'
+import {isMobile} from '~/widget/userAgent'
+
+class _AutoFocus extends React.Component {
     state = {
         completed: false
     }
@@ -23,7 +25,7 @@ class AutoFocus extends React.Component {
 
     componentDidMount() {
         const {focusEnabled} = this.props
-        if (focusEnabled) {
+        if (!isMobile() && focusEnabled) {
             this.update()
         } else {
             this.completed()
@@ -54,14 +56,14 @@ class AutoFocus extends React.Component {
     }
 }
 
+export const AutoFocus = compose(
+    _AutoFocus,
+    connect(),
+    withEnableDetector()
+)
+
 AutoFocus.propTypes = {
     children: PropTypes.any,
     element: PropTypes.object,
     focusEnabled: PropTypes.any
 }
-
-export default compose(
-    AutoFocus,
-    connect(),
-    withEnableDetector()
-)

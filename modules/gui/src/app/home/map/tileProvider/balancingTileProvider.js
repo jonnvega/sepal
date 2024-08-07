@@ -1,26 +1,40 @@
-import {TileProvider} from './tileProvider'
-import {debounceTime, mergeMap, of, pipe, range, retryWhen, switchMap, throwError, timer, zip} from 'rxjs'
 import {getTileManager} from '../tileManager/tileManager'
+import {TileProvider} from './tileProvider'
 
 export class BalancingTileProvider extends TileProvider {
-    constructor({tileProvider, retries, busy$}) {
+    // constructor({tileProvider, retryCutOffTime, busy$, renderingEnabled$, renderingStatus$}) {
+    constructor({tileProvider, retryCutOffTime, busy, renderingEnabled$, renderingStatus$}) {
         super()
         this.subscriptions = []
-        this.retries = retries
+        this.retryCutOffTime = retryCutOffTime
         this.tileProvider = tileProvider
         this.tileManager = getTileManager({tileProvider})
-        this.initProgress(busy$)
+        this.initProgress(busy, renderingStatus$)
+        this.initRenderingEnabled(renderingEnabled$)
     }
 
-    initProgress(busy$) {
-        if (busy$) {
+    initProgress(busy, renderingStatus$) {
+        if (busy || renderingStatus$) {
             this.subscriptions.push(
-                this.tileManager.pending$.pipe(
-                    debounceTime(200)
-                ).subscribe({
-                    next: busy => busy$.next(busy)
-                })
+                this.tileManager.getStatus$().subscribe(
+                    ({tileProviderId, pending, pendingEnabled}) => {
+                        busy?.set(`tileProvider-${tileProviderId}`, !!pendingEnabled)
+                        renderingStatus$?.next({tileProviderId, pending})
+                    }
+                )
             )
+        }
+    }
+
+    initRenderingEnabled(renderingEnabled$) {
+        if (renderingEnabled$) {
+            this.subscriptions.push(
+                renderingEnabled$.subscribe(
+                    enabled => this.tileManager.setEnabled(enabled)
+                )
+            )
+        } else {
+            this.tileManager.setEnabled(true)
         }
     }
 
@@ -33,10 +47,7 @@ export class BalancingTileProvider extends TileProvider {
     }
 
     loadTile$(tileRequest) {
-        return of(true).pipe(
-            switchMap(() => this.tileManager.loadTile$(tileRequest)),
-            retry(this.retries, {description: tileRequest.id}),
-        )
+        return this.tileManager.loadTile$(tileRequest)
     }
 
     createElement(id, doc) {
@@ -47,13 +58,17 @@ export class BalancingTileProvider extends TileProvider {
         this.tileProvider.renderTile({element, blob})
     }
 
+    renderErrorTile({element, error}) {
+        this.tileProvider.renderErrorTile({element, error})
+    }
+
     releaseTile(element) {
         this.tileManager.releaseTile(element.id)
         this.tileProvider.releaseTile(element)
     }
 
-    hide(hidden) {
-        this.tileManager.hide(hidden)
+    setVisibility(visible) {
+        this.tileManager.setVisibility(visible)
     }
 
     close() {
@@ -62,25 +77,3 @@ export class BalancingTileProvider extends TileProvider {
         this.tileProvider.close()
     }
 }
-
-const retry = (maxRetries, {minDelay = 500, maxDelay = 30000, exponentiality = 2, description} = {}) => pipe(
-    retryWhen(error$ =>
-        zip(
-            error$,
-            range(1, maxRetries + 1)
-        ).pipe(
-            mergeMap(
-                ([error, retry]) => {
-                    if (retry > maxRetries) {
-                        return throwError(() => error)
-                    } else {
-                        const exponentialBackoff = Math.pow(exponentiality, retry) * minDelay
-                        const cappedExponentialBackoff = Math.min(exponentialBackoff, maxDelay)
-                        console.error(`Retrying ${description ? `${description} ` : ''}(${retry}/${maxRetries}) in ${cappedExponentialBackoff}ms after error: ${error}`)
-                        return timer(cappedExponentialBackoff)
-                    }
-                }
-            )
-        )
-    )
-)

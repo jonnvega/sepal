@@ -1,9 +1,9 @@
-import {Buttons} from './buttons'
-import {Form} from './form/form'
-import {Widget} from './widget'
-import PropTypes from 'prop-types'
-import React from 'react'
 import _ from 'lodash'
+import PropTypes from 'prop-types'
+
+import {Buttons} from './buttons'
+import {Form} from './form'
+import {Widget} from './widget'
 
 export const NumberButtons = ({input, options, label, placeholder, tooltip, suffix, errorMessage, onChange}) =>
     <Widget
@@ -25,11 +25,11 @@ export const NumberButtons = ({input, options, label, placeholder, tooltip, suff
             type='number'
             suffix={suffix}
             placeholder={placeholder}
-            onChange={element => {
-                const value = parseFloat(element.target.value)
-                if (_.isFinite(value)) {
-                    input.set(value)
-                    onChange && onChange(value)
+            onChange={value => {
+                const numericValue = parseFloat(value)
+                if (_.isFinite(numericValue)) {
+                    input.set(numericValue)
+                    onChange && onChange(numericValue)
                 }
             }}
             errorMessage={errorMessage}

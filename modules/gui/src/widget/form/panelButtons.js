@@ -1,7 +1,9 @@
-import {FormPanelContext} from './panel'
-import {Panel} from 'widget/panel/panel'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import {Panel} from '~/widget/panel/panel'
+
+import {FormPanelContext} from './panel'
 
 export class FormPanelButtons extends React.Component {
     constructor() {
@@ -24,26 +26,27 @@ export class FormPanelButtons extends React.Component {
     }
 
     renderInForm({isActionForm, dirty, invalid, onOk, onCancel}) {
-        const {applyLabel} = this.props
+        const {applyLabel, disabled, disabledCancel} = this.props
         const canSubmit = isActionForm || dirty
         return (
             <Panel.Buttons>
                 <Panel.Buttons.Main>
                     <Panel.Buttons.Cancel
-                        hidden={!canSubmit}
+                        hidden={!canSubmit || disabled || disabledCancel}
                         keybinding='Escape'
                         onClick={onCancel}/>
                     <Panel.Buttons.Apply
                         type={'submit'}
                         label={applyLabel}
                         hidden={!canSubmit}
-                        disabled={invalid}
+                        disabled={disabled || invalid}
                         keybinding='Enter'
                         onClick={onOk}/>
                     <Panel.Buttons.Close
                         type={'submit'}
                         label={applyLabel}
                         hidden={canSubmit}
+                        disabled={disabled}
                         keybinding={['Enter', 'Escape']}
                         onClick={onOk}/>
                 </Panel.Buttons.Main>

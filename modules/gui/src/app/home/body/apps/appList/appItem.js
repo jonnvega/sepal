@@ -1,6 +1,7 @@
-import {Item} from 'widget/item'
 import PropTypes from 'prop-types'
-import React from 'react'
+
+import {CrudItem} from '~/widget/crudItem'
+
 import styles from './appItem.module.css'
 
 const imageUrl = logoRef => logoRef
@@ -17,7 +18,7 @@ const renderLogo = logoRef =>
         : null
 
 export const AppItem = ({app: {label, tagline, logoRef}, className, highlight, highlightClassName}) =>
-    <Item
+    <CrudItem
         className={className}
         title={label}
         description={tagline || '...'}

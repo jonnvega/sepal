@@ -1,17 +1,19 @@
-import {Button} from 'widget/button'
-import {Form} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {MaskOptions} from './maskOptions'
-import {MultitemporalSpeckleFilterOptions} from './multitemporalSpeckleFilterOptions'
-import {Panel} from 'widget/panel/panel'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {SpatialSpeckleFilterOptions} from './spatialSpeckleFilterOptions'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import Icon from 'widget/icon'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {msg} from '~/translate'
+import {Button} from '~/widget/button'
+import {Form} from '~/widget/form'
+import {Icon} from '~/widget/icon'
+import {Layout} from '~/widget/layout'
+import {Panel} from '~/widget/panel/panel'
+
+import {MaskOptions} from './maskOptions'
+import {MultitemporalSpeckleFilterOptions} from './multitemporalSpeckleFilterOptions'
 import styles from './options.module.css'
+import {SpatialSpeckleFilterOptions} from './spatialSpeckleFilterOptions'
 
 const fields = {
     advanced: new Form.Field(),
@@ -36,7 +38,7 @@ const fields = {
     minObservations: new Form.Field(),
 }
 
-class Options extends React.Component {
+class _Options extends React.Component {
     render() {
         const {inputs: {advanced}} = this.props
         return (
@@ -371,12 +373,11 @@ const valuesToModel = values => ({
     minObservations: values.minObservations,
 })
 
-Options.propTypes = {
-    monitor: PropTypes.any
-
-}
-
-export default compose(
-    Options,
+export const Options = compose(
+    _Options,
     recipeFormPanel({id: 'options', fields, valuesToModel, modelToValues})
 )
+
+Options.propTypes = {
+    monitor: PropTypes.any
+}

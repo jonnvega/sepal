@@ -1,30 +1,32 @@
-import {Button} from 'widget/button'
-import {ButtonGroup} from 'widget/buttonGroup'
-import {Combo} from 'widget/combo'
-import {CrudItem} from 'widget/crudItem'
-import {Input} from 'widget/input'
-import {Layout} from 'widget/layout'
-import {LegendItem} from 'widget/legend/legendItem'
-import {ListItem} from 'widget/listItem'
-import {compose} from 'compose'
-import {filterReferenceData$, remapReferenceData$} from './inputData'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import {withRecipe} from 'app/home/body/process/recipeContext'
-import ButtonPopup from 'widget/buttonPopup'
-import Icon from 'widget/icon'
-import Label from 'widget/label'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React, {Component} from 'react'
-import _ from 'lodash'
+
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {Button} from '~/widget/button'
+import {ButtonGroup} from '~/widget/buttonGroup'
+import {ButtonPopup} from '~/widget/buttonPopup'
+import {Combo} from '~/widget/combo'
+import {CrudItem} from '~/widget/crudItem'
+import {Icon} from '~/widget/icon'
+import {Input} from '~/widget/input'
+import {Label} from '~/widget/label'
+import {Layout} from '~/widget/layout'
+import {LegendItem} from '~/widget/legend/legendItem'
+import {ListItem} from '~/widget/listItem'
+
 import styles from './classStep.module.css'
+import {filterReferenceData$, remapReferenceData$} from './inputData'
 
 const mapRecipeToProps = recipe => ({
     legend: selectFrom(recipe, 'model.legend'),
     recipe
 })
 
-class ClassMappingStep extends Component {
+class _ClassMappingStep extends Component {
     state = {
         columnValues: [],
         customMapping: {},
@@ -115,7 +117,6 @@ class ClassMappingStep extends Component {
                 tooltip={msg('process.classification.panel.trainingData.classMapping.addColumns.tooltip')}>
                 {onBlur => (
                     <Combo
-                        placement='below'
                         alignment='left'
                         placeholder={msg('process.classification.panel.trainingData.classMapping.addColumns.placeholder')}
                         options={valueOptions}
@@ -387,13 +388,12 @@ class ClassMappingStep extends Component {
     }
 }
 
+export const ClassMappingStep = compose(
+    _ClassMappingStep,
+    withRecipe(mapRecipeToProps)
+)
+
 ClassMappingStep.propTypes = {
     children: PropTypes.any,
     inputs: PropTypes.any
 }
-
-export default compose(
-    ClassMappingStep,
-    withRecipe(mapRecipeToProps)
-)
-

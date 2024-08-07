@@ -2,17 +2,14 @@
 set -e
 
 apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -qq -y \
-    sssd \
-    libpam-sss \
-    libnss-sss \
-    libnss-ldap \
     gdebi-core \
     mapnik-utils \
     net-tools \
     openssh-server \
     sudo \
     supervisor \
-    gettext
+    gettext \
+    graphviz
 
 # Disable message of the day by commenting out configuration lines refering to pam_motd.so
 sed -e '/.*pam_motd\.so.*/ s/^#*/#/' -i /etc/pam.d/sshd

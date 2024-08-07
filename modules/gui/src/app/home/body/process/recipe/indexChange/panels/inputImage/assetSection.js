@@ -1,20 +1,22 @@
-import {AssetSelect} from 'widget/assetSelect'
-import {msg} from 'translate'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+
 import style from './inputImage.module.css'
 
-export default class AssetSection extends React.Component {
+export class AssetSection extends React.Component {
     render() {
         const {input, onLoading} = this.props
         return (
-            <AssetSelect
+            <Form.AssetCombo
                 className={style.inputComponent}
                 input={input}
                 label={msg('process.indexChange.panel.inputImage.asset.label')}
                 placeholder={msg('process.indexChange.panel.inputImage.asset.placeholder')}
                 autoFocus
-                expectedType={['Image', 'ImageCollection']}
+                allowedTypes={['Image', 'ImageCollection']}
                 onLoading={onLoading}
                 onLoaded={({asset, metadata, visualizations}) => {
                     this.onLoaded({asset, metadata, visualizations})

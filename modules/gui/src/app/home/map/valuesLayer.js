@@ -1,15 +1,17 @@
-import {Item} from 'widget/item'
-import {Layout} from 'widget/layout'
-import {Shape} from 'widget/shape'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {selectFrom} from 'stateUtils'
+import React from 'react'
+
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import format from '~/format'
+import {selectFrom} from '~/stateUtils'
+import {withSubscriptions} from '~/subscription'
+import {CrudItem} from '~/widget/crudItem'
+import {Layout} from '~/widget/layout'
+import {Shape} from '~/widget/shape'
+
 import {withCursorValue} from './cursorValue'
 import {withMapArea} from './mapAreaContext'
-import {withRecipe} from 'app/home/body/process/recipeContext'
-import {withSubscriptions} from 'subscription'
-import React from 'react'
-import format from 'format'
 import styles from './valuesLayer.module.css'
 
 const mapRecipeToProps = recipe => ({
@@ -41,7 +43,9 @@ class _ValuesLayer extends React.Component {
         return bands ?
             (
                 <div className={styles.container}>
-                    <Layout type='horizontal-nowrap' spacing='none'>
+                    <Layout
+                        type='horizontal-nowrap'
+                        spacing='tight'>
                         {[0, 1, 2].map(i => this.renderBand({
                             key: i,
                             band: bands[i],
@@ -93,11 +97,11 @@ class _ValuesLayer extends React.Component {
         const description = `${clampingIndicator} ${formatted}`.padStart(padding)
         return (
             <Shape key={key} shape='pill' size='small'>
-                <Item title={band}>
+                <CrudItem title={band}>
                     <pre className={[styles.value, clamping ? styles.clamping : null].join(' ')}>
                         {description}
                     </pre>
-                </Item>
+                </CrudItem>
             </Shape>
         )
     }

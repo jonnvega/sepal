@@ -1,14 +1,17 @@
-import {Button} from 'widget/button'
-import {compose} from 'compose'
-import {connect, select} from 'store'
-import {currentUser} from 'user'
-import {isPathInLocation} from 'route'
-import {msg} from 'translate'
-import {usageHint} from '../user/usage'
-import MenuMode, {isFloating} from './menuMode'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {isPathInLocation} from '~/route'
+import {select} from '~/store'
+import {msg} from '~/translate'
+import {currentUser} from '~/user'
+import {Button} from '~/widget/button'
+
+import {usageHint} from '../user/usage'
 import styles from './menu.module.css'
+import {isFloating, MenuMode} from './menuMode'
 
 const mapStateToProps = (state = {}) => ({
     floating: isFloating(),
@@ -17,7 +20,7 @@ const mapStateToProps = (state = {}) => ({
     user: currentUser()
 })
 
-class Menu extends React.Component {
+class _Menu extends React.Component {
     render() {
         const {className, floating, user, hasActiveTasks, budgetExceeded} = this.props
         return (
@@ -41,16 +44,14 @@ class Menu extends React.Component {
     }
 }
 
-Menu.propTypes = {
-    floating: PropTypes.bool.isRequired,
-    className: PropTypes.string,
-    user: PropTypes.object
-}
-
-export default compose(
-    Menu,
+export const Menu = compose(
+    _Menu,
     connect(mapStateToProps)
 )
+
+Menu.propTypes = {
+    className: PropTypes.string
+}
 
 const Link = ({name, icon, href}) =>
     <Button
@@ -63,7 +64,7 @@ const Link = ({name, icon, href}) =>
     />
 
 const _SectionLink = ({active, name, icon, disabled}) => {
-    const link = `/${name}`
+    const link = `/-/${name}`
     const activeClass = active ? styles.active : null
     return (
         <Button
@@ -86,7 +87,7 @@ const SectionLink = compose(
     _SectionLink,
     connect(
         (state, {name}) => ({
-            active: isPathInLocation(`/${name}`)
+            active: isPathInLocation(`/-/${name}`)
         })
     )
 )

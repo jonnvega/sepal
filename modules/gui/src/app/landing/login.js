@@ -1,15 +1,18 @@
-import {Button} from 'widget/button'
-import {ButtonGroup} from 'widget/buttonGroup'
-import {Form, withForm} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {compose} from 'compose'
-import {credentialsPosted, invalidCredentials, login$} from 'user'
-import {msg} from 'translate'
-import Keybinding from 'widget/keybinding'
-import Notifications from 'widget/notifications'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
+
+import {compose} from '~/compose'
+import {msg} from '~/translate'
+import {credentialsPosted, invalidCredentials, login$} from '~/user'
+import {Button} from '~/widget/button'
+import {ButtonGroup} from '~/widget/buttonGroup'
+import {Form} from '~/widget/form'
+import {FormContainer} from '~/widget/form/container'
+import {withForm} from '~/widget/form/form'
+import {Keybinding} from '~/widget/keybinding'
+import {Layout} from '~/widget/layout'
+import {Notifications} from '~/widget/notifications'
+
 import styles from './login.module.css'
 
 const fields = {
@@ -34,11 +37,11 @@ class _Login extends React.Component {
 
     render() {
         return (
-            <Form
+            <FormContainer
                 className={styles.form}
                 onSubmit={this.submit}>
                 {this.renderForm()}
-            </Form>
+            </FormContainer>
         )
     }
 
@@ -54,7 +57,6 @@ class _Login extends React.Component {
                     placeholder={msg('landing.login.username.placeholder')}
                     autoFocus
                     tabIndex={1}
-                    errorMessage
                 />
                 <Form.Input
                     label={msg('user.userDetails.form.password.label')}
@@ -62,7 +64,6 @@ class _Login extends React.Component {
                     type='password'
                     placeholder={msg('landing.login.password.placeholder')}
                     tabIndex={2}
-                    errorMessage
                 />
                 <Layout>
                     <ButtonGroup layout='horizontal' alignment='distribute'>

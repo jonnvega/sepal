@@ -1,26 +1,73 @@
-import {add, remove} from './keybindings'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {withEnableDetector} from 'enabled'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
+import {fromEvent} from 'rxjs'
 
-class Keybinding extends React.Component {
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {withEnableDetector} from '~/enabled'
+
+const keybindings = []
+
+const getCandidateKeybindings = key =>
+    _.filter(keybindings,
+        keybinding => !keybinding.disabled && keybinding.enabled && keybinding.handles(key)
+    )
+
+const getClosestKeybinding = keybindings =>
+    _.first(keybindings)
+
+const handle = (keybindings, event, key) => {
+    const keybinding = getClosestKeybinding(keybindings)
+    const handler = keybinding && keybinding.handler
+    if (handler) {
+        const handover = handler(event, key) === false
+        if (handover) {
+            const remainingKeybindings = _.without(keybindings, keybinding)
+            if (remainingKeybindings.length) {
+                handle(remainingKeybindings, event, key)
+            }
+        }
+    }
+}
+
+const handleEvent = event => {
+    const eventKey = [
+        {key: 'Ctrl', value: event.ctrlKey},
+        {key: 'Alt', value: event.altKey},
+        {key: 'Shift', value: event.shiftKey},
+        {key: 'Meta', value: event.metaKey}]
+        .filter(({value}) => value)
+        .map(({key}) => key)
+        .concat([event.key])
+        .join('+')
+    handle(getCandidateKeybindings(eventKey), event, eventKey)
+}
+
+fromEvent(document, 'keydown').subscribe(
+    event => handleEvent(event)
+)
+
+const add = keybinding =>
+    keybindings.unshift(keybinding)
+
+const remove = keybinding =>
+    _.pull(keybindings, keybinding)
+
+class _Keybinding extends React.Component {
     constructor(props) {
         super(props)
         this.handlesKey = this.handlesKey.bind(this)
         this.createKeybinding()
-        const {enableDetector: {onChange}} = props
-        onChange(enabled => this.keybinding.enabled = enabled)
+        const {enableDetector: {onChange: onEnableChange}} = props
+        onEnableChange(enabled => this.keybinding.enabled = enabled)
         add(this.keybinding)
     }
 
     createKeybinding() {
-        const {disabled, priority} = this.props
+        const {disabled} = this.props
         this.keybinding = {
             disabled,
-            priority,
             enabled: true,
             handler: this.handle.bind(this),
             handles: this.handlesKey
@@ -50,8 +97,8 @@ class Keybinding extends React.Component {
     handle(event, key) {
         const handler = this.getHandler(key)
         if (handler) {
-            handler(event)
             event.preventDefault()
+            return handler(event)
         }
     }
 
@@ -61,9 +108,8 @@ class Keybinding extends React.Component {
     }
 
     componentDidUpdate() {
-        const {disabled, priority} = this.props
+        const {disabled} = this.props
         this.keybinding.disabled = disabled
-        this.keybinding.priority = priority
 
     }
 
@@ -72,14 +118,13 @@ class Keybinding extends React.Component {
     }
 }
 
-export default compose(
-    Keybinding,
+export const Keybinding = compose(
+    _Keybinding,
     connect(),
     withEnableDetector()
 )
 
 Keybinding.propTypes = {
     disabled: PropTypes.any,
-    keymap: PropTypes.object,
-    priority: PropTypes.any
+    keymap: PropTypes.object
 }

@@ -1,29 +1,33 @@
-import {Button} from 'widget/button'
-import {ButtonGroup} from 'widget/buttonGroup'
-import {Content, SectionLayout} from 'widget/sectionLayout'
-import {Layout} from 'widget/layout'
-import {Scrollable, ScrollableContainer} from 'widget/scrollable'
-import {SortButtons} from 'widget/sortButtons'
-import {Tabs} from 'widget/tabs/tabs'
-import {ToggleButton} from 'widget/toggleButton'
-import {compose} from 'compose'
-import {connect, select} from 'store'
-import {dotSafe} from 'stateUtils'
-import {msg} from 'translate'
+import _ from 'lodash'
 import {orderBy} from 'natural-orderby'
-import {withEnableDetector} from 'enabled'
-import {withSubscriptions} from 'subscription'
-import Icon from 'widget/icon'
 import Path from 'path'
 import PropTypes from 'prop-types'
 import React from 'react'
-import RemoveButton from 'widget/removeButton'
-import _ from 'lodash'
-import actionBuilder from 'action-builder'
-import api from 'api'
-import format from 'format'
-import lookStyles from 'style/look.module.css'
+
+import {actionBuilder} from '~/action-builder'
+import api from '~/apiRegistry'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {withEnableDetector} from '~/enabled'
+import format from '~/format'
+import {dotSafe} from '~/stateUtils'
+import {select} from '~/store'
+import lookStyles from '~/style/look.module.css'
+import {withSubscriptions} from '~/subscription'
+import {msg} from '~/translate'
+import {Button} from '~/widget/button'
+import {ButtonGroup} from '~/widget/buttonGroup'
+import {Icon} from '~/widget/icon'
+import {Layout} from '~/widget/layout'
+import {RemoveButton} from '~/widget/removeButton'
+import {Scrollable} from '~/widget/scrollable'
+import {Content, SectionLayout} from '~/widget/sectionLayout'
+import {SortButtons} from '~/widget/sortButtons'
+import {Tabs} from '~/widget/tabs/tabs'
+import {ToggleButton} from '~/widget/toggleButton'
+
 import styles from './browse.module.css'
+
 const moment = require('moment')
 
 const ANIMATION_DURATION_MS = 1000
@@ -575,19 +579,17 @@ class _FileBrowser extends React.Component {
         return (
             <SectionLayout>
                 <Content className={styles.browse} menuPadding horizontalPadding verticalPadding>
-                    <ScrollableContainer>
-                        <Scrollable direction='xy'>
-                            <Layout type='horizontal'>
-                                {this.renderInfo()}
-                                <Layout type='horizontal' spacing='none'>
-                                    {this.renderToolbar()}
-                                </Layout>
+                    <Scrollable direction='xy'>
+                        <Layout type='horizontal'>
+                            {this.renderInfo()}
+                            <Layout type='horizontal' spacing='none'>
+                                {this.renderToolbar()}
                             </Layout>
-                            <div className={styles.fileList}>
-                                {this.renderList('/', tree)}
-                            </div>
-                        </Scrollable>
-                    </ScrollableContainer>
+                        </Layout>
+                        <div className={styles.fileList}>
+                            {this.renderList('/', tree)}
+                        </div>
+                    </Scrollable>
                 </Content>
             </SectionLayout>
         )

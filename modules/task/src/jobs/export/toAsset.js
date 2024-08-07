@@ -1,5 +1,5 @@
 const ee = require('#sepal/ee')
-const {EMPTY, concat, from, catchError, last, map, mergeMap, of, scan, switchMap, tap, throwError} = require('rxjs')
+const {EMPTY, concat, defer, from, catchError, last, map, mergeMap, of, scan, switchMap, tap, throwError} = require('rxjs')
 const {swallow} = require('#sepal/rxjs')
 const tile = require('#sepal/ee/tile')
 const Path = require('path')
@@ -7,6 +7,7 @@ const {exportLimiter$} = require('#task/jobs/service/exportLimiter')
 const {task$} = require('#task/ee/task')
 const {progress} = require('#task/rxjs/operators')
 const log = require('#sepal/log').getLogger('task')
+const http = require('#sepal/httpClient')
 const _ = require('lodash')
 
 const exportImageToAsset$ = (taskId, {
@@ -14,6 +15,7 @@ const exportImageToAsset$ = (taskId, {
     description,
     assetId,
     assetType,
+    sharing,
     strategy,
     pyramidingPolicy,
     dimensions,
@@ -27,6 +29,7 @@ const exportImageToAsset$ = (taskId, {
     properties,
     retries = 0,
 }) => {
+    assetId = getProjectAssetId(assetId) // Get rid of legacy assetId format
     crsTransform = crsTransform || undefined
     region = region || image.geometry()
     if (ee.sepal.getAuthType() === 'SERVICE_ACCOUNT')
@@ -41,12 +44,17 @@ const exportImageToAsset$ = (taskId, {
     return assetDestination$(description, assetId).pipe(
         switchMap(({description, assetId}) =>
             concat(
-                createAssetFolders$(assetId),
-                export$({description, assetId})
+                createParentFolder$(assetId),
+                export$({description, assetId}),
+                share$({sharing, assetId})
             )
-        )
-    )
+        ))
 }
+
+const getProjectAssetId = id =>
+    id.startsWith('users/')
+        ? `projects/earthengine-legacy/assets/${id}`
+        : id
 
 const imageToAssetCollection$ = (taskId, {
     image, description, assetId, strategy, pyramidingPolicy, dimensions, region, scale, crs, crsTransform, maxPixels, shardSize, tileSize, properties, retries
@@ -78,8 +86,9 @@ const imageToAssetCollection$ = (taskId, {
                 }
             }),
             last(),
-            switchMap(() =>
-                ee.replaceAssetProperties$(assetId, properties, 1)
+            switchMap(() => ee.getInfo$(image.toDictionary(), 'Extract image properties')),
+            switchMap((imageProperties = {}) =>
+                ee.replaceAssetProperties$(assetId, {...imageProperties, ...properties}, 1)
             ),
             swallow()
         )
@@ -227,17 +236,17 @@ const assetDestination$ = (description, assetId) => {
     description = description || Path.dirname(assetId)
     return assetId
         ? of({description, assetId})
-        : ee.getAssetRoots$().pipe(
-            map(assetRoots => {
-                if (!assetRoots || !assetRoots.length)
+        : ee.listBuckets$('projects/earthengine-legacy').pipe(
+            map(({assets}) => {
+                if (!assets || !assets.length)
                     throw new Error('EE account has no asset roots')
-                return ({description, assetId: Path.join(assetRoots[0], description)})
+                return ({description, assetId: Path.join(assets[0].id, description)})
             })
         )
 }
 
-const createAssetFolders$ = assetId => {
-    return ee.createAssetFolders$(assetId, 1).pipe(
+const createParentFolder$ = assetId => {
+    return ee.createParentFolder$(assetId, 1).pipe(
         progress({
             defaultMessage: `Create asset folder '${assetId}'`,
             messageKey: 'tasks.ee.export.asset.createFolder',
@@ -262,4 +271,22 @@ const formatRegion$ = region =>
         map(geometry => ee.Geometry(geometry))
     )
 
+const share$ = ({sharing, assetId}) =>
+    defer(() => sharing === 'PUBLIC'
+        ? concat(
+            of(true).pipe(
+                progress({
+                    defaultMessage: `Sharing asset '${assetId}'`,
+                    messageKey: 'tasks.ee.export.asset.createFolder',
+                    messageArgs: {assetId}
+                })
+            ),
+            http.postJson$(`https://earthengine.googleapis.com/v1/${assetId}:setIamPolicy`, {
+                headers: {'x-goog-user-project': ee.data.getProject(), Authorization: ee.data.getAuthToken()},
+                body: {policy: {bindings: [{role: 'roles/viewer', members: ['allUsers']}]}}
+            }).pipe(
+                swallow()
+            )
+        )
+        : EMPTY)
 module.exports = {exportImageToAsset$}

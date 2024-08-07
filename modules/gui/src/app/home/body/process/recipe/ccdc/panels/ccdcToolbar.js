@@ -1,24 +1,26 @@
-import {RecipeActions} from '../ccdcRecipe'
-import {Retrieve} from 'app/home/body/process/recipe/ccdc/panels/retrieve/retrieve'
-import {RetrieveButton} from '../../retrieveButton'
-import {Toolbar} from 'widget/toolbar/toolbar'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import {setInitialized} from 'app/home/body/process/recipe'
-import {withRecipe} from 'app/home/body/process/recipeContext'
-import Aoi from 'app/home/body/process/recipe/mosaic/panels/aoi/aoi'
-import ChartPixel from './chartPixel'
-import ChartPixelButton from './chartPixelButton'
-import Dates from 'app/home/body/process/recipe/ccdc/panels/dates/dates'
-import OpticalPreprocess from './opticalPreprocess/opticalPreprocess'
-import Options from './options/options'
-import PanelWizard from 'widget/panelWizard'
-import RadarPreprocess from 'app/home/body/process/recipe/mosaic/panels/radarMosaicOptions/options'
-import React from 'react'
-import Sources from 'app/home/body/process/recipe/ccdc/panels/sources/sources'
 import _ from 'lodash'
+import React from 'react'
+
+import {setInitialized} from '~/app/home/body/process/recipe'
+import {Dates} from '~/app/home/body/process/recipe/ccdc/panels/dates/dates'
+import {Retrieve} from '~/app/home/body/process/recipe/ccdc/panels/retrieve/retrieve'
+import {Sources} from '~/app/home/body/process/recipe/ccdc/panels/sources/sources'
+import {Aoi} from '~/app/home/body/process/recipe/mosaic/panels/aoi/aoi'
+import {Options as RadarPreprocess} from '~/app/home/body/process/recipe/mosaic/panels/radarMosaicOptions/options'
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {PanelWizard} from '~/widget/panelWizard'
+import {Toolbar} from '~/widget/toolbar/toolbar'
+
+import {RetrieveButton} from '../../retrieveButton'
+import {RecipeActions} from '../ccdcRecipe'
 import styles from './ccdcToolbar.module.css'
+import {ChartPixel} from './chartPixel'
+import {ChartPixelButton} from './chartPixelButton'
+import {OpticalPreprocess} from './opticalPreprocess/opticalPreprocess'
+import {Options} from './options/options'
 
 const mapRecipeToProps = recipe => ({
     recipeId: recipe.id,
@@ -26,7 +28,7 @@ const mapRecipeToProps = recipe => ({
     sources: selectFrom(recipe, 'model.sources'),
 })
 
-class CcdcToolbar extends React.Component {
+class _CcdcToolbar extends React.Component {
     constructor(props) {
         super(props)
         this.recipeActions = RecipeActions(props.recipeId)
@@ -95,9 +97,9 @@ class CcdcToolbar extends React.Component {
     }
 }
 
-CcdcToolbar.propTypes = {}
-
-export default compose(
-    CcdcToolbar,
+export const CcdcToolbar = compose(
+    _CcdcToolbar,
     withRecipe(mapRecipeToProps)
 )
+
+CcdcToolbar.propTypes = {}

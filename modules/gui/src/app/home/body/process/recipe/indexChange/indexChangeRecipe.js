@@ -1,12 +1,13 @@
-import {getAllVisualizations} from 'app/home/body/process/recipe/visualizations'
-import {getRecipeType} from 'app/home/body/process/recipeTypes'
-import {msg} from 'translate'
-import {publishEvent} from 'eventPublisher'
-import {recipeActionBuilder} from 'app/home/body/process/recipe'
 import _ from 'lodash'
-import api from 'api'
-import guid from 'guid'
 import moment from 'moment'
+
+import api from '~/apiRegistry'
+import {recipeActionBuilder} from '~/app/home/body/process/recipe'
+import {getAllVisualizations} from '~/app/home/body/process/recipe/visualizations'
+import {getRecipeType} from '~/app/home/body/process/recipeTypeRegistry'
+import {publishEvent} from '~/eventPublisher'
+import {msg} from '~/translate'
+import {uuid} from '~/uuid'
 
 const DATE_FORMAT = 'YYYY-MM-DD'
 
@@ -18,13 +19,13 @@ export const defaultModel = {
     legend: {
         entries: [
             {
-                id: guid(),
+                id: uuid(),
                 color: '#d73027',
                 value: 1,
                 label: 'Decrease',
                 booleanOperator: 'and',
                 constraints: [{
-                    id: guid(),
+                    id: uuid(),
                     description: 'difference < 0',
                     image: 'this-recipe',
                     band: 'difference',
@@ -33,13 +34,13 @@ export const defaultModel = {
                 }]
             },
             {
-                id: guid(),
+                id: uuid(),
                 color: '#ffffff',
                 value: 2,
                 label: 'Stable',
                 booleanOperator: 'and',
                 constraints: [{
-                    id: guid(),
+                    id: uuid(),
                     description: 'difference = 0',
                     image: 'this-recipe',
                     band: 'difference',
@@ -48,13 +49,13 @@ export const defaultModel = {
                 }]
             },
             {
-                id: guid(),
+                id: uuid(),
                 color: '#1a9850',
                 value: 3,
                 label: 'Increase',
                 booleanOperator: 'and',
                 constraints: [{
-                    id: guid(),
+                    id: uuid(),
                     description: 'difference > 0',
                     image: 'this-recipe',
                     band: 'difference',

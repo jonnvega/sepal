@@ -1,10 +1,13 @@
-import {Layout} from 'widget/layout'
-import {compose} from 'compose'
-import Label from 'widget/label'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import {compose} from '~/compose'
+import {withForwardedRef} from '~/ref'
+import {Label} from '~/widget/label'
+import {Layout} from '~/widget/layout'
+
 import styles from './widget.module.css'
-import withForwardedRef from 'ref'
 
 export class _Widget extends React.Component {
     render() {
@@ -56,9 +59,10 @@ export class _Widget extends React.Component {
     }
 
     renderLabel() {
-        const {label, labelButtons, alignment, tooltip, tooltipPlacement, tooltipTrigger, disabled, errorMessage} = this.props
-        return label
-            ? (
+        const {label, labelButtons, alignment, tooltip, tooltipPlacement, tooltipSeverity, tooltipTrigger, disabled, errorMessage} = this.props
+        return _.isNil(label)
+            ? null
+            : (
                 <Label
                     className={styles.label}
                     msg={label}
@@ -66,12 +70,12 @@ export class _Widget extends React.Component {
                     alignment={alignment}
                     tooltip={tooltip}
                     tooltipPlacement={tooltipPlacement}
+                    tooltipSeverity={tooltipSeverity}
                     tooltipTrigger={tooltipTrigger}
                     tabIndex={-1}
                     error={!disabled && errorMessage}
                 />
             )
-            : null
     }
 
     getBusyMessage() {
@@ -101,6 +105,7 @@ Widget.propTypes = {
     spacing: PropTypes.any,
     tooltip: PropTypes.any,
     tooltipPlacement: PropTypes.any,
+    tooltipSeverity: PropTypes.any,
     tooltipTrigger: PropTypes.any,
     onClick: PropTypes.func,
     onMouseOut: PropTypes.func,

@@ -1,10 +1,12 @@
-import {compose} from 'compose'
-import {withMap} from '../../../map/mapContext'
-import {withRecipe} from '../recipeContext'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
-import api from 'api'
+
+import api from '~/apiRegistry'
+import {compose} from '~/compose'
+
+import {withMap} from '../../../map/mapContext'
+import {withRecipe} from '../recipeContext'
 
 class _Aoi extends React.Component {
     render() {
@@ -26,13 +28,17 @@ class _Aoi extends React.Component {
     loadBounds() {
         const {stream, recipe, value, map, recipeActionBuilder} = this.props
         if (value) {
+            const {linked: wasLinked} = map.linked$.getValue()
             stream('LOAD_BOUNDS',
                 api.gee.recipeBounds$(recipe),
                 bounds => {
                     recipeActionBuilder('SET_BOUNDS', {bounds})
                         .set('ui.bounds', bounds)
                         .dispatch(0)
-                    map.fitBounds(bounds)
+                    const {linked: isLinked, synchronize: {synchronizeOut} = {}} = map.linked$.getValue()
+                    if (!isLinked || wasLinked || synchronizeOut) {
+                        map.fitBounds(bounds)
+                    }
                 }
             )
         }

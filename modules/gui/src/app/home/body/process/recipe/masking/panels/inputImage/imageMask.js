@@ -1,10 +1,10 @@
-import {InputImage, fields, modelToValues, valuesToModel} from './inputImage'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import React from 'react'
+import {recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {msg} from '~/translate'
 
-const ImageMask = ({form, inputs, recipeActionBuilder, fromBand}) =>
+import {fields, InputImage, modelToValues, valuesToModel} from './inputImage'
+
+const _ImageMask = ({form, inputs, recipeActionBuilder, fromBand}) =>
     <InputImage
         form={form}
         inputs={inputs}
@@ -13,7 +13,7 @@ const ImageMask = ({form, inputs, recipeActionBuilder, fromBand}) =>
         fromBand={fromBand}
     />
 
-export default compose(
-    ImageMask,
+export const ImageMask = compose(
+    _ImageMask,
     recipeFormPanel({id: 'imageMask', fields, modelToValues, valuesToModel})
 )

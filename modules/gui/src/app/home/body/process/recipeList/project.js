@@ -1,10 +1,13 @@
-import {Form, withForm} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {Panel} from 'widget/panel/panel'
-import {compose} from 'compose'
-import {msg} from 'translate'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import {compose} from '~/compose'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {withForm} from '~/widget/form/form'
+import {Layout} from '~/widget/layout'
+import {Panel} from '~/widget/panel/panel'
+
 import styles from './project.module.css'
 
 const fields = {
@@ -21,7 +24,7 @@ const mapStateToProps = (state, ownProps) => {
     }
 }
 
-class Project extends React.Component {
+class _Project extends React.Component {
     renderPanel() {
         const {inputs: {name}} = this.props
         return (
@@ -61,13 +64,13 @@ class Project extends React.Component {
     }
 }
 
+export const Project = compose(
+    _Project,
+    withForm({fields, mapStateToProps})
+)
+
 Project.propTypes = {
     project: PropTypes.object.isRequired,
     onApply: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired
 }
-
-export default compose(
-    Project,
-    withForm({fields, mapStateToProps})
-)

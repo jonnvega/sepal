@@ -1,21 +1,24 @@
-import {Button} from 'widget/button'
-import {ChangePassword, ChangePasswordButton} from './changePassword'
-import {Form, withForm} from 'widget/form/form'
-import {GoogleAccount, GoogleAccountButton} from './googleAccount'
-import {Layout} from 'widget/layout'
-import {Panel} from 'widget/panel/panel'
-import {Subject} from 'rxjs'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {currentUser, updateCurrentUserDetails$} from 'user'
-import {msg} from 'translate'
-import {withActivatable} from 'widget/activation/activatable'
-import {withActivators} from 'widget/activation/activator'
-import {withSubscriptions} from 'subscription'
-import Icon from 'widget/icon'
-import Notifications from 'widget/notifications'
-import React from 'react'
 import _ from 'lodash'
+import React from 'react'
+import {Subject} from 'rxjs'
+
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {withSubscriptions} from '~/subscription'
+import {msg} from '~/translate'
+import {currentUser, isGoogleAccount, updateCurrentUserDetails$} from '~/user'
+import {withActivatable} from '~/widget/activation/activatable'
+import {withActivators} from '~/widget/activation/activator'
+import {Button} from '~/widget/button'
+import {Form} from '~/widget/form'
+import {withForm} from '~/widget/form/form'
+import {Icon} from '~/widget/icon'
+import {Layout} from '~/widget/layout'
+import {Notifications} from '~/widget/notifications'
+import {Panel} from '~/widget/panel/panel'
+
+import {ChangePassword, ChangePasswordButton} from './changePassword'
+import {GoogleAccount, GoogleAccountButton} from './googleAccount'
 import styles from './userDetails.module.css'
 
 const fields = {
@@ -27,6 +30,7 @@ const fields = {
     intendedUse: new Form.Field(),
     // .notBlank('user.userDetails.form.intendedUse.required'),
     emailNotificationsEnabled: new Form.Field(),
+    manualMapRenderingEnabled: new Form.Field(),
 }
 
 const mapStateToProps = state => {
@@ -38,7 +42,8 @@ const mapStateToProps = state => {
             email: user.email,
             organization: user.organization,
             intendedUse: user.intendedUse,
-            emailNotificationsEnabled: user.emailNotificationsEnabled
+            emailNotificationsEnabled: user.emailNotificationsEnabled,
+            manualMapRenderingEnabled: user.manualMapRenderingEnabled
         },
         tasks: state.tasks
     }
@@ -55,13 +60,8 @@ class _UserDetails extends React.Component {
         )
     }
 
-    isUserGoogleAccount() {
-        const {user} = this.props
-        return user.googleTokens
-    }
-
     renderPanel() {
-        const {inputs: {name, email, organization, intendedUse, emailNotificationsEnabled}} = this.props
+        const {inputs: {name, email, organization, intendedUse, emailNotificationsEnabled, manualMapRenderingEnabled}} = this.props
         return (
             <React.Fragment>
                 <Panel.Header
@@ -76,13 +76,11 @@ class _UserDetails extends React.Component {
                             autoFocus
                             input={name}
                             spellCheck={false}
-                            errorMessage
                         />
                         <Form.Input
                             label={msg('user.userDetails.form.email.label')}
                             input={email}
                             spellCheck={false}
-                            errorMessage
                         />
                         <Form.Input
                             label={msg('user.userDetails.form.organization.label')}
@@ -93,7 +91,6 @@ class _UserDetails extends React.Component {
                             label={msg('user.userDetails.form.intendedUse.label')}
                             input={intendedUse}
                             spellCheck={false}
-                            errorMessage
                             textArea
                             minRows={4}
                         />
@@ -110,6 +107,22 @@ class _UserDetails extends React.Component {
                                 value: false,
                                 label: msg('user.userDetails.form.emailNotifications.disabled.label'),
                                 tooltip: msg('user.userDetails.form.emailNotifications.disabled.tooltip')
+                            }]}
+                            type='horizontal-nowrap'
+                        />
+                        <Form.Buttons
+                            label={msg('user.userDetails.form.manualMapRendering.label')}
+                            tooltip={msg('user.userDetails.form.manualMapRendering.tooltip')}
+                            input={manualMapRenderingEnabled}
+                            multiple={false}
+                            options={[{
+                                value: true,
+                                label: msg('user.userDetails.form.manualMapRendering.enabled.label'),
+                                tooltip: msg('user.userDetails.form.manualMapRendering.enabled.tooltip')
+                            }, {
+                                value: false,
+                                label: msg('user.userDetails.form.manualMapRendering.disabled.label'),
+                                tooltip: msg('user.userDetails.form.manualMapRendering.disabled.tooltip')
                             }]}
                             type='horizontal-nowrap'
                         />
@@ -135,11 +148,11 @@ class _UserDetails extends React.Component {
     }
 
     renderConnectionStatus() {
-        const connected = this.isUserGoogleAccount()
+        const connected = isGoogleAccount()
         return (
             <Layout type='horizontal-nowrap' spacing='compact'>
                 <Icon name='google' type='brands'/>
-                <div className={connected ? styles.connected : styles.disconnected}>
+                <div className={isGoogleAccount() ? styles.connected : styles.disconnected}>
                     {msg(connected ? 'user.googleAccount.connected.label' : 'user.googleAccount.disconnected.label')}
                 </div>
             </Layout>
@@ -181,9 +194,9 @@ class _UserDetailsButton extends React.Component {
         hint: false
     }
 
-    isUserGoogleAccount() {
+    isGoogleProjectSelectionRequired() {
         const {user} = this.props
-        return user.googleTokens
+        return isGoogleAccount() && !user.googleTokens.projectId
     }
 
     render() {
@@ -207,8 +220,8 @@ class _UserDetailsButton extends React.Component {
                 size='large'
                 air='less'
                 additionalClassName={className}
-                icon={this.isUserGoogleAccount() ? 'google' : 'user'}
-                iconType={this.isUserGoogleAccount() ? 'brands' : null}
+                icon={isGoogleAccount() ? 'google' : 'user'}
+                iconType={isGoogleAccount() ? 'brands' : null}
                 label={username}
                 disabled={userDetails.active}
                 tooltip={msg('home.sections.user.profile')}
@@ -223,10 +236,19 @@ class _UserDetailsButton extends React.Component {
     componentDidMount() {
         // this.autoTrigger()
         this.initializeHints()
+        this.checkGoogleProjectId()
     }
 
     componentDidUpdate() {
         // this.autoTrigger()
+        this.checkGoogleProjectId()
+    }
+
+    checkGoogleProjectId() {
+        const {activator: {activatables: {googleAccount}}} = this.props
+        if (googleAccount.activate && this.isGoogleProjectSelectionRequired()) {
+            googleAccount.activate({mandatory: true})
+        }
     }
 
     autoTrigger() {
@@ -249,11 +271,11 @@ class _UserDetailsButton extends React.Component {
 
 export const UserDetailsButton = compose(
     _UserDetailsButton,
-    connect(state => ({
-        user: state.user.currentUser
+    connect(() => ({
+        user: currentUser()
     })),
     withSubscriptions(),
-    withActivators('userDetails')
+    withActivators('userDetails', 'googleAccount')
 )
 
 UserDetailsButton.propTypes = {}

@@ -1,25 +1,25 @@
-import {Button} from 'widget/button'
-import {ButtonGroup} from './buttonGroup'
-import {ScrollableList} from 'widget/list'
-import {Subject} from 'rxjs'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {selectFrom} from 'stateUtils'
-import {withSubscriptions} from 'subscription'
-import FloatingBox from 'widget/floatingBox'
-import Icon from 'widget/icon'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
-import styles from './buttonSelect.module.css'
+import {Subject} from 'rxjs'
 
-// const SELECTION_DELAY_MS = 350
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {selectFrom} from '~/stateUtils'
+import {withSubscriptions} from '~/subscription'
+import {Button} from '~/widget/button'
+import {FloatingBox} from '~/widget/floatingBox'
+import {Icon} from '~/widget/icon'
+import {ScrollableList} from '~/widget/list'
+
+import {ButtonGroup} from './buttonGroup'
+import styles from './buttonSelect.module.css'
 
 const mapStateToProps = state => ({
     dimensions: selectFrom(state, 'dimensions') || []
 })
 
-class ButtonSelect extends React.Component {
+class _ButtonSelect extends React.Component {
     input = React.createRef()
     list = React.createRef()
     select$ = new Subject()
@@ -58,7 +58,7 @@ class ButtonSelect extends React.Component {
     }
 
     renderSingleButton() {
-        const {disabled, chromeless, shape, look, icon, tooltip, tooltipPlacement, width, onMouseOver, onMouseOut} = this.props
+        const {disabled, chromeless, shape, look, icon, labelStyle, tooltip, tooltipPlacement, width, onMouseOver, onMouseOut} = this.props
         return (
             <Button
                 ref={this.input}
@@ -66,23 +66,24 @@ class ButtonSelect extends React.Component {
                 shape={shape}
                 look={look}
                 icon={icon}
+                label={this.getLabel()}
+                labelStyle={labelStyle}
                 tooltip={tooltip}
                 tooltipPlacement={tooltipPlacement}
                 width={width}
-                onClick={this.toggleOptions}
-                onMouseOver={onMouseOver}
-                onMouseOut={onMouseOut}
                 disabled={disabled}
-                label={this.getLabel()}
                 tail={
                     <Icon name={this.getChevronIcon()}/>
                 }
+                onClick={this.toggleOptions}
+                onMouseOver={onMouseOver}
+                onMouseOut={onMouseOut}
             />
         )
     }
 
     renderMultiButton() {
-        const {disabled, chromeless, shape, look, icon, tooltip, tooltipPlacement, width, onMouseOver, onMouseOut} = this.props
+        const {disabled, chromeless, shape, look, icon, labelStyle, tooltip, tooltipPlacement, width, onMouseOver, onMouseOut} = this.props
         return (
             <ButtonGroup
                 ref={this.input}
@@ -96,12 +97,13 @@ class ButtonSelect extends React.Component {
                     shape={shape}
                     look={look}
                     icon={icon}
+                    label={this.getLabel()}
+                    labelStyle={labelStyle}
                     tooltip={tooltip}
                     tooltipPlacement={tooltipPlacement}
                     width={width}
-                    onClick={this.onClick}
                     disabled={disabled}
-                    label={this.getLabel()}
+                    onClick={this.onClick}
                 />
                 <Button
                     chromeless={chromeless}
@@ -110,8 +112,8 @@ class ButtonSelect extends React.Component {
                     icon={this.getChevronIcon()}
                     tooltip={tooltip}
                     tooltipPlacement={tooltipPlacement}
-                    onClick={this.toggleOptions}
                     disabled={disabled}
+                    onClick={this.toggleOptions}
                 />
             </ButtonGroup>
         )
@@ -146,7 +148,7 @@ class ButtonSelect extends React.Component {
                     ref={this.list}
                     className={optionsClassName || styles.options}
                     options={flattenedOptions}
-                    selectedOption={selectedOption}
+                    selectedValue={selectedOption?.value}
                     onSelect={this.onSelect}
                     onCancel={this.hideOptions}
                     autoCenter={!selected}
@@ -205,18 +207,6 @@ class ButtonSelect extends React.Component {
                     onSelect && onSelect(option)
                 }
             )
-            // this.select$.subscribe(
-            //     option => {
-            //         this.setSelectedOption(option)
-            //         input && input.set(option.value)
-            //         onSelect && onSelect(option)
-            //     }
-            // ),
-            // this.select$.pipe(
-            //     delay(SELECTION_DELAY_MS)
-            // ).subscribe(
-            //     () => this.setState({selected: false}, this.hideOptions)
-            // )
         )
     }
 
@@ -262,8 +252,8 @@ class ButtonSelect extends React.Component {
     }
 }
 
-export default compose(
-    ButtonSelect,
+export const ButtonSelect = compose(
+    _ButtonSelect,
     withSubscriptions(),
     connect(mapStateToProps)
 )
@@ -276,6 +266,7 @@ ButtonSelect.propTypes = {
     icon: PropTypes.string,
     input: PropTypes.any,
     label: PropTypes.any,
+    labelStyle: PropTypes.any,
     look: PropTypes.string,
     optionsClassName: PropTypes.string,
     optionTooltipPlacement: PropTypes.string,

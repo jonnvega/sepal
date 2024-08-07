@@ -1,10 +1,12 @@
-import {compose} from 'compose'
-import {withSubscriptions} from 'subscription'
-import {withTab} from 'widget/tabs/tabContext'
-import EarthEngineTableLayer from './layer/earthEngineTableLayer'
 import PropTypes from 'prop-types'
 import React from 'react'
-import api from 'api'
+
+import api from '~/apiRegistry'
+import {compose} from '~/compose'
+import {withSubscriptions} from '~/subscription'
+import {withTab} from '~/widget/tabs/tabContext'
+
+import {EarthEngineTableLayer} from './layer/earthEngineTableLayer'
 
 class _EETableLayer extends React.Component {
     render() {
@@ -33,7 +35,7 @@ class _EETableLayer extends React.Component {
     }
 
     createLayer() {
-        const {tableId, columnName, columnValue, buffer, color, fillColor, layerIndex, map, tab: {busy$}} = this.props
+        const {tableId, columnName, columnValue, buffer, color, fillColor, layerIndex, map, tab: {busy}} = this.props
         return tableId
             ? new EarthEngineTableLayer({
                 map,
@@ -42,7 +44,7 @@ class _EETableLayer extends React.Component {
                 }),
                 layerIndex,
                 watchedProps: {tableId, columnName, columnValue, buffer},
-                busy$
+                busy
             })
             : null
     }

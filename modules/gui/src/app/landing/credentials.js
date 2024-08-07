@@ -1,14 +1,16 @@
-import {AnimateReplacement} from 'widget/animate'
+import React from 'react'
+
+import {isPathInLocation} from '~/route'
+import {AnimateReplacement} from '~/widget/animate'
+import {Recaptcha} from '~/widget/recaptcha'
+
+import styles from './credentials.module.css'
 import {ForgotPassword} from './forgot-password'
 import {Login} from './login'
-import {Recaptcha} from 'widget/recaptcha'
 import {SetPassword} from './setPassword'
 import {SignUp} from './signup'
-import {isPathInLocation} from 'route'
-import React from 'react'
-import styles from './credentials.module.css'
 
-export default class Credentials extends React.Component {
+export class Credentials extends React.Component {
     state = {
         mode: 'login'
     }

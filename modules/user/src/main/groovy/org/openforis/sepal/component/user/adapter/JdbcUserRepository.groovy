@@ -23,11 +23,11 @@ class JdbcUserRepository implements UserRepository {
 
     User insertUser(User user, String token) {
         def result = sql.executeInsert('''
-                INSERT INTO sepal_user (username, name, email, organization, intended_use, email_notifications_enabled, token, admin, system_user, status, 
+                INSERT INTO sepal_user (username, name, email, organization, intended_use, email_notifications_enabled, manual_map_rendering_enabled, token, admin, system_user, status, 
                             creation_time, update_time) 
-                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                 [
-                    user.username, user.name, user.email, user.organization, user.intendedUse, user.emailNotificationsEnabled,
+                    user.username, user.name, user.email, user.organization, user.intendedUse, user.emailNotificationsEnabled, user.manualMapRenderingEnabled,
                     token, user.admin, user.systemUser, User.Status.PENDING.name(), user.creationTime, user.updateTime
                 ]
         )
@@ -36,8 +36,8 @@ class JdbcUserRepository implements UserRepository {
 
     void updateUserDetails(User user) {
         sql.executeUpdate('''
-                UPDATE sepal_user SET name = ?, email = ?, organization = ?, intended_use = ?, email_notifications_enabled = ?, admin = ?, update_time = ? 
-                WHERE username = ?''', [user.name, user.email, user.organization, user.intendedUse, user.emailNotificationsEnabled, user.admin, user.updateTime, user.username])
+                UPDATE sepal_user SET name = ?, email = ?, organization = ?, intended_use = ?, email_notifications_enabled = ?, manual_map_rendering_enabled = ?, admin = ?, update_time = ? 
+                WHERE username = ?''', [user.name, user.email, user.organization, user.intendedUse, user.emailNotificationsEnabled, user.manualMapRenderingEnabled, user.admin, user.updateTime, user.username])
     }
 
     void deleteUser(String username) {
@@ -47,8 +47,8 @@ class JdbcUserRepository implements UserRepository {
     List<User> listUsers() {
         def users = []
         sql.eachRow('''
-                SELECT id, username, name, email, organization, intended_use, email_notifications_enabled, admin, system_user, status, 
-                       google_refresh_token,  google_access_token, google_access_token_expiration, 
+                SELECT id, username, name, email, organization, intended_use, email_notifications_enabled, manual_map_rendering_enabled, admin, system_user, status, 
+                       google_refresh_token,  google_access_token, google_access_token_expiration, google_project_id, google_legacy_project,
                        creation_time, update_time
                 FROM sepal_user 
                 ORDER BY creation_time DESC''') {
@@ -70,8 +70,8 @@ class JdbcUserRepository implements UserRepository {
     User lookupUser(String username) {
         def user = null
         sql.eachRow('''
-                SELECT id, username, name, email, organization, intended_use, email_notifications_enabled, admin, system_user, status, 
-                       google_refresh_token,  google_access_token, google_access_token_expiration, 
+                SELECT id, username, name, email, organization, intended_use, email_notifications_enabled, manual_map_rendering_enabled, admin, system_user, status, 
+                       google_refresh_token,  google_access_token, google_access_token_expiration, google_project_id, google_legacy_project,
                        creation_time, update_time
                 FROM sepal_user 
                 WHERE username = ?''', [username]) {
@@ -86,8 +86,8 @@ class JdbcUserRepository implements UserRepository {
     User findUserByUsername(String username) {
         def user = null
         sql.eachRow('''
-                SELECT id, username, name, email, organization, intended_use, email_notifications_enabled, admin, system_user, status, 
-                       google_refresh_token,  google_access_token, google_access_token_expiration, 
+                SELECT id, username, name, email, organization, intended_use, email_notifications_enabled, manual_map_rendering_enabled, admin, system_user, status, 
+                       google_refresh_token,  google_access_token, google_access_token_expiration, google_project_id, google_legacy_project,
                        creation_time, update_time
                 FROM sepal_user 
                 WHERE username = ?''', [username]) {
@@ -99,8 +99,8 @@ class JdbcUserRepository implements UserRepository {
     User findUserByEmail(String email) {
         def user = null
         sql.eachRow('''
-                SELECT id, username, name, email, organization, intended_use, email_notifications_enabled, admin, system_user, status, 
-                       google_refresh_token,  google_access_token, google_access_token_expiration, 
+                SELECT id, username, name, email, organization, intended_use, email_notifications_enabled, manual_map_rendering_enabled, admin, system_user, status, 
+                       google_refresh_token,  google_access_token, google_access_token_expiration, google_project_id, google_legacy_project,
                        creation_time, update_time
                 FROM sepal_user 
                 WHERE email = ?''', [email]) {
@@ -126,8 +126,8 @@ class JdbcUserRepository implements UserRepository {
     Map tokenStatus(String token) {
         def status = null
         sql.eachRow('''
-                SELECT id, username, name, email, organization, intended_use, email_notifications_enabled, admin, status, system_user, token_generation_time, 
-                       google_refresh_token,  google_access_token, google_access_token_expiration, 
+                SELECT id, username, name, email, organization, intended_use, email_notifications_enabled, manual_map_rendering_enabled, admin, status, system_user, token_generation_time, 
+                       google_refresh_token,  google_access_token, google_access_token_expiration, google_project_id, google_legacy_project,
                        creation_time, update_time 
                 FROM sepal_user 
                 WHERE token = ?''', [token]) {
@@ -167,11 +167,15 @@ class JdbcUserRepository implements UserRepository {
                 SET google_refresh_token = ?,  
                     google_access_token = ?, 
                     google_access_token_expiration = ?,
-                 update_time = ?
+                    google_project_id = ?,
+                    google_legacy_project = ?,
+                    update_time = ?
                 WHERE username = ?''', [
                 tokens?.refreshToken,
                 tokens?.accessToken,
                 tokens ? new Date(tokens.accessTokenExpiryDate) : null,
+                tokens?.projectId,
+                tokens?.legacyProject ? 1 : 0,
                 clock.now(),
                 username
         ])
@@ -186,12 +190,16 @@ class JdbcUserRepository implements UserRepository {
                 organization: row.organization,
                 intendedUse: row.longText('intended_use'),
                 emailNotificationsEnabled: row.email_notifications_enabled,
+                manualMapRenderingEnabled: row.manual_map_rendering_enabled,
                 roles: (row.admin ? [Roles.ADMIN] : []).toSet(),
                 systemUser: row.system_user,
                 googleTokens: row.google_refresh_token ? new GoogleTokens(
                         refreshToken: row.google_refresh_token,
                         accessToken: row.google_access_token,
-                        accessTokenExpiryDate: row.google_access_token_expiration.time) : null,
+                        accessTokenExpiryDate: row.google_access_token_expiration.time,
+                        projectId: row.google_project_id,
+                        legacyProject: !!row.google_legacy_project
+                ) : null,
                 status: row.status as User.Status,
                 creationTime: toDate(row.creation_time),
                 updateTime: toDate(row.update_time),

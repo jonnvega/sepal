@@ -1,19 +1,19 @@
-import {
-    RecipeActions,
-    SceneSelectionType,
-    getSource
-} from 'app/home/body/process/recipe/opticalMosaic/opticalMosaicRecipe'
-import {Subject, takeUntil} from 'rxjs'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {objectEquals} from 'collections'
-import {selectFrom} from 'stateUtils'
-import {withRecipe} from 'app/home/body/process/recipeContext'
-import {withTab} from 'widget/tabs/tabContext'
-import Notifications from 'widget/notifications'
 import React from 'react'
-import api from 'api'
-import guid from 'guid'
+import {Subject, takeUntil} from 'rxjs'
+
+import api from '~/apiRegistry'
+import {
+    getSource,
+    RecipeActions,
+    SceneSelectionType} from '~/app/home/body/process/recipe/opticalMosaic/opticalMosaicRecipe'
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {isPartiallyEqual} from '~/hash'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {uuid} from '~/uuid'
+import {Notifications} from '~/widget/notifications'
+import {withTab} from '~/widget/tabs/tabContext'
 
 const mapRecipeToProps = recipe => ({
     manualSelection: selectFrom(recipe, 'model.sceneSelectionOptions.type') === SceneSelectionType.SELECT,
@@ -41,7 +41,7 @@ class _SceneAreas extends React.Component {
 
     componentDidUpdate(prevProps) {
         const {stream, sceneAreas, aoi, source, manualSelection} = this.props
-        const sceneAreasChanged = !objectEquals(this.props, prevProps, ['aoi', 'source'])
+        const sceneAreasChanged = !isPartiallyEqual(this.props, prevProps, ['aoi', 'source'])
         if (manualSelection && (sceneAreasChanged || (!sceneAreas.length && !stream('LOAD_SCENE_AREAS').active))) {
             this.loadSceneAreas(aoi, source)
         }
@@ -53,37 +53,27 @@ class _SceneAreas extends React.Component {
     }
 
     loadSceneAreas(aoi, source) {
-        const {recipeId, stream, tab: {busy$}} = this.props
+        const {recipeId, stream, tab: {busy}} = this.props
         RecipeActions(recipeId).setSceneAreas(null).dispatch()
         this.loadSceneArea$.next()
-        busy$.next(true)
+        const busyId = `SceneAreas-${recipeId}`
+        busy.set(busyId, true)
         stream('LOAD_SCENE_AREAS',
             api.gee.sceneAreas$({aoi, source}).pipe(
                 takeUntil(this.loadSceneArea$)
             ),
             sceneAreas => {
                 RecipeActions(recipeId).setSceneAreas(sceneAreas).dispatch()
-                busy$.next(false)
+                busy.set(busyId, false)
             },
-            e => {
-                busy$.next(false)
+            error => {
+                busy.set(busyId, false)
                 Notifications.error({
                     title: msg('gee.error.title'),
                     message: msg('process.mosaic.sceneAreas.error'),
-                    error: e.response ? msg(e.response.messageKey, e.response.messageArgs, e.response.defaultMessage) : null,
+                    error: error.response ? msg(error.response.messageKey, error.response.messageArgs, error.response.defaultMessage) : null,
                     group: true,
                     timeout: 0
-                    // content: dismiss =>
-                    //     <Button
-                    //         look='transparent'
-                    //         shape='pill'
-                    //         icon='sync'
-                    //         label={msg('button.retry')}
-                    //         onClick={() => {
-                    //             dismiss()
-                    //             this.reload()
-                    //         }}
-                    //     />
                 })
             }
         )
@@ -116,7 +106,7 @@ class _SceneAreas extends React.Component {
     includeLayer() {
         const {areas, recipeActionBuilder} = this.props
         const source = {
-            id: guid(),
+            id: uuid(),
             type: 'SceneAreas',
             description: msg('featureLayerSources.SceneAreas.description')
         }
@@ -134,7 +124,6 @@ class _SceneAreas extends React.Component {
 
 export const SceneAreas = compose(
     _SceneAreas,
-    // withDiff(),
     withRecipe(mapRecipeToProps),
     withTab()
 )

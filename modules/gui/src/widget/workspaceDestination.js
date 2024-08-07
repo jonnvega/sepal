@@ -1,12 +1,13 @@
-import {Form} from 'widget/form/form'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {currentUser} from 'user'
-import {selectFrom} from 'stateUtils'
-import {toSafeString} from 'string'
-import {withRecipe} from 'app/home/body/process/recipeContext'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {selectFrom} from '~/stateUtils'
+import {toSafeString} from '~/string'
+import {currentUser} from '~/user'
+import {Form} from '~/widget/form'
 
 const mapStateToProps = state => ({
     projects: selectFrom(state, 'process.projects')
@@ -51,7 +52,6 @@ class _WorkspaceDestination extends React.Component {
                 label={label}
                 placeholder={placeholder}
                 autoFocus={autoFocus}
-                errorMessage
                 // onLoading={this.onLoading}
                 // onLoaded={({metadata} = {}) => this.onLoaded(metadata?.type)}
                 // onError={this.onError}
@@ -139,8 +139,8 @@ class _WorkspaceDestination extends React.Component {
     //     if (currentType) {
     //         workspacePathInput.setInvalid(msg(
     //             ['Image', 'ImageCollection'].includes(currentType)
-    //                 ? 'widget.workspaceDestination.exists.replacable'
-    //                 : 'widget.workspaceDestination.exists.notReplacable'
+    //                 ? 'widget.workspaceDestination.exists.replaceable'
+    //                 : 'widget.workspaceDestination.exists.notReplaceable'
     //         ))
     //     } else {
     //         strategyInput.set('new')

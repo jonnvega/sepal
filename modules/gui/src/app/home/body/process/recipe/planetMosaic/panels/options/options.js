@@ -1,11 +1,13 @@
-import {Form} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {Panel} from 'widget/panel/panel'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
 import React from 'react'
+
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {Layout} from '~/widget/layout'
+import {Panel} from '~/widget/panel/panel'
+
 import styles from './options.module.css'
 
 const fields = {
@@ -19,7 +21,7 @@ const mapRecipeToProps = recipe => ({
     source: selectFrom(recipe, 'model.sources.source')
 })
 
-class Options extends React.Component {
+class _Options extends React.Component {
     constructor(props) {
         super(props)
     }
@@ -62,7 +64,6 @@ class Options extends React.Component {
                 maxValue={100}
                 ticks={[0, 10, 25, 50, 75, 90, 100]}
                 info={value => msg('process.planetMosaic.panel.options.shadowThreshold.value', {value})}
-                disabled={this.noProcessing()}
             />
         )
     }
@@ -78,7 +79,6 @@ class Options extends React.Component {
                 maxValue={100}
                 ticks={[0, 10, 25, 50, 75, 90, 100]}
                 info={value => msg('process.planetMosaic.panel.options.cloudThreshold.value', {value})}
-                disabled={this.noProcessing()}
             />
         )
     }
@@ -103,7 +103,6 @@ class Options extends React.Component {
                     tooltip: msg('process.mosaic.panel.composite.form.cloudBuffer.aggressive.tooltip')
                 }]}
                 type='horizontal'
-                disabled={this.noProcessing()}
             />
         )
     }
@@ -133,11 +132,6 @@ class Options extends React.Component {
             histogramMatching.set('DISABLED')
         }
     }
-
-    noProcessing() {
-        const {source, inputs: {histogramMatching}} = this.props
-        return source === 'DAILY' && histogramMatching.value !== 'ENABLED'
-    }
 }
 
 const valuesToModel = values => ({
@@ -154,7 +148,7 @@ const modelToValues = model => ({
     cloudBuffer: model.cloudBuffer || 0
 })
 
-export default compose(
-    Options,
+export const Options = compose(
+    _Options,
     recipeFormPanel({id: 'options', fields, mapRecipeToProps, modelToValues, valuesToModel})
 )

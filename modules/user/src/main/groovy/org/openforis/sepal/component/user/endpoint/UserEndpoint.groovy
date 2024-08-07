@@ -30,7 +30,7 @@ class UserEndpoint {
             def nameConstraints = [notBlank(), maxLength(1000)]
             def emailConstraints = [notBlank(), email()]
             def organizationConstraints = [maxLength(1000)]
-            def passwordConstraints = [notBlank(), custom { it ==~ /^.{8,100}$/ }]
+            def passwordConstraints = [notBlank(), custom { it ==~ /^.{12,100}$/ }]
             def intendedUseConstraints = [notBlank()]
             def recaptchaTokenConstraints = [notBlank()]
 
@@ -332,6 +332,18 @@ class UserEndpoint {
                 else
                     response.status = 204
             }
+
+            post('/google/project') {
+                def legacyProject = params.legacyProject == 'true'
+                component.submit(
+                    new UpdateGoogleProject(
+                            username: sepalUser.username,
+                            projectId: legacyProject ? null : params.projectId,
+                            legacyProject: legacyProject,
+                    ))
+                response.addHeader('sepal-user-updated', 'true')
+                response.status = 204
+            }
         }
     }
 
@@ -345,6 +357,7 @@ class UserEndpoint {
                 intendedUse: user.intendedUse,
                 googleTokens: user.googleTokens,
                 emailNotificationsEnabled: user.emailNotificationsEnabled,
+                manualMapRenderingEnabled: user.manualMapRenderingEnabled,
                 status: user.status,
                 roles: user.roles,
                 systemUser: user.systemUser,

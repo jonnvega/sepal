@@ -1,24 +1,24 @@
-import {compose} from 'compose'
-import {delay, distinctUntilChanged, filter, fromEvent, map, merge, switchMap} from 'rxjs'
-import {withContext} from 'context'
-import {withSubscriptions} from 'subscription'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
-import styles from './blurDetector.module.css'
-import withForwardedRef from 'ref'
+import {delay, distinctUntilChanged, filter, fromEvent, map, merge, sample, shareReplay, switchMap} from 'rxjs'
 
-const ANIMATION_DURATION_MS = 500
+import {compose} from '~/compose'
+import {withContext} from '~/context'
+import {withForwardedRef} from '~/ref'
+import {withSubscriptions} from '~/subscription'
+
+import styles from './blurDetector.module.css'
+import {isOverElement} from './dom'
+import {withEventShield} from './eventShield'
+
+const ANIMATION_DURATION_MS = 250
 
 const Context = React.createContext()
 
 const withBlurDetector = withContext(Context, 'blurDetector')
 
-const isOver = (e, element) => {
-    return element.contains(e.target)
-}
-
-class BlurDetector extends React.Component {
+class _BlurDetector extends React.Component {
     enabled = true
 
     state = {
@@ -28,7 +28,7 @@ class BlurDetector extends React.Component {
     constructor(props) {
         super(props)
         this.ref = props.forwardedRef || React.createRef()
-        this.checkEnabled = this.checkEnabled.bind(this)
+        this.setEnabled = this.setEnabled.bind(this)
         this.isEnabled = this.isEnabled.bind(this)
         this.onBlur = this.onBlur.bind(this)
         this.blurStart = this.blurStart.bind(this)
@@ -47,14 +47,14 @@ class BlurDetector extends React.Component {
                 ].join(' ')}
                 style={{...style, '--animation-duration-ms': ANIMATION_DURATION_MS}}
                 onClick={onClick}>
-                <Context.Provider value={{enabled: this.checkEnabled}}>
+                <Context.Provider value={{setEnabled: this.setEnabled}}>
                     {children}
                 </Context.Provider>
             </div>
         )
     }
 
-    checkEnabled(enabled) {
+    setEnabled(enabled) {
         return this.enabled = enabled
     }
     
@@ -67,8 +67,8 @@ class BlurDetector extends React.Component {
     }
 
     componentDidMount() {
-        const {autoBlurTimeout, fadeOut, onBlur, addSubscription} = this.props
-        this.setEnabled(false)
+        const {autoBlurTimeout, fadeOut, onBlur, addSubscription, eventShield} = this.props
+        this.setParentEnabled(false)
         if (onBlur) {
             addSubscription(
                 merge(
@@ -77,26 +77,37 @@ class BlurDetector extends React.Component {
                     fromEvent(document, 'focus', {capture: true}),
                 ).pipe(
                     filter(this.isEnabled),
-                    filter(e => !this.isOver(e))
+                    map(e => this.isOver(e)),
+                    filter(over => !over)
                 ).subscribe(this.onBlur)
             )
             if (autoBlurTimeout) {
                 const over$ = fromEvent(document, 'mousemove').pipe(
                     map(e => this.isOver(e)),
-                    distinctUntilChanged()
+                    distinctUntilChanged(),
+                    shareReplay({bufferSize: 1, refCount: true})
                 )
                 const enter$ = over$.pipe(
                     filter(over => over)
                 )
-                const leave$ = over$.pipe(
+                const leave$ = eventShield.enabled$.pipe(
+                    switchMap(enabled => enabled
+                        ? over$.pipe(
+                            sample(eventShield.enabled$.pipe(
+                                filter(enabled => !enabled)
+                            ))
+                        )
+                        : over$
+                    ),
                     filter(over => !over)
                 )
+                const away$ = enter$.pipe(
+                    switchMap(() => leave$.pipe(
+                        delay(autoBlurTimeout)
+                    ))
+                )
                 addSubscription(
-                    enter$.pipe(
-                        switchMap(() => leave$.pipe(
-                            delay(autoBlurTimeout)
-                        ))
-                    ).subscribe(this.onBlur)
+                    away$.subscribe(this.onBlur)
                 )
                 if (fadeOut) {
                     addSubscription(
@@ -113,7 +124,7 @@ class BlurDetector extends React.Component {
     }
 
     componentWillUnmount() {
-        this.setEnabled(true)
+        this.setParentEnabled(true)
     }
 
     onBlur(e) {
@@ -123,16 +134,15 @@ class BlurDetector extends React.Component {
         }
     }
 
-    setEnabled(enabled) {
+    setParentEnabled(enabled) {
         const {blurDetector} = this.props
         if (blurDetector) {
-            blurDetector.enabled(enabled)
+            blurDetector.setEnabled(enabled)
         }
     }
 
     isEnabled() {
-        const {enabled} = this
-        return enabled
+        return this.enabled
     }
     
     isOver(e) {
@@ -140,21 +150,22 @@ class BlurDetector extends React.Component {
     }
 
     isRefEvent(e) {
-        return isOver(e, this.ref.current)
+        return isOverElement(e, this.ref.current)
     }
 
     isExcludedEvent(e) {
         const {exclude} = this.props
         return _.some(
             _.castArray(exclude),
-            element => element && isOver(e, element)
+            element => element && isOverElement(e, element)
         )
     }
 }
 
-export default compose(
-    BlurDetector,
+export const BlurDetector = compose(
+    _BlurDetector,
     withBlurDetector(),
+    withEventShield(),
     withSubscriptions(),
     withForwardedRef(),
 )
@@ -163,11 +174,6 @@ BlurDetector.propTypes = {
     children: PropTypes.any.isRequired,
     autoBlurTimeout: PropTypes.number,
     className: PropTypes.string,
-    // exclude: PropTypes.oneOfType([
-    //     PropTypes.arrayOf(PropTypes.elementType),
-    //     PropTypes.elementType,
-    //     // null
-    // ]),
     exclude: PropTypes.any,
     fadeOut: PropTypes.any,
     style: PropTypes.object,

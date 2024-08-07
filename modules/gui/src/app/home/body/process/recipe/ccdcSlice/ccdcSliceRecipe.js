@@ -1,13 +1,14 @@
-import {getRecipeType} from 'app/home/body/process/recipeTypes'
-import {msg} from 'translate'
-import {normalize} from 'app/home/map/visParams/visParams'
-import {publishEvent} from 'eventPublisher'
-import {recipeActionBuilder} from 'app/home/body/process/recipe'
-import {selectFrom} from 'stateUtils'
-import {toT} from 'app/home/body/process/recipe/ccdc/t'
 import _ from 'lodash'
-import api from 'api'
 import moment from 'moment'
+
+import api from '~/apiRegistry'
+import {recipeActionBuilder} from '~/app/home/body/process/recipe'
+import {toT} from '~/app/home/body/process/recipe/ccdc/t'
+import {getRecipeType} from '~/app/home/body/process/recipeTypeRegistry'
+import {normalize} from '~/app/home/map/visParams/visParams'
+import {publishEvent} from '~/eventPublisher'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
 
 export const defaultModel = {
     date: {

@@ -1,8 +1,9 @@
-import {Button} from 'widget/button'
-import {msg} from 'translate'
-import Confirm from 'widget/confirm'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import {msg} from '~/translate'
+import {Button} from '~/widget/button'
+import {Confirm} from '~/widget/confirm'
 
 export class ModalConfirmationButton extends React.Component {
     state = {
@@ -31,7 +32,7 @@ export class ModalConfirmationButton extends React.Component {
     }
 
     render() {
-        const {busy, chromeless, disabled, icon, iconType, label, shape, size, skipConfirmation, tooltip, tooltipPlacement, width, onConfirm} = this.props
+        const {busy, chromeless, air, disabled, icon, iconType, label, shape, size, skipConfirmation, tooltip, tooltipPlacement, width, onConfirm} = this.props
         const {askConfirmation} = this.state
         return (
             <React.Fragment>
@@ -44,6 +45,7 @@ export class ModalConfirmationButton extends React.Component {
                     shape={shape}
                     size={size}
                     width={width}
+                    air={air}
                     disabled={disabled}
                     tooltip={tooltip}
                     tooltipPlacement={tooltipPlacement}
@@ -71,6 +73,7 @@ ModalConfirmationButton.defaultProps = {
 ModalConfirmationButton.propTypes = {
     message: PropTypes.string.isRequired,
     onConfirm: PropTypes.func.isRequired,
+    air: PropTypes.any,
     busy: PropTypes.any,
     children: PropTypes.any,
     chromeless: PropTypes.any,

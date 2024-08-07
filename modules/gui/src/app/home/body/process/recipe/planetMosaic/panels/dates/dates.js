@@ -1,12 +1,14 @@
-import {Form} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {Panel} from 'widget/panel/panel'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {compose} from 'compose'
-import {maxDate, minDate, momentDate} from 'widget/form/datePicker'
-import {msg} from 'translate'
-import React from 'react'
 import moment from 'moment'
+import React from 'react'
+
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {maxDate, minDate, momentDate} from '~/widget/form/datePicker'
+import {Layout} from '~/widget/layout'
+import {Panel} from '~/widget/panel/panel'
+
 import styles from './dates.module.css'
 
 const fields = {
@@ -15,7 +17,7 @@ const fields = {
     toDate: new Form.Field(),
 }
 
-class Dates extends React.Component {
+class _Dates extends React.Component {
     render() {
         return (
             <RecipeFormPanel
@@ -55,8 +57,6 @@ class Dates extends React.Component {
     }
 }
 
-Dates.propTypes = {}
-
 const fromDateRange = toDate => {
     const dayBeforeToDate = momentDate(toDate).subtract(1, 'day')
     return [
@@ -73,7 +73,9 @@ const toDateRange = fromDate => {
     ]
 }
 
-export default compose(
-    Dates,
+export const Dates = compose(
+    _Dates,
     recipeFormPanel({id: 'dates', fields})
 )
+
+Dates.propTypes = {}

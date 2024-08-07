@@ -1,10 +1,12 @@
-import {getAllVisualizations} from 'app/home/body/process/recipe/visualizations'
-import {getRecipeType} from 'app/home/body/process/recipeTypes'
-import {msg} from 'translate'
-import {publishEvent} from 'eventPublisher'
-import {recipeActionBuilder} from 'app/home/body/process/recipe'
 import _ from 'lodash'
-import api from 'api'
+
+import api from '~/apiRegistry'
+import {recipeActionBuilder} from '~/app/home/body/process/recipe'
+import {getAllVisualizations} from '~/app/home/body/process/recipe/visualizations'
+import {getRecipeType} from '~/app/home/body/process/recipeTypeRegistry'
+import {publishEvent} from '~/eventPublisher'
+import {msg} from '~/translate'
+
 export const defaultModel = {}
 
 export const RecipeActions = id => {

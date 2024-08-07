@@ -1,17 +1,18 @@
-import {Form} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {LegendBuilder, defaultColor} from 'app/home/map/legendBuilder'
-import {Panel} from 'widget/panel/panel'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {recipeActionBuilder} from 'app/home/body/process/recipe'
-import {selectFrom} from 'stateUtils'
-import {withRecipe} from 'app/home/body/process/recipeContext'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
-import guid from 'guid'
+
+import {recipeActionBuilder} from '~/app/home/body/process/recipe'
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {defaultColor, LegendBuilder} from '~/app/home/map/legendBuilder'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {uuid} from '~/uuid'
+import {Form} from '~/widget/form'
+import {Panel} from '~/widget/panel/panel'
+
 import styles from './legend.module.css'
 
 const fields = {
@@ -59,7 +60,7 @@ class _Legend extends React.Component {
             )
             .flat()
             .map((label, i) => ({
-                id: guid(),
+                id: uuid(),
                 value: i + 1,
                 color: defaultColor(i + 1),
                 label
@@ -82,9 +83,7 @@ class _LegendPanel extends React.Component {
                     title={msg('process.classification.panel.legend.title')}
                 />
                 <Panel.Content scrollable={false}>
-                    <Layout spacing='compact'>
-                        {this.renderContent()}
-                    </Layout>
+                    {this.renderContent()}
                 </Panel.Content>
                 <Form.PanelButtons/>
             </RecipeFormPanel>

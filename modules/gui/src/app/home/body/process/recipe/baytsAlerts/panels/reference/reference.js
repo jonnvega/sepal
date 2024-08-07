@@ -1,13 +1,15 @@
-import {Form} from 'widget/form/form'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {SectionSelection} from './sectionSelection'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import AssetSection from './assetSection'
-import PanelSections from 'widget/panelSections'
 import React from 'react'
-import RecipeSection from './recipeSection'
+
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {PanelSections} from '~/widget/panelSections'
+
+import {AssetSection} from './assetSection'
+import {RecipeSection} from './recipeSection'
 import styles from './reference.module.css'
+import {SectionSelection} from './sectionSelection'
 
 const fields = {
     section: new Form.Field()
@@ -26,7 +28,7 @@ const fields = {
     visualizations: new Form.Field(),
 }
 
-class Reference extends React.Component {
+class _Reference extends React.Component {
     render() {
         return (
             <RecipeFormPanel
@@ -103,9 +105,9 @@ const valuesToModel = ({section, asset, recipe, bands, startDate, endDate, visua
     }
 }
 
-Reference.propTypes = {}
-
-export default compose(
-    Reference,
+export const Reference = compose(
+    _Reference,
     recipeFormPanel({id: 'reference', fields, valuesToModel, modelToValues})
 )
+    
+Reference.propTypes = {}

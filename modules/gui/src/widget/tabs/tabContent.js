@@ -1,14 +1,15 @@
-import {Enabled} from 'enabled'
-import {PortalContainer, PortalContext} from 'widget/portal'
-import {TabContext} from './tabContext'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
+
+import {Enabled} from '~/enabled'
+import {PortalContainer, PortalContext} from '~/widget/portal'
+
 import styles from './tabContent.module.css'
+import {TabContext} from './tabContext'
 
 export class TabContent extends React.PureComponent {
     render() {
-        const {id, busy$, type, selected, children} = this.props
+        const {id, busyIn$, busyOut$, type, selected, children} = this.props
         const portalContainerId = `portal_tab_${id}`
         return (
             <div className={[
@@ -17,8 +18,7 @@ export class TabContent extends React.PureComponent {
             ].join(' ')}>
                 <Enabled enabled={selected}>
                     <PortalContainer id={portalContainerId}/>
-
-                    <TabContext id={id} busy$={busy$}>
+                    <TabContext id={id} busyIn$={busyIn$} busyOut$={busyOut$}>
                         <PortalContext id={portalContainerId}>
                             {children({id, type})}
                         </PortalContext>
@@ -30,7 +30,8 @@ export class TabContent extends React.PureComponent {
 }
 
 TabContent.propTypes = {
-    busy$: PropTypes.any,
+    busyIn$: PropTypes.any,
+    busyOut$: PropTypes.any,
     children: PropTypes.any,
     id: PropTypes.string,
     selected: PropTypes.any,

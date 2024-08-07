@@ -1,6 +1,6 @@
-import {Layout} from 'widget/layout'
-import Label from 'widget/label'
-import React from 'react'
+import {Label} from '~/widget/label'
+import {Layout} from '~/widget/layout'
+
 import styles from './subformDetails.module.css'
 
 export const SubformDetails = ({fields, onClick}) => {

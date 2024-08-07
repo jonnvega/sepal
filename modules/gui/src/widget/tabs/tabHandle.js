@@ -1,17 +1,19 @@
-import {Button} from 'widget/button'
-import {Input} from 'widget/input'
-import {Layout} from 'widget/layout'
-import {compose} from 'compose'
-import {filter} from 'rxjs'
-import {renameTab, selectTab} from './tabs'
-import {select} from 'store'
-import {toSafeString} from 'string'
-import {withScrollable} from 'widget/scrollable'
-import {withSubscriptions} from 'subscription'
-import Keybinding from 'widget/keybinding'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
+import {filter} from 'rxjs'
+
+import {compose} from '~/compose'
+import {select} from '~/store'
+import {toSafeString} from '~/string'
+import {withSubscriptions} from '~/subscription'
+import {Button} from '~/widget/button'
+import {Input} from '~/widget/input'
+import {Keybinding} from '~/widget/keybinding'
+import {Layout} from '~/widget/layout'
+import {withScrollable} from '~/widget/scrollable'
+
+import {renameTab, selectTab} from './tabActions'
 import styles from './tabHandle.module.css'
 
 const CLOSE_ANIMATION_DURATION_MS = 250
@@ -36,7 +38,7 @@ class _TabHandle extends React.Component {
             editing: false,
             title,
             prevTitle: title,
-            busy: {}
+            busy: false
         }
     }
 
@@ -55,7 +57,6 @@ class _TabHandle extends React.Component {
     render() {
         const {selected, closing} = this.props
         const {busy, editing} = this.state
-        const isBusy = Object.keys(busy).length > 0
         return (
             <Layout
                 type='horizontal-nowrap'
@@ -64,7 +65,7 @@ class _TabHandle extends React.Component {
                     styles.tab,
                     styles.regular,
                     selected ? styles.selected : null,
-                    isBusy ? styles.busy : null,
+                    busy ? styles.busy : null,
                     closing ? styles.closing : null,
                     editing ? styles.editing : null
                 ].join(' ')}
@@ -145,7 +146,7 @@ class _TabHandle extends React.Component {
         this.titleInput.current.value = normalizedTitle
         const tabPath = toTabPath(id, statePath)
         const tab = select(tabPath)
-        const prevTitle = tab.title
+        const prevTitle = tab.title || ''
         if (editing) {
             if (!_.isEqual(prevTitle, normalizedTitle)) {
                 renameTab(normalizedTitle, tabPath, onTitleChanged)
@@ -190,27 +191,21 @@ class _TabHandle extends React.Component {
         const scrollableWidth = scrollableElement.clientWidth
         const min = Math.max(tabRight + tabWidth / 2 - scrollableWidth, 0)
         const max = Math.max(tabLeft - tabWidth / 2, 0)
-        const offset = scrollable.getOffset('x')
+        const offset = scrollable.scrollLeft
         if (offset < min) {
-            scrollable.scrollTo(min, 'x')
+            scrollable.horizontalScrollTo(min)
         } else if (offset > max) {
-            scrollable.scrollTo(max, 'x')
+            scrollable.horizontalScrollTo(max)
         }
     }
 
-    setBusy(label, isBusy) {
-        this.setState(
-            ({busy}) => ({busy: isBusy ? {...busy, [label]: true} : _.omit(busy, label)})
-        )
-    }
-
     componentDidMount() {
-        const {id, busy$, addSubscription} = this.props
+        const {id: tabId, busyOut$, addSubscription} = this.props
         addSubscription(
-            busy$.pipe(
-                filter(({id: currentId}) => id === currentId)
+            busyOut$.pipe(
+                filter(({tabId: currentTabId}) => currentTabId === tabId)
             ).subscribe(
-                ({label, busy}) => this.setBusy(label, busy)
+                ({busy, _count}) => setImmediate(() => this.setState({busy}))
             )
         )
         this.scrollSelectedTabIntoView()
@@ -231,7 +226,7 @@ export const TabHandle = compose(
 )
 
 TabHandle.propTypes = {
-    busy$: PropTypes.any,
+    busyOut$: PropTypes.any,
     closing: PropTypes.any,
     id: PropTypes.string,
     placeholder: PropTypes.string,

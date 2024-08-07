@@ -12,11 +12,17 @@ services:
       DEPLOY_ENVIRONMENT: "${DEPLOY_ENVIRONMENT}"
       SEPAL_ENDPOINT: "${SEPAL_ENDPOINT}"
       SEPAL_ADMIN_PASSWORD: "${SEPAL_ADMIN_PASSWORD}"
+      GOOGLE_PROJECT_ID: "${GOOGLE_PROJECT_ID}"
       EE_ACCOUNT: "${EE_ACCOUNT}"
       EE_PRIVATE_KEY: "${EE_PRIVATE_KEY}"
       INSTANCES: "40"
     networks:
       - sepal
+    healthcheck:
+      test: bash -c "exec 6<> /dev/tcp/localhost/5001"
+      timeout: 60s
+      interval: 1s
+      retries: 60
     restart: always
     ulimits:
       core: 0

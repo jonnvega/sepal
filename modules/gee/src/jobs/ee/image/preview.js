@@ -2,14 +2,19 @@ const {job} = require('#gee/jobs/job')
 
 const worker$ = ({recipe, visParams, bands, ...otherArgs}) => {
     const ImageFactory = require('#sepal/ee/imageFactory')
+
+    const TILE_SIZE = 256
     
     const ee = require('#sepal/ee')
     const {switchMap} = require('rxjs')
     const {sequence} = require('#sepal/utils/array')
-    const log = require('#sepal/log').getLogger('ee')
     const _ = require('lodash')
+
+    const getRetiledMap$ = (image, retile = TILE_SIZE, ...args) =>
+        ee.getMap$(retile === TILE_SIZE ? image : image.retile(retile), ...args)
+
     if (visParams) {
-        const {getImage$} = ImageFactory(recipe, {selection: visParams.bands, baseBands: visParams.baseBands, ...otherArgs})
+        const {getImage$} = ImageFactory(recipe, {selection: distinct(visParams.bands), baseBands: distinct(visParams.baseBands), ...otherArgs})
         const getMap$ = (image, visualization) => {
             const {type, bands, min, max, inverted, gamma, palette} = visualization
             const range = () => ({
@@ -27,8 +32,7 @@ const worker$ = ({recipe, visParams, bands, ...otherArgs}) => {
                     throw Error('A categorical visualization must contain either values or min and max')
                 }
                 if (!palette || palette.length !== values.length) {
-                    log.fatal(palette, values, visualization.values)
-                    throw Error('Visualization must contain a palette with the same number of colors as categorical values')
+                    throw Error(`Visualization must contain a palette with the same number of colors as categorical values: ${JSON.stringify({palette, values})}`)
                 }
 
                 const minValue = values[0]
@@ -65,11 +69,11 @@ const worker$ = ({recipe, visParams, bands, ...otherArgs}) => {
 
             switch (type) {
             case 'categorical':
-                return ee.getMap$(image.select(_.uniq(bands)), toCategoricalVisParams())
+                return getRetiledMap$(image.select(_.uniq(bands)), recipe.retile, toCategoricalVisParams())
             case 'hsv':
-                return ee.getMap$(toHsv(image.select(_.uniq(bands))))
+                return getRetiledMap$(toHsv(image.select(_.uniq(bands))), recipe.retile)
             default:
-                return ee.getMap$(image.select(_.uniq(bands)), {bands, ...range(), gamma, palette})
+                return getRetiledMap$(image.select(_.uniq(bands)), recipe.retile, {bands, ...range(), gamma, palette})
             }
         }
 
@@ -115,6 +119,8 @@ const worker$ = ({recipe, visParams, bands, ...otherArgs}) => {
         )
     }
 }
+
+const distinct = array => [...new Set(array)]
 
 module.exports = job({
     jobName: 'Preview',

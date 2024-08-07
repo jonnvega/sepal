@@ -1,20 +1,23 @@
-import {Form, withForm} from 'widget/form/form'
-import {LegendBuilder, defaultColor} from 'app/home/map/legendBuilder'
-import {Panel} from 'widget/panel/panel'
-import {compose} from 'compose'
-import {downloadCsv} from '../download'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import {withActivatable} from 'widget/activation/activatable'
-import {withActivators} from 'widget/activation/activator'
-import {withMap} from 'app/home/map/mapContext'
-import {withRecipe} from 'app/home/body/process/recipeContext'
-import ButtonSelect from 'widget/buttonSelect'
-import Notifications from 'widget/notifications'
-import React from 'react'
 import _ from 'lodash'
-import api from 'api'
-import guid from 'guid'
+import React from 'react'
+
+import api from '~/apiRegistry'
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {defaultColor, LegendBuilder} from '~/app/home/map/legendBuilder'
+import {withMap} from '~/app/home/map/mapContext'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {uuid} from '~/uuid'
+import {withActivatable} from '~/widget/activation/activatable'
+import {withActivators} from '~/widget/activation/activator'
+import {ButtonSelect} from '~/widget/buttonSelect'
+import {Form} from '~/widget/form'
+import {withForm} from '~/widget/form/form'
+import {Notifications} from '~/widget/notifications'
+import {Panel} from '~/widget/panel/panel'
+
+import {downloadCsv} from '../download'
 import styles from './editLegendPanel.module.css'
 
 const fields = {
@@ -138,7 +141,7 @@ class _EditLegendPanel extends React.Component {
             const max = _.maxBy(legendEntries, 'value')
             return {
                 legendEntries: [...legendEntries, {
-                    id: guid(),
+                    id: uuid(),
                     value: max ? max.value + 1 : 1,
                     color: defaultColor(legendEntries.length),
                     label: ''
@@ -169,7 +172,7 @@ class _EditLegendPanel extends React.Component {
     loadDistinctBandValues() {
         const {activatable: {band, recipe}, aoi, stream, map: {getBounds}} = this.props
         const toEntries = values => values.map(value => ({
-            id: guid(),
+            id: uuid(),
             value,
             label: `${value}`,
             color: '#000000'

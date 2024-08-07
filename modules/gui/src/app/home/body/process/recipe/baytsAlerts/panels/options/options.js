@@ -1,14 +1,15 @@
-import {AssetSelect} from 'widget/assetSelect'
-import {Button} from 'widget/button'
-import {Form} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {Panel} from 'widget/panel/panel'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {alertsBands} from '../../bands'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import React from 'react'
 import _ from 'lodash'
+import React from 'react'
+
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {msg} from '~/translate'
+import {Button} from '~/widget/button'
+import {Form} from '~/widget/form'
+import {Layout} from '~/widget/layout'
+import {Panel} from '~/widget/panel/panel'
+
+import {alertsBands} from '../../bands'
 import styles from './options.module.css'
 
 const fields = {
@@ -55,7 +56,7 @@ const constraints = {
         )
 }
 
-class Options extends React.Component {
+class _Options extends React.Component {
     constructor(props) {
         super(props)
         this.onPreviousAlertsAssetLoaded = this.onPreviousAlertsAssetLoaded.bind(this)
@@ -128,13 +129,13 @@ class Options extends React.Component {
     renderPreviousAlertsAsset() {
         const {inputs: {previousAlertsAsset}} = this.props
         return (
-            <AssetSelect
+            <Form.AssetCombo
                 input={previousAlertsAsset}
                 label={msg('process.baytsAlerts.panel.options.form.previousAlertsAsset.label')}
                 placeholder={msg('process.baytsAlerts.panel.options.form.previousAlertsAsset.placeholder')}
                 tooltip={msg('process.baytsAlerts.panel.options.form.previousAlertsAsset.tooltip')}
                 autoFocus
-                expectedType={['Image', 'ImageCollection']}
+                allowedTypes={['Image', 'ImageCollection']}
                 onLoaded={this.onPreviousAlertsAssetLoaded}
             />
         )
@@ -143,12 +144,12 @@ class Options extends React.Component {
     renderWetlandMaskAsset() {
         const {inputs: {wetlandMaskAsset}} = this.props
         return (
-            <AssetSelect
+            <Form.AssetCombo
                 input={wetlandMaskAsset}
                 label={msg('process.baytsAlerts.panel.options.form.wetlandMaskAsset.label')}
                 placeholder={msg('process.baytsAlerts.panel.options.form.wetlandMaskAsset.placeholder')}
                 tooltip={msg('process.baytsAlerts.panel.options.form.wetlandMaskAsset.tooltip')}
-                expectedType={['Image', 'ImageCollection']}
+                allowedTypes={['Image', 'ImageCollection']}
             />
         )
     }
@@ -234,7 +235,6 @@ class Options extends React.Component {
                 label={msg('process.baytsAlerts.panel.options.form.maxDays.label')}
                 tooltip={msg('process.baytsAlerts.panel.options.form.maxDays.tooltip')}
                 input={maxDays}
-                errorMessage
             />
         )
     }
@@ -262,7 +262,6 @@ class Options extends React.Component {
                 label={msg('process.baytsAlerts.panel.options.form.highConfidenceThreshold.label')}
                 tooltip={msg('process.baytsAlerts.panel.options.form.highConfidenceThreshold.tooltip')}
                 input={highConfidenceThreshold}
-                errorMessage
             />
         )
     }
@@ -276,7 +275,6 @@ class Options extends React.Component {
                 label={msg('process.baytsAlerts.panel.options.form.minNonForestProbability.label')}
                 tooltip={msg('process.baytsAlerts.panel.options.form.minNonForestProbability.tooltip')}
                 input={minNonForestProbability}
-                errorMessage
             />
         )
     }
@@ -290,7 +288,6 @@ class Options extends React.Component {
                 label={msg('process.baytsAlerts.panel.options.form.minChangeProbability.label')}
                 tooltip={msg('process.baytsAlerts.panel.options.form.minChangeProbability.tooltip')}
                 input={minChangeProbability}
-                errorMessage
             />
         )
     }
@@ -352,9 +349,9 @@ const toFloat = input => {
     return _.isFinite(parsed) ? parsed : null
 }
 
-Options.propTypes = {}
-
-export default compose(
-    Options,
+export const Options = compose(
+    _Options,
     recipeFormPanel({id: 'baytsAlertsOptions', fields, constraints, modelToValues, valuesToModel})
 )
+
+Options.propTypes = {}

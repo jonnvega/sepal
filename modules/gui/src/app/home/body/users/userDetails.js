@@ -1,18 +1,21 @@
-import {Form, withForm} from 'widget/form/form'
-import {Input} from 'widget/input'
-import {Layout} from 'widget/layout'
-import {ModalConfirmationButton} from 'widget/modalConfirmationButton'
-import {Panel} from 'widget/panel/panel'
-import {UserStatus} from './userStatus'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {requestPasswordReset$} from 'user'
-import {select} from 'store'
-import Confirm from 'widget/confirm'
-import Notifications from 'widget/notifications'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import {compose} from '~/compose'
+import {select} from '~/store'
+import {msg} from '~/translate'
+import {requestPasswordReset$} from '~/user'
+import {Confirm} from '~/widget/confirm'
+import {Form} from '~/widget/form'
+import {withForm} from '~/widget/form/form'
+import {Input} from '~/widget/input'
+import {Layout} from '~/widget/layout'
+import {ModalConfirmationButton} from '~/widget/modalConfirmationButton'
+import {Notifications} from '~/widget/notifications'
+import {Panel} from '~/widget/panel/panel'
+
 import styles from './userDetails.module.css'
+import {UserStatus} from './userStatus'
 
 const isUniqueUser = (id, check) => !(select('users.users') || []).find(user => user.id !== id && check(user))
 
@@ -65,7 +68,14 @@ const mapStateToProps = (state, ownProps) => {
     }
 }
 
-class UserDetails extends React.Component {
+class _UserDetails extends React.Component {
+    constructor(props) {
+        super(props)
+        this.onChangeInstanceSpending = this.onChangeInstanceSpending.bind(this)
+        this.onChangeStorageSpending = this.onChangeStorageSpending.bind(this)
+        this.onChangeStorageQuota = this.onChangeStorageQuota.bind(this)
+    }
+
     save(userDetails) {
         const {onSave, onCancel} = this.props
         onSave({...userDetails})
@@ -112,7 +122,6 @@ class UserDetails extends React.Component {
                             autoComplete={false}
                             spellCheck={false}
                             autoFocus={newUser}
-                            errorMessage
                         />
                         <Form.Input
                             label={msg('user.userDetails.form.name.label')}
@@ -120,21 +129,18 @@ class UserDetails extends React.Component {
                             autoComplete={false}
                             spellCheck={false}
                             autoFocus={!newUser}
-                            errorMessage
                         />
                         <Form.Input
                             label={msg('user.userDetails.form.email.label')}
                             input={email}
                             autoComplete={false}
                             spellCheck={false}
-                            errorMessage
                         />
                         <Form.Input
                             label={msg('user.userDetails.form.organization.label')}
                             input={organization}
                             autoComplete={false}
                             spellCheck={false}
-                            errorMessage
                         />
                         <Form.Input
                             label={msg('user.userDetails.form.intendedUse.label')}
@@ -156,7 +162,8 @@ class UserDetails extends React.Component {
                                 input={instanceSpending}
                                 spellCheck={false}
                                 prefix='US$/mo.'
-                                onChange={e => this.onChangeInstanceSpending(e.target.value)}
+                                errorMessage={false}
+                                onChange={this.onChangeInstanceSpending}
                             />
                             <Form.Input
                                 label={msg('user.userDetails.form.monthlyBudget.storageSpending.label')}
@@ -164,7 +171,8 @@ class UserDetails extends React.Component {
                                 input={storageSpending}
                                 spellCheck={false}
                                 prefix='US$/mo.'
-                                onChange={e => this.onChangeStorageSpending(e.target.value)}
+                                errorMessage={false}
+                                onChange={this.onChangeStorageSpending}
                             />
                             <Form.Input
                                 label={msg('user.userDetails.form.monthlyBudget.storageQuota.label')}
@@ -172,7 +180,8 @@ class UserDetails extends React.Component {
                                 input={storageQuota}
                                 spellCheck={false}
                                 prefix='GB'
-                                onChange={e => this.onChangeStorageQuota(e.target.value)}
+                                errorMessage={false}
+                                onChange={this.onChangeStorageQuota}
                             />
                         </Form.FieldSet>
                         {this.isUserRequest() ? this.renderUserRequest() : null}
@@ -386,6 +395,11 @@ class UserDetails extends React.Component {
     }
 }
 
+export const UserDetails = compose(
+    _UserDetails,
+    withForm({fields, mapStateToProps})
+)
+
 UserDetails.propTypes = {
     userDetails: PropTypes.object.isRequired,
     onCancel: PropTypes.func.isRequired,
@@ -393,8 +407,3 @@ UserDetails.propTypes = {
     onSave: PropTypes.func.isRequired,
     onUnlock: PropTypes.func.isRequired,
 }
-
-export default compose(
-    UserDetails,
-    withForm({fields, mapStateToProps})
-)

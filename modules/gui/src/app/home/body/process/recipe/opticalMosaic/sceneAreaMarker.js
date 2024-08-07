@@ -1,8 +1,10 @@
-import {MapObject} from 'app/home/map/mapLayer'
-import {RecipeActions} from 'app/home/body/process/recipe/opticalMosaic/opticalMosaicRecipe'
-import {compose} from 'compose'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import {RecipeActions} from '~/app/home/body/process/recipe/opticalMosaic/opticalMosaicRecipe'
+import {MapObject} from '~/app/home/map/mapLayer'
+import {compose} from '~/compose'
+
 import styles from './sceneAreasLayer.module.css'
 
 class _SceneAreaMarker extends React.Component {
@@ -13,14 +15,14 @@ class _SceneAreaMarker extends React.Component {
         this.recipeActions = RecipeActions(recipeId)
         const gPolygon = new google.maps.Polygon({
             paths: polygon.map(([lat, lng]) =>
-                new google.maps.LatLng(lat, lng)),
+                new google.maps.core.LatLng(lat, lng)),
             fillColor: '#000000',
             fillOpacity: 0.4,
             strokeColor: '#636363',
             strokeOpacity: 0.6,
             strokeWeight: 1
         })
-        const bounds = new google.maps.LatLngBounds()
+        const bounds = new google.maps.core.LatLngBounds()
         gPolygon.getPaths().getArray().forEach(path =>
             path.getArray().forEach(latLng =>
                 bounds.extend(latLng)
@@ -64,10 +66,6 @@ class _SceneAreaMarker extends React.Component {
             </MapObject>
         )
     }
-
-    // shouldComponentUpdate(nextProps) {
-    //     return !isEqualIgnoreFunctions(nextProps, this.props)
-    // }
 
     selectScenes() {
         const {sceneAreaId, sceneSelection} = this.props

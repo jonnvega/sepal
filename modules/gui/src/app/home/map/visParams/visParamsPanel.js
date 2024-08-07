@@ -1,28 +1,31 @@
-import {Form, withForm} from 'widget/form/form'
-import {Histogram, histogramStretch} from './histogram'
-import {Layout} from 'widget/layout'
-import {LegendBuilder, defaultColor} from 'app/home/map/legendBuilder'
-import {Palette} from './palette'
-import {Panel} from 'widget/panel/panel'
-import {Subject, filter, takeUntil} from 'rxjs'
-import {Widget} from 'widget/widget'
-import {compose} from 'compose'
-import {downloadCsv} from 'widget/download'
-import {msg} from 'translate'
-import {normalize} from 'app/home/map/visParams/visParams'
-import {selectFrom} from 'stateUtils'
-import {withActivatable} from 'widget/activation/activatable'
-import {withActivators} from 'widget/activation/activator'
-import {withMap} from 'app/home/map/mapContext'
-import {withRecipe} from 'app/home/body/process/recipeContext'
-import ButtonSelect from 'widget/buttonSelect'
-import Confirm from 'widget/confirm'
-import Icon from 'widget/icon'
-import Notifications from 'widget/notifications'
-import React from 'react'
 import _ from 'lodash'
-import api from 'api'
-import guid from 'guid'
+import React from 'react'
+import {filter, Subject, takeUntil} from 'rxjs'
+
+import api from '~/apiRegistry'
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {defaultColor, LegendBuilder} from '~/app/home/map/legendBuilder'
+import {withMap} from '~/app/home/map/mapContext'
+import {normalize} from '~/app/home/map/visParams/visParams'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {uuid} from '~/uuid'
+import {withActivatable} from '~/widget/activation/activatable'
+import {withActivators} from '~/widget/activation/activator'
+import {ButtonSelect} from '~/widget/buttonSelect'
+import {Confirm} from '~/widget/confirm'
+import {downloadCsv} from '~/widget/download'
+import {Form} from '~/widget/form'
+import {withForm} from '~/widget/form/form'
+import {Icon} from '~/widget/icon'
+import {Layout} from '~/widget/layout'
+import {Notifications} from '~/widget/notifications'
+import {Panel} from '~/widget/panel/panel'
+import {Widget} from '~/widget/widget'
+
+import {Histogram, histogramStretch} from './histogram'
+import {Palette} from './palette'
 import styles from './visParamsPanel.module.css'
 
 const fields = {
@@ -223,7 +226,7 @@ class _VisParamsPanel extends React.Component {
             <ButtonSelect
                 chromeless
                 shape='pill'
-                placement='below'
+                // placement='below'
                 input={type}
                 tooltipPlacement='bottom'
                 options={[{
@@ -395,7 +398,7 @@ class _VisParamsPanel extends React.Component {
         )
         if (visParams) {
             inputs.type.set(visParams.type)
-            visParams.palette && inputs.palette.set(visParams.palette.map(color => ({id: guid(), color})))
+            visParams.palette && inputs.palette.set(visParams.palette.map(color => ({id: uuid(), color})))
             inputs['gamma1'].set(visParams.gamma ? visParams.gamma[0] : 1)
             inputs['gamma2'].set(visParams.gamma ? visParams.gamma[1] : 1)
             inputs['gamma3'].set(visParams.gamma ? visParams.gamma[2] : 1)
@@ -410,7 +413,7 @@ class _VisParamsPanel extends React.Component {
             if (visParams.type === 'categorical') {
                 const legendEntries = visParams.values
                     ? visParams.values.map((value, i) => ({
-                        id: guid(),
+                        id: uuid(),
                         value,
                         color: visParams.palette && visParams.palette.length > i
                             ? visParams.palette[i]
@@ -445,7 +448,7 @@ class _VisParamsPanel extends React.Component {
             const max = _.maxBy(legendEntries, 'value')
             return {
                 legendEntries: [...legendEntries, {
-                    id: guid(),
+                    id: uuid(),
                     value: max ? max.value + 1 : 1,
                     color: defaultColor(legendEntries.length),
                     label: ''
@@ -556,7 +559,7 @@ class _VisParamsPanel extends React.Component {
     loadDistinctBandValues() {
         const {activatable: {recipe}, aoi, stream, inputs: {name1}, map: {getBounds}} = this.props
         const toEntries = values => values.map(value => ({
-            id: guid(),
+            id: uuid(),
             value,
             label: `${value}`,
             color: '#000000'
@@ -583,7 +586,7 @@ class _VisParamsPanel extends React.Component {
         const palette = inputs.palette.value
             ? inputs.palette.value.map(({color}) => color)
             : ['#000000', '#FFFFFF']
-        const id = prevVisParams && prevVisParams.id ? prevVisParams.id : guid()
+        const id = prevVisParams && prevVisParams.id ? prevVisParams.id : uuid()
         const dataType = prevVisParams?.dataType
         const visParams = normalize(
             type === 'continuous'
@@ -675,14 +678,12 @@ class BandForm extends React.Component {
                     label={msg('map.visParams.form.min.label')}
                     className={styles.minMax}
                     type='number'
-                    errorMessage
                 />
                 <Form.Input
                     input={max}
                     label={msg('map.visParams.form.max.label')}
                     className={styles.minMax}
                     type='number'
-                    errorMessage
                 />
             </Layout>
         )
@@ -696,7 +697,6 @@ class BandForm extends React.Component {
                 className={styles.gamma}>
                 <Form.Input
                     input={gamma}
-                    errorMessage
                 />
             </Widget>
         )
@@ -730,7 +730,7 @@ const Band = ({invertable, onBandSelected, bands, label, inputs: {name, inverted
             options={options}
             busyMessage={!bands && msg('map.visParams.bands.loading')}
             disabled={!bands}
-            additionalButtons={invertable ? [invertedWidget] : []}
+            buttons={invertable ? [invertedWidget] : []}
             onChange={({value}) => onBandSelected && onBandSelected(value)}
         />
     )

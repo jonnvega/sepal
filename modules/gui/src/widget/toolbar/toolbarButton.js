@@ -1,7 +1,9 @@
-import {Button} from 'widget/button'
-import {Context} from './context'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import {Button} from '~/widget/button'
+
+import {Context} from './context'
 import styles from './toolbar.module.css'
 
 export class ToolbarButton extends React.Component {
@@ -19,7 +21,7 @@ export class ToolbarButton extends React.Component {
     }
 
     renderContext({horizontal, panel}) {
-        const {className, icon, label, tooltip, tooltipAllowedWhenDisabled, tooltipDelay, tooltipOnVisible, tooltipPlacement, disabled, selected, onClick} = this.props
+        const {className, icon, iconVariant, label, tooltip, tooltipAllowedWhenDisabled, tooltipDelay, tooltipOnVisible, tooltipPlacement, disabled, selected, onClick} = this.props
         return (
             <Button
                 className={[
@@ -28,6 +30,7 @@ export class ToolbarButton extends React.Component {
                     className
                 ].join(' ')}
                 icon={icon}
+                iconVariant={iconVariant}
                 label={label}
                 disabled={disabled}
                 onClick={onClick}
@@ -46,6 +49,7 @@ ToolbarButton.propTypes = {
     className: PropTypes.string,
     disabled: PropTypes.any,
     icon: PropTypes.string,
+    iconVariant: PropTypes.string,
     label: PropTypes.string,
     selected: PropTypes.any,
     tooltip: PropTypes.any,

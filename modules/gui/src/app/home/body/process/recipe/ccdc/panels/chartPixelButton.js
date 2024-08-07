@@ -1,11 +1,12 @@
-import {Toolbar} from 'widget/toolbar/toolbar'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {withMap} from 'app/home/map/mapContext'
 import PropTypes from 'prop-types'
 import React from 'react'
 
-class ChartPixelButton extends React.Component {
+import {withMap} from '~/app/home/map/mapContext'
+import {compose} from '~/compose'
+import {msg} from '~/translate'
+import {Toolbar} from '~/widget/toolbar/toolbar'
+
+class _ChartPixelButton extends React.Component {
     state = {
         isSelecting: false,
         clickListener: null
@@ -44,12 +45,12 @@ class ChartPixelButton extends React.Component {
     }
 }
 
+export const ChartPixelButton = compose(
+    _ChartPixelButton,
+    withMap()
+)
+
 ChartPixelButton.propTypes = {
     onPixelSelected: PropTypes.func.isRequired,
     disabled: PropTypes.any
 }
-
-export default compose(
-    ChartPixelButton,
-    withMap()
-)

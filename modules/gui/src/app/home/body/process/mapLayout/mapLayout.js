@@ -1,24 +1,27 @@
+import React from 'react'
+import {Subject} from 'rxjs'
+
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {withActivatable} from '~/widget/activation/activatable'
+import {withActivators} from '~/widget/activation/activator'
+import {Buttons} from '~/widget/buttons'
+import {Layout} from '~/widget/layout'
+import {Message} from '~/widget/message'
+import {Padding} from '~/widget/padding'
+import {Panel} from '~/widget/panel/panel'
+import {Toolbar} from '~/widget/toolbar/toolbar'
+import {isChromiumBasedBrowser, isHighDensityDisplay} from '~/widget/userAgent'
+
 import {AddImageLayerSource} from './addImageLayerSource'
 import {Areas} from './areas'
-import {Buttons} from 'widget/buttons'
 import {ImageLayerSources} from './imageLayerSources'
-import {Layout} from 'widget/layout'
-import {Message} from 'widget/message'
-import {Padding} from 'widget/padding'
-import {Panel} from 'widget/panel/panel'
+import styles from './mapLayout.module.css'
 import {SelectAsset} from './selectAsset'
 import {SelectPlanet} from './selectPlanet'
 import {SelectRecipe} from './selectRecipe'
-import {Subject} from 'rxjs'
-import {compose} from 'compose'
-import {isChromiumBasedBrowser, isHighDensityDisplay} from 'widget/userAgent'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import {withActivatable} from 'widget/activation/activatable'
-import {withActivators} from 'widget/activation/activator'
-import {withRecipe} from 'app/home/body/process/recipeContext'
-import React from 'react'
-import styles from './mapLayout.module.css'
 
 export class MapLayout extends React.Component {
     render() {
@@ -86,8 +89,8 @@ class _MapLayoutPanel extends React.Component {
             <Buttons
                 selected={mode}
                 options={[
-                    {value: 'grid', label: msg('map.layout.mode.grid.label')},
-                    {value: 'stack', label: msg('map.layout.mode.stack.label')}
+                    {value: 'grid', icon: 'table-cells-large', label: msg('map.layout.mode.grid.label')},
+                    {value: 'stack', icon: 'layer-group', label: msg('map.layout.mode.stack.label')}
                 ]}
                 onChange={this.setMode}
             />
@@ -147,4 +150,8 @@ export const MapLayoutPanel = compose(
     withActivators('addImageLayerSource')
 )
 
-MapLayout.propTypes = {}
+export const MapLayoutButton = () =>
+    <Toolbar.ActivationButton
+        id='mapLayout'
+        icon='layer-group'
+        tooltip={msg('process.mosaic.mapToolbar.layers.tooltip')}/>

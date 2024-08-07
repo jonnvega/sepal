@@ -1,27 +1,30 @@
-import {ElementResizeDetector} from 'widget/elementResizeDetector'
-import React from 'react'
-import actionBuilder from 'action-builder'
+import {useEffect} from 'react'
+import {Subject, throttleTime} from 'rxjs'
 
-export default class ViewportResizeSensor extends React.Component {
-    constructor() {
-        super()
-        this.updateDimensions = this.updateDimensions.bind(this)
-    }
+import {actionBuilder} from '~/action-builder'
 
-    render() {
-        return (
-            <ElementResizeDetector
-                debounce={100}
-                onResize={this.updateDimensions}
-            />
-        )
-    }
+const updateDimensions = () => {
+    const width = window.innerWidth
+    const height = window.innerHeight
+    actionBuilder('SET_APP_DIMENSIONS')
+        .set('dimensions', {width, height})
+        .dispatch()
+}
 
-    updateDimensions({width, height}) {
-        actionBuilder('SET_APP_DIMENSIONS')
-            .set('dimensions', {width, height})
-            .dispatch()
-    }
+export const ViewportResizeSensor = () => {
+    useEffect(() => {
+        const viewportResize$ = new Subject()
+        updateDimensions()
+        window.onresize = () => viewportResize$.next()
+        const subscription = viewportResize$.pipe(
+            throttleTime(100, null, {leading: true, trailing: true})
+        ).subscribe({
+            next: () => updateDimensions()
+        })
+        return () => {
+            subscription.unsubscribe()
+        }
+    }, [])
 }
 
 ViewportResizeSensor.propTypes = {}

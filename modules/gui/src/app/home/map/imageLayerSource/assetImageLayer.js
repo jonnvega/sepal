@@ -1,18 +1,20 @@
-import {CursorValueContext} from '../cursorValue'
-import {MapAreaLayout} from '../mapAreaLayout'
-import {Subject} from 'rxjs'
-import {VisualizationSelector} from './visualizationSelector'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import {withMapArea} from '../mapAreaContext'
-import {withRecipe} from 'app/home/body/process/recipeContext'
-import {withSubscriptions} from 'subscription'
-import {withTab} from 'widget/tabs/tabContext'
-import EarthEngineImageLayer from '../layer/earthEngineImageLayer'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
+import {Subject} from 'rxjs'
+
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {withSubscriptions} from '~/subscription'
+import {msg} from '~/translate'
+import {withTab} from '~/widget/tabs/tabContext'
+
+import {CursorValueContext} from '../cursorValue'
+import {EarthEngineImageLayer} from '../layer/earthEngineImageLayer'
+import {withMapArea} from '../mapAreaContext'
+import {MapAreaLayout} from '../mapAreaLayout'
+import {VisualizationSelector} from './visualizationSelector'
 
 const mapRecipeToProps = (recipe, ownProps) => {
     const {source} = ownProps
@@ -87,7 +89,7 @@ class _AssetImageLayer extends React.Component {
     }
 
     createLayer() {
-        const {layerConfig, map, source, boundsChanged$, dragging$, cursor$, tab: {busy$}} = this.props
+        const {layerConfig, map, source, boundsChanged$, dragging$, cursor$, tab: {busy}} = this.props
         const asset = selectFrom(source, 'sourceConfig.asset')
         const dataTypes = selectFrom(source, 'sourceConfig.metadata.dataTypes') || {}
         const {watchedProps: prevPreviewRequest} = this.layer || {}
@@ -106,7 +108,7 @@ class _AssetImageLayer extends React.Component {
                 dataTypes,
                 map,
                 cursorValue$: this.cursorValue$,
-                busy$,
+                busy,
                 boundsChanged$,
                 dragging$,
                 cursor$

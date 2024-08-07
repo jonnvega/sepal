@@ -1,11 +1,13 @@
-import {Button} from 'widget/button'
-import {Form} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {Panel} from 'widget/panel/panel'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {compose} from 'compose'
-import {msg} from 'translate'
 import React from 'react'
+
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {msg} from '~/translate'
+import {Button} from '~/widget/button'
+import {Form} from '~/widget/form'
+import {Layout} from '~/widget/layout'
+import {Panel} from '~/widget/panel/panel'
+
 import styles from './options.module.css'
 
 const fields = {
@@ -18,7 +20,7 @@ const fields = {
     mustStayChanged: new Form.Field(),
 }
 
-class Options extends React.Component {
+class _Options extends React.Component {
     render() {
         const {inputs: {advanced}} = this.props
         return (
@@ -152,9 +154,9 @@ class Options extends React.Component {
     }
 }
 
-Options.propTypes = {}
-
-export default compose(
-    Options,
+export const Options = compose(
+    _Options,
     recipeFormPanel({id: 'changeAlertsOptions', fields})
 )
+
+Options.propTypes = {}

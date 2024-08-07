@@ -1,10 +1,11 @@
-import {IntlProvider, injectIntl} from 'react-intl'
-import {getLogger} from 'log'
+import {flatten} from 'flat'
+import _ from 'lodash'
+import moment from 'moment'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
-import flat from 'flat'
-import moment from 'moment'
+import {injectIntl, IntlProvider} from 'react-intl'
+
+import {getLogger} from '~/log'
 
 const log = getLogger('translate')
 
@@ -59,7 +60,7 @@ export const setLanguage = language => {
     return language
 }
 
-export default class TranslationProvider extends React.Component {
+export class TranslationProvider extends React.Component {
     state = {}
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -68,7 +69,7 @@ export default class TranslationProvider extends React.Component {
 
     static getDerivedStateFromProps(props, state) {
         const languageState = language => {
-            const loadTranslations = language => flat.flatten( // react-intl requires a flat object
+            const loadTranslations = language => flatten( // react-intl requires a flat object
                 require(`locale/${language}/translations.json`)
             )
             const messages = loadTranslations(language)

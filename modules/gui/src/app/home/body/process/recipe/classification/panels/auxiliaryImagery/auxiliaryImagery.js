@@ -1,19 +1,21 @@
-import {Form} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {Panel} from 'widget/panel/panel'
-import {RecipeActions} from 'app/home/body/process/recipe/classification/classificationRecipe'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {compose} from 'compose'
-import {msg} from 'translate'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import {RecipeActions} from '~/app/home/body/process/recipe/classification/classificationRecipe'
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {Layout} from '~/widget/layout'
+import {Panel} from '~/widget/panel/panel'
+
 import styles from './auxiliaryImagery.module.css'
 
 const fields = {
     included: new Form.Field()
 }
 
-class AuxiliaryImagery extends React.Component {
+class _AuxiliaryImagery extends React.Component {
     constructor(props) {
         super(props)
         const {recipeId} = props
@@ -69,10 +71,6 @@ class AuxiliaryImagery extends React.Component {
     }
 }
 
-AuxiliaryImagery.propTypes = {
-    recipeId: PropTypes.string
-}
-
 const valuesToModel = values => {
     return [...values.included]
 }
@@ -82,7 +80,11 @@ const modelToValues = model => {
         included: [...model]
     }
 }
-export default compose(
-    AuxiliaryImagery,
+export const AuxiliaryImagery = compose(
+    _AuxiliaryImagery,
     recipeFormPanel({id: 'auxiliaryImagery', fields, modelToValues, valuesToModel})
 )
+
+AuxiliaryImagery.propTypes = {
+    recipeId: PropTypes.string
+}

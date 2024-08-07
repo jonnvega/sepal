@@ -1,15 +1,16 @@
-import {compose} from 'compose'
-import {withActivators} from 'widget/activation/activator'
-import {withContext} from 'context'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
+
+import {compose} from '~/compose'
+import {withContext} from '~/context'
+import {withActivators} from '~/widget/activation/activator'
 
 const Context = React.createContext()
 
 export const withPanelWizard = withContext(Context, 'panelWizard')
 
-class PanelWizard extends React.Component {
+class _PanelWizard extends React.Component {
     constructor(props) {
         super(props)
         this.state = {initialized: props.initialized}
@@ -89,8 +90,8 @@ class PanelWizard extends React.Component {
     }
 }
 
-export default compose(
-    PanelWizard,
+export const PanelWizard = compose(
+    _PanelWizard,
     withActivators()
 )
 

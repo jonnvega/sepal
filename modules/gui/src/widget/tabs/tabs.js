@@ -1,57 +1,23 @@
-import {Button} from 'widget/button'
-import {ButtonGroup} from 'widget/buttonGroup'
-import {Content, SectionLayout, TopBar} from 'widget/sectionLayout'
-import {Scrollable, ScrollableContainer} from 'widget/scrollable'
-import {Subject} from 'rxjs'
-import {TabContent} from './tabContent'
-import {TabHandle} from './tabHandle'
-import {compose} from 'compose'
-import {connect, select} from 'store'
-import {isMobile} from 'widget/userAgent'
-import {msg} from 'translate'
-import {withSubscriptions} from 'subscription'
-import Keybinding from 'widget/keybinding'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
-import actionBuilder from 'action-builder'
-import guid from 'guid'
+import {EMPTY, groupBy, map, mergeMap, mergeScan, of, shareReplay, Subject} from 'rxjs'
+
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {select} from '~/store'
+import {withSubscriptions} from '~/subscription'
+import {msg} from '~/translate'
+import {Button} from '~/widget/button'
+import {ButtonGroup} from '~/widget/buttonGroup'
+import {Keybinding} from '~/widget/keybinding'
+import {Scrollable} from '~/widget/scrollable'
+import {Content, SectionLayout, TopBar} from '~/widget/sectionLayout'
+import {isMobile} from '~/widget/userAgent'
+
+import {addTab, closeTab, selectTab} from './tabActions'
+import {TabContent} from './tabContent'
+import {TabHandle} from './tabHandle'
 import styles from './tabs.module.css'
-
-export const addTab = statePath => {
-    const id = guid()
-    const tab = {id, placeholder: msg('widget.tabs.newTab'), title: ''}
-    actionBuilder('ADD_TAB')
-        .push([statePath, 'tabs'], tab)
-        .set([statePath, 'selectedTabId'], id)
-        .dispatch()
-    return tab
-}
-
-export const closeTab = (id, statePath, nextId) => {
-    actionBuilder('CLOSING_TAB')
-        .set([statePath, 'tabs', {id}, 'ui.closing'], true)
-        .dispatch()
-    setImmediate(() =>
-        actionBuilder('CLOSE_TAB')
-            .set([statePath, 'selectedTabId'], nextId || nextSelectedTabId(id, statePath))
-            .del([statePath, 'tabs', {id}])
-            .dispatch()
-    )
-}
-
-export const renameTab = (title, tabPath, onTitleChanged) => {
-    actionBuilder('RENAME_TAB')
-        .set([tabPath, 'title'], title)
-        .dispatch()
-    setImmediate(() => onTitleChanged && onTitleChanged(select(tabPath)))
-}
-
-export const selectTab = (id, statePath) => {
-    actionBuilder('SELECT_TAB')
-        .set([statePath, 'selectedTabId'], id)
-        .dispatch()
-}
 
 export const getTabsInfo = statePath => {
     const tabs = select([statePath, 'tabs'])
@@ -77,20 +43,6 @@ export const getTabsInfo = statePath => {
     return {}
 }
 
-const nextSelectedTabId = (id, statePath) => {
-    const tabs = select([statePath, 'tabs'])
-    const tabIndex = tabs.findIndex(tab => tab.id === id)
-    const first = tabIndex === 0
-    const last = tabIndex === tabs.length - 1
-    if (!last) {
-        return tabs[tabIndex + 1].id
-    }
-    if (!first) {
-        return tabs[tabIndex - 1].id
-    }
-    return null
-}
-
 const mapStateToProps = (state, ownProps) => ({
     tabs: select([ownProps.statePath, 'tabs']) || [],
     selectedTabId: select([ownProps.statePath, 'selectedTabId'])
@@ -99,7 +51,7 @@ const mapStateToProps = (state, ownProps) => ({
 class _Tabs extends React.Component {
     constructor(props) {
         super(props)
-        this.renderTab = this.renderTab.bind(this)
+        this.renderTabHandle = this.renderTabHandle.bind(this)
         this.addTab = this.addTab.bind(this)
         this.closeSelectedTab = this.closeSelectedTab.bind(this)
         this.selectPreviousTab = this.selectPreviousTab.bind(this)
@@ -109,11 +61,36 @@ class _Tabs extends React.Component {
         if (tabs.length === 0) {
             addTab(statePath)
         }
+
+        this.busyIn$ = new Subject()
+
+        this.busyOut$ = this.busyIn$.pipe(
+            groupBy(({busyId}) => busyId),
+            mergeMap(group$ =>
+                group$.pipe(
+                    mergeScan(
+                        ({busy: wasBusy}, {tabId, busyId, busy}) =>
+                            busy === wasBusy ? EMPTY : of({tabId, busyId, busy}),
+                        {busy: false}
+                    )
+                )
+            ),
+            groupBy(({tabId}) => tabId),
+            mergeMap(group$ =>
+                group$.pipe(
+                    mergeScan(
+                        ({count}, {tabId, busy}) =>
+                            of({tabId, count: count + (busy ? 1 : -1)}),
+                        {count: 0}
+                    )
+                )
+            ),
+            map(({tabId, count}) => ({tabId, count, busy: count > 0})),
+            shareReplay({bufferSize: 1, refCount: true})
+        )
     }
 
-    busy$ = new Subject()
-
-    renderTab(tab) {
+    renderTabHandle(tab) {
         const {selectedTabId, statePath, onTitleChanged} = this.props
         return (
             <TabHandle
@@ -122,7 +99,7 @@ class _Tabs extends React.Component {
                 title={tab.title}
                 placeholder={tab.placeholder}
                 selected={tab.id === selectedTabId}
-                busy$={this.busy$}
+                busyOut$={this.busyOut$}
                 closing={tab.ui && tab.ui.closing}
                 statePath={statePath}
                 onTitleChanged={onTitleChanged}
@@ -139,7 +116,8 @@ class _Tabs extends React.Component {
                 id={tab.id}
                 type={tab.type}
                 selected={tab.id === selectedTabId}
-                busy$={this.busy$}
+                busyIn$={this.busyIn$}
+                busyOut$={this.busyOut$}
             >
                 {children}
             </TabContent>
@@ -150,11 +128,11 @@ class _Tabs extends React.Component {
         const {tabs, maxTabs} = this.props
         return (
             <React.Fragment>
-                <ScrollableContainer>
-                    <Scrollable direction='x' className={styles.tabs}>
-                        {maxTabs > 1 ? tabs.map(this.renderTab) : null}
-                    </Scrollable>
-                </ScrollableContainer>
+                <Scrollable
+                    direction='x'
+                    className={styles.tabs}>
+                    {maxTabs > 1 ? tabs.map(this.renderTabHandle) : null}
+                </Scrollable>
                 {this.renderTabControls()}
             </React.Fragment>
         )

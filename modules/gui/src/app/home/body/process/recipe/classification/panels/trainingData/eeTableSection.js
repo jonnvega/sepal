@@ -1,25 +1,24 @@
 import PropTypes from 'prop-types'
-import {Form} from 'widget/form/form'
+import React from 'react'
 import {Subject, takeUntil} from 'rxjs'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import React, {Component} from 'react'
-import api from 'api'
 
-class EETableSection extends Component {
+import api from '~/apiRegistry'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+
+export class EETableSection extends React.Component {
     eeTableChanged$ = new Subject()
 
     render() {
         const {inputs: {eeTable}} = this.props
         return (
-            <Form.Input
+            <Form.AssetCombo
                 label={msg('process.classification.panel.trainingData.form.eeTable.label')}
                 autoFocus
                 input={eeTable}
                 placeholder={msg('process.classification.panel.trainingData.form.eeTable.placeholder')}
-                spellCheck={false}
-                errorMessage
-                onChangeDebounced={tableId => this.loadInputData(tableId)}
+                allowedTypes={['Table']}
+                onChange={tableId => this.loadInputData(tableId)}
                 busyMessage={this.props.stream('LOAD_EE_TABLE_ROWS').active && msg('widget.loading')}
             />
         )
@@ -76,7 +75,3 @@ EETableSection.propTypes = {
     children: PropTypes.any,
     inputs: PropTypes.any
 }
-
-export default compose(
-    EETableSection
-)

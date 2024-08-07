@@ -1,23 +1,26 @@
-import 'xterm/css/xterm.css'
-import {ContentPadding} from 'widget/sectionLayout'
-import {ElementResizeDetector} from 'widget/elementResizeDetector'
-import {FitAddon} from 'xterm-addon-fit'
-import {Subject, distinctUntilChanged, filter, map, withLatestFrom} from 'rxjs'
-import {Tabs} from 'widget/tabs/tabs'
-import {TerminalWebSocket} from './terminalWebsocket'
-import {Terminal as Xterm} from 'xterm'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {msg} from 'translate'
-import {post$} from 'http-client'
-import {v4 as uuid} from 'uuid'
-import {withEnableDetector} from 'enabled'
-import Keybinding from 'widget/keybinding'
-import Notifications from 'widget/notifications'
-import React from 'react'
-import styles from './terminal.module.css'
+import '@xterm/xterm/css/xterm.css'
 
-export default class Terminal extends React.Component {
+import {FitAddon} from '@xterm/addon-fit'
+import {Terminal as Xterm} from '@xterm/xterm'
+import React from 'react'
+import {distinctUntilChanged, filter, map, Subject, withLatestFrom} from 'rxjs'
+
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {withEnableDetector} from '~/enabled'
+import {post$} from '~/http-client'
+import {msg} from '~/translate'
+import {uuid} from '~/uuid'
+import {ElementResizeDetector} from '~/widget/elementResizeDetector'
+import {Keybinding} from '~/widget/keybinding'
+import {Notifications} from '~/widget/notifications'
+import {ContentPadding} from '~/widget/sectionLayout'
+import {Tabs} from '~/widget/tabs/tabs'
+
+import styles from './terminal.module.css'
+import {TerminalWebSocket} from './terminalWebsocket'
+
+export class Terminal extends React.Component {
     render() {
         return (
             <Tabs
@@ -84,13 +87,13 @@ class _TerminalSession extends React.Component {
 
     render() {
         return (
-            <ElementResizeDetector resize$={this.fit$}>
-                <ContentPadding menuPadding horizontalPadding verticalPadding>
-                    <Keybinding keymap={{' ': null}} priority>
-                        <div className={styles.terminal} ref={this.terminalContainer}></div>
-                    </Keybinding>
-                </ContentPadding>
-            </ElementResizeDetector>
+            <ContentPadding menuPadding horizontalPadding verticalPadding>
+                <Keybinding keymap={{' ': undefined}}>
+                    <ElementResizeDetector targetRef={this.terminalContainer} resize$={this.fit$}>
+                        <div ref={this.terminalContainer} className={styles.terminal}></div>
+                    </ElementResizeDetector>
+                </Keybinding>
+            </ContentPadding>
         )
     }
 

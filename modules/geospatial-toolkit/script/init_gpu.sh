@@ -6,61 +6,50 @@ echo "***************************"
 echo "*** Installing GPU libs ***"
 echo "***************************"
 
-pip3 install --upgrade pip
-pip3 uninstall -y numpy
-pip3 install numpy
-
-# Based on https://www.tensorflow.org/install/gpu, but with CUDA 11.4
-# Trying with cuda-toolkit instead of cuda, to prevent wrong nvidia-driver to be installed.
-# That version must match the version on the host machine.
-
-# GPG update: https://developer.nvidia.com/blog/updating-the-cuda-linux-gpg-repository-key/
-
-wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-ubuntu2004.pin
-mv cuda-ubuntu2004.pin /etc/apt/preferences.d/cuda-repository-pin-600
-wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb
-dpkg -i cuda-keyring_1.0-1_all.deb
-apt-get update -y
+# Tensorflow version compatibility: 
+#   https://www.tensorflow.org/install/source#gpu
 
 
-apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu2004/x86_64/7fa2af80.pub
-wget http://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu2004/x86_64/nvidia-machine-learning-repo-ubuntu2004_1.0.0-1_amd64.deb
-apt install -y ./nvidia-machine-learning-repo-ubuntu2004_1.0.0-1_amd64.deb
-rm nvidia-machine-learning-repo-ubuntu2004_1.0.0-1_amd64.deb
-apt-get update -y
+apt-get update
 
-# Ensure same nvidia driver version is used both in init_gpu.sh and in init-gpu-drivers.sh
-#
-# Version for different instance types:
-#   https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/install-nvidia-driver.html#nvidia-GRID-driver
-# Find download URL:
-#   https://www.nvidia.com/Download/Find.aspx
-apt-get install -y --no-install-recommends \
-  nvidia-driver-470=470.82.01-0ubuntu1 \
-  libnvidia-gl-470=470.82.01-0ubuntu1 \
-  nvidia-kernel-source-470=470.82.01-0ubuntu1 \
-  libnvidia-compute-470=470.82.01-0ubuntu1 \
-  libnvidia-extra-470=470.82.01-0ubuntu1 \
-  nvidia-compute-utils-470=470.82.01-0ubuntu1 \
-  libnvidia-decode-470=470.82.01-0ubuntu1 \
-  libnvidia-encode-470=470.82.01-0ubuntu1 \
-  nvidia-utils-470=470.82.01-0ubuntu1 \
-  xserver-xorg-video-nvidia-470=470.82.01-0ubuntu1 \
-  libnvidia-cfg1-470=470.82.01-0ubuntu1 \
-  libnvidia-ifr1-470=470.82.01-0ubuntu1 \
-  libnvidia-fbc1-470=470.82.01-0ubuntu1 \
-  libnvidia-common-470=470.82.01-0ubuntu1 \
-  nvidia-dkms-470=470.82.01-0ubuntu1 \
-  nvidia-kernel-common-470=470.82.01-0ubuntu1 \
-  cuda-toolkit-11-4 \
-  libcudnn8=8.2.4.15-1+cuda11.4 \
-  libcudnn8-dev=8.2.4.15-1+cuda11.4
+# To get OpenCL to work
+mkdir -p /etc/OpenCL/vendors 
+echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
 
-echo -n "/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.1">/etc/OpenCL/vendors/nvidia.icd
+# Add NVIDIA repo
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
+dpkg -i cuda-keyring_1.1-1_all.deb
+apt-get update
 
-ln -sf cuda-11.4/ cuda
-ln -sf cuda-11.4/ cuda-11
+apt-get -y install cuda-toolkit
+apt-get -y install cudnn-cuda-12
 
-pip3 install pyopencl
-pip3 install testresources
-pip3 install tensorflow==2.7.0
+export CUDNN_PATH=$(dirname $(python -c "import nvidia.cudnn;print(nvidia.cudnn.__file__)"))
+export LD_LIBRARY_PATH=$CONDA_PREFIX/lib/:$CUDNN_PATH/lib:$LD_LIBRARY_PATH
+
+# Find out the expected tensorrt version
+# python3 -c "import tensorflow.compiler as tf_cc; print(tf_cc.tf2tensorrt._pywrap_py_utils.get_linked_tensorrt_version())"
+
+# Get TensorRT download URL from https://developer.nvidia.com/tensorrt
+# Requires logging into NVIDIA
+TENSOR_RT="TensorRT-8.6.1.6"
+TENSOR_RT_TAR="$TENSOR_RT.Linux.x86_64-gnu.cuda-12.0.tar.gz"
+wget https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/secure/8.6.1/tars/$TENSOR_RT_TAR
+tar -xvzf $TENSOR_RT_TAR
+rm $TENSOR_RT_TAR
+mv $TENSOR_RT /usr/local/lib/$TENSOR_RT
+ln -s /usr/local/lib/$TENSOR_RT /usr/local/lib/TensorRT
+
+pip3 install \
+    pyopencl \
+    tensorflow \
+    tf-keras \
+    torch \
+    torchvision \
+    gpustat \
+    nvitop
+    
+# Verify that libraries find the GPU
+# python3 -c "import pyopencl as cl; print(cl.get_platforms())"
+# python3 -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
+# python3 -c "import torch; print(torch.cuda.is_available()); print(torch.cuda.device_count());"

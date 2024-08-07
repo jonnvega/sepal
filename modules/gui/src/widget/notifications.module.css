@@ -12,7 +12,7 @@
     padding-bottom: 0;
 }
 
-.scrollable {
+.container .scrollable {
     pointer-events: none;
 }
 
@@ -146,6 +146,10 @@
 
 .notification .message {
     color: #ccc;
+}
+
+.notification .messageLine:not(:first-child) {
+    margin-top: .5rem;
 }
 
 .notification .error {

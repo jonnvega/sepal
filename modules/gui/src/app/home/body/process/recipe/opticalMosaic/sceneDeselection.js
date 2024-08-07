@@ -1,9 +1,10 @@
-import {RecipeActions, SceneSelectionType, inDateRange} from 'app/home/body/process/recipe/opticalMosaic/opticalMosaicRecipe'
-import {compose} from 'compose'
-import {objectEquals} from 'collections'
-import {selectFrom} from 'stateUtils'
-import {withRecipe} from 'app/home/body/process/recipeContext'
 import React from 'react'
+
+import {inDateRange, RecipeActions, SceneSelectionType} from '~/app/home/body/process/recipe/opticalMosaic/opticalMosaicRecipe'
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {isPartiallyEqual} from '~/hash'
+import {selectFrom} from '~/stateUtils'
 
 const mapRecipeToProps = recipe => {
     return {
@@ -16,7 +17,7 @@ const mapRecipeToProps = recipe => {
     }
 }
 
-class SceneDeselection extends React.Component {
+class _SceneDeselection extends React.Component {
     constructor(props) {
         super(props)
         this.recipeActions = RecipeActions(props.recipeId)
@@ -27,7 +28,7 @@ class SceneDeselection extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (!objectEquals(prevProps, this.props, ['sceneAreas', 'dates', 'sources', 'sceneSelectionOptions']))
+        if (!isPartiallyEqual(prevProps, this.props, ['sceneAreas', 'dates', 'sources', 'sceneSelectionOptions']))
             this.updateSelectedScenes()
     }
 
@@ -58,7 +59,7 @@ class SceneDeselection extends React.Component {
     }
 }
 
-export default compose(
-    SceneDeselection,
+export const SceneDeselection = compose(
+    _SceneDeselection,
     withRecipe(mapRecipeToProps)
 )

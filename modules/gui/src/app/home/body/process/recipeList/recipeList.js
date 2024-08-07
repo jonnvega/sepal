@@ -1,37 +1,34 @@
-import {Button} from 'widget/button'
-import {ButtonGroup} from 'widget/buttonGroup'
-import {CenteredProgress} from 'widget/progress'
-import {CheckButton} from 'widget/checkButton'
-import {Combo} from 'widget/combo'
-import {CreateRecipe} from '../createRecipe'
-import {CrudItem} from 'widget/crudItem'
-import {FastList} from 'widget/fastList'
-import {Layout} from 'widget/layout'
-import {ListItem} from 'widget/listItem'
-import {ProjectsButton} from './projectsButton'
-import {RecipeListConfirm} from './recipeListConfirm'
-import {SearchBox} from 'widget/searchBox'
-import {SelectProject} from './selectProject'
-import {SortButtons} from 'widget/sortButtons'
-import {compose} from 'compose'
-import {connect, select} from 'store'
-import {getRecipeType, listRecipeTypes} from '../recipeTypes'
-import {msg} from 'translate'
-import {simplifyString, splitString} from 'string'
-import ButtonPopup from 'widget/buttonPopup'
-import Confirm from 'widget/confirm'
+import _ from 'lodash'
+import memoizeOne from 'memoize-one'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
-import actionBuilder from 'action-builder'
-import memoizeOne from 'memoize-one'
 
-export const PROJECT_RECIPE_SEPARATOR = ' / '
-export const NO_PROJECT_SYMBOL = '<no project>'
-export const NO_PROJECT_OPTION = () => ({
-    value: NO_PROJECT_SYMBOL,
-    label: msg('process.project.noProjectOption')
-})
+import {actionBuilder} from '~/action-builder'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {select} from '~/store'
+import {simplifyString, splitString} from '~/string'
+import {msg} from '~/translate'
+import {Button} from '~/widget/button'
+import {ButtonGroup} from '~/widget/buttonGroup'
+import {ButtonPopup} from '~/widget/buttonPopup'
+import {CheckButton} from '~/widget/checkButton'
+import {Combo} from '~/widget/combo'
+import {Confirm} from '~/widget/confirm'
+import {CrudItem} from '~/widget/crudItem'
+import {FastList} from '~/widget/fastList'
+import {Layout} from '~/widget/layout'
+import {ListItem} from '~/widget/listItem'
+import {CenteredProgress} from '~/widget/progress'
+import {SearchBox} from '~/widget/searchBox'
+import {SortButtons} from '~/widget/sortButtons'
+
+import {CreateRecipe} from '../createRecipe'
+import {getRecipeType, listRecipeTypes} from '../recipeTypeRegistry'
+import {ProjectsButton} from './projectsButton'
+import {RecipeListConfirm} from './recipeListConfirm'
+import {NO_PROJECT_OPTION, NO_PROJECT_SYMBOL, PROJECT_RECIPE_SEPARATOR} from './recipeListConstants'
+import {SelectProject} from './selectProject'
 
 const mapStateToProps = () => ({
     projects: select('process.projects'),
@@ -187,7 +184,6 @@ class _RecipeList extends React.Component {
                 tooltip={msg('process.recipe.move.tooltip')}>
                 {onBlur => (
                     <Combo
-                        placement='below'
                         alignment='left'
                         placeholder={msg('process.recipe.move.destinationProject')}
                         options={this.getDestinations()}

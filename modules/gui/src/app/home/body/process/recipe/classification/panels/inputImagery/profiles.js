@@ -1,15 +1,16 @@
+import {uuid} from '~/uuid'
+
 import {BandSetSpec} from './bandSetSpec'
-import guid from 'guid'
 
 const profilesByName = {
     SIMPLE: bands => ({
         disabled: !bands.find(band => ['red', 'nir', 'swir1', 'swir2'].includes(band)),
         bandSetSpecs: [{
-            id: guid(),
+            id: uuid(),
             type: 'IMAGE_BANDS',
             included: ['red', 'nir', 'swir1', 'swir2']
         }, {
-            id: guid(),
+            id: uuid(),
             type: 'PAIR_WISE_EXPRESSION',
             operation: 'RATIO',
             included: ['red', 'nir', 'swir1', 'swir2']
@@ -20,35 +21,35 @@ const profilesByName = {
             ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'brightness', 'greenness', 'wetness'].includes(band)
         ),
         bandSetSpecs: [{
-            id: guid(),
+            id: uuid(),
             type: 'IMAGE_BANDS',
             included: bands
         }, {
-            id: guid(),
+            id: uuid(),
             type: 'PAIR_WISE_EXPRESSION',
             operation: 'NORMALIZED_DIFFERENCE',
             included: ['blue', 'green', 'red', 'nir', 'swir1', 'swir2']
         }, {
-            id: guid(),
+            id: uuid(),
             type: 'PAIR_WISE_EXPRESSION',
             operation: 'RATIO',
             included: ['swir1', 'nir']
         }, {
-            id: guid(),
+            id: uuid(),
             type: 'PAIR_WISE_EXPRESSION',
             operation: 'RATIO',
             included: ['red', 'swir1']
         }, {
-            id: guid(),
+            id: uuid(),
             type: 'INDEXES',
             included: ['evi', 'savi', 'ibi']
         }, {
-            id: guid(),
+            id: uuid(),
             type: 'PAIR_WISE_EXPRESSION',
             operation: 'ANGLE',
             included: ['brightness', 'greenness', 'wetness']
         }, {
-            id: guid(),
+            id: uuid(),
             type: 'PAIR_WISE_EXPRESSION',
             operation: 'DISTANCE',
             included: ['brightness', 'greenness', 'wetness']

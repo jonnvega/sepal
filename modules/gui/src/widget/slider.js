@@ -1,14 +1,16 @@
-import {ElementResizeDetector} from 'widget/elementResizeDetector'
-import {ViewportResizeDetector} from 'widget/viewportResizeDetector'
-import {Widget} from 'widget/widget'
-import {animationFrames, combineLatest, distinctUntilChanged, fromEvent, map, merge, of, scan, switchMap, throttleTime, withLatestFrom} from 'rxjs'
-import {compose} from 'compose'
-import {withSubscriptions} from 'subscription'
 import Hammer from 'hammerjs'
-import Portal from 'widget/portal'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
+import {animationFrames, combineLatest, distinctUntilChanged, fromEvent, map, merge, of, scan, switchMap, throttleTime, withLatestFrom} from 'rxjs'
+
+import {compose} from '~/compose'
+import {withSubscriptions} from '~/subscription'
+import {ElementResizeDetector} from '~/widget/elementResizeDetector'
+import {Portal} from '~/widget/portal'
+import {ViewportResizeDetector} from '~/widget/viewportResizeDetector'
+import {Widget} from '~/widget/widget'
+
 import styles from './slider.module.css'
 
 const clamp = (value, {min, max}) => Math.max(min, Math.min(max, value))
@@ -476,6 +478,7 @@ export class Slider extends React.Component {
 
     constructor() {
         super()
+        this.ref = React.createRef()
         this.onPreview = this.onPreview.bind(this)
         this.onResize = this.onResize.bind(this)
     }
@@ -532,10 +535,11 @@ export class Slider extends React.Component {
         const {width} = this.state
         return (
             <div className={styles.container}>
-                <div className={styles.slider}>
-                    <ElementResizeDetector onResize={this.onResize}/>
-                    {width ? this.renderContainer() : null}
-                </div>
+                <ElementResizeDetector targetRef={this.ref} onResize={this.onResize}>
+                    <div ref={this.ref} className={styles.slider}>
+                        {width ? this.renderContainer() : null}
+                    </div>
+                </ElementResizeDetector>
             </div>
         )
     }

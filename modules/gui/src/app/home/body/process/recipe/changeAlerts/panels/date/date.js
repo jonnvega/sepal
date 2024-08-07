@@ -1,14 +1,16 @@
-import {Form} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {Panel} from 'widget/panel/panel'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {Widget} from 'widget/widget'
-import {compose} from 'compose'
-import {maxDate, minDate} from 'widget/form/datePicker'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import React from 'react'
 import moment from 'moment'
+import React from 'react'
+
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {maxDate, minDate} from '~/widget/form/datePicker'
+import {Layout} from '~/widget/layout'
+import {Panel} from '~/widget/panel/panel'
+import {Widget} from '~/widget/widget'
+
 import styles from './date.module.css'
 
 const DATE_FORMAT = 'YYYY-MM-DD'
@@ -34,7 +36,7 @@ const mapRecipeToProps = recipe => ({
     segmentsEndDate: selectFrom(recipe, 'model.reference.endDate')
 })
 
-class Date extends React.Component {
+class _Date extends React.Component {
     render() {
         return (
             <RecipeFormPanel
@@ -75,7 +77,6 @@ class Date extends React.Component {
                 input={monitoringEnd}
                 startDate={dateRange.start}
                 endDate={dateRange.end}
-                errorMessage
             />
         )
     }
@@ -110,7 +111,6 @@ class Date extends React.Component {
                     type='number'
                     input={duration}
                     className={styles.unit}
-                    errorMessage
                 />
                 <Form.Combo
                     input={durationUnit}
@@ -121,7 +121,6 @@ class Date extends React.Component {
                         {value: 'months', label: msg('process.changeAlerts.panel.date.form.durationUnit.MONTHS')}
                     ]}
                     className={styles.durationUnit}
-                    errorMessage
                 />
             </Widget>
         )
@@ -158,9 +157,9 @@ class Date extends React.Component {
     }
 }
 
-Date.propTypes = {}
-
-export default compose(
-    Date,
+export const Date = compose(
+    _Date,
     recipeFormPanel({id: 'date', fields, mapRecipeToProps})
 )
+
+Date.propTypes = {}

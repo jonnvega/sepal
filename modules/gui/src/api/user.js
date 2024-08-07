@@ -1,4 +1,4 @@
-import {delete$, get$, post$} from 'http-client'
+import {delete$, get$, post$} from '~/http-client'
 
 export default {
     loadCurrentUser$: () =>
@@ -7,7 +7,7 @@ export default {
         }),
 
     loadUserMessages$: () =>
-        get$('/api/notification/notifications'),
+        get$('/api/notification/notifications', {maxRetries: 0}),
 
     updateMessage$: message =>
         post$(`/api/notification/messages/${message.id}`, {
@@ -25,7 +25,7 @@ export default {
         }),
 
     loadCurrentUserReport$: () =>
-        get$('/api/sessions/report'),
+        get$('/api/sessions/report', {maxRetries: 0}),
 
     signUp$: ({username, name, email, organization, intendedUse}, recaptchaToken) =>
         post$('/api/user/signup', {
@@ -75,9 +75,9 @@ export default {
             body: {token, password, recaptchaToken}
         }),
 
-    updateCurrentUserDetails$: ({name, email, organization, intendedUse, emailNotificationsEnabled}) =>
+    updateCurrentUserDetails$: ({name, email, organization, intendedUse, emailNotificationsEnabled, manualMapRenderingEnabled}) =>
         post$('/api/user/current/details', {
-            body: {name, email, organization, intendedUse, emailNotificationsEnabled}
+            body: {name, email, organization, intendedUse, emailNotificationsEnabled, manualMapRenderingEnabled}
         }),
 
     changePassword$: ({oldPassword, newPassword}) =>
@@ -92,6 +92,11 @@ export default {
 
     revokeGoogleAccess$: () =>
         post$('/api/user/google/revoke-access'),
+
+    updateGoogleProject$: (projectId, legacyProject) =>
+        post$('/api/user/google/project', {
+            query: {projectId, legacyProject}
+        }),
 
     updateCurrentUserSession$: session =>
         post$(`/api/sessions/session/${session.id}/earliestTimeoutTime`, {
@@ -137,5 +142,8 @@ export default {
     updateBudgetUpdateRequest$: budgetUpdateRequest =>
         post$('/api/budget/requestUpdate', {
             body: budgetUpdateRequest
-        })
+        }),
+
+    invalidateOtherSessions$: () =>
+        post$('/api/user/invalidateOtherSessions')
 }

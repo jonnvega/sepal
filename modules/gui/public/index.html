@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <base href="${BASE_URL}"/>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <meta name="theme-color" content="#000000">
@@ -18,11 +19,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="format-detection" content="telephone=no">
-    <!-- Web fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Ubuntu: 300,400,500,700,300italic,400italic,500italic,700italic" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro: 200,300,400,600,700,900,200italic,300italic,400italic,600italic,700italic,900italic" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Merriweather: 400,300,300italic,400italic,700,700italic,900,900italic" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Ubuntu+Mono: 400,700" rel="stylesheet">
+
     <script>
         window.process = {} // HACK: temporary fix after switching to create-react-app 5
         window.googleAnalyticsId = '${GOOGLE_ANALYTICS_ID}'
@@ -73,7 +70,7 @@
             text-align: left;
             overflow: hidden;
             text-transform: none;
-            letter-spacing: .75px;
+            letter-spacing: .5px;
             -webkit-font-smoothing: antialiased;
             -webkit-text-size-adjust: 100%;
             -ms-text-size-adjust: 100%;

@@ -1,25 +1,26 @@
-import {Button} from 'widget/button'
-import {Buttons} from 'widget/buttons'
-import {Combo} from 'widget/combo'
-import {Item} from 'widget/item'
-import {Layout} from 'widget/layout'
-import {MapAreaLayout} from '../mapAreaLayout'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {getRecipeType} from '../../body/process/recipeTypes'
-import {map} from 'rxjs'
-import {msg} from 'translate'
-import {withMapApiKey} from '../mapApiKeyContext'
-import {withMapArea} from '../mapAreaContext'
-import {withRecipe} from '../../body/process/recipeContext'
-import {withSubscriptions} from 'subscription'
-import {withTab} from 'widget/tabs/tabContext'
-import PlanetLayer from '../layer/planetLayer'
+import _ from 'lodash'
+import moment from 'moment'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
-import api from 'api'
-import moment from 'moment'
+import {map} from 'rxjs'
+
+import api from '~/apiRegistry'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {withSubscriptions} from '~/subscription'
+import {msg} from '~/translate'
+import {Button} from '~/widget/button'
+import {Buttons} from '~/widget/buttons'
+import {Combo} from '~/widget/combo'
+import {CrudItem} from '~/widget/crudItem'
+import {Layout} from '~/widget/layout'
+
+import {withRecipe} from '../../body/process/recipeContext'
+import {getRecipeType} from '../../body/process/recipeTypeRegistry'
+import {PlanetLayer} from '../layer/planetLayer'
+import {withMapApiKey} from '../mapApiKeyContext'
+import {withMapArea} from '../mapAreaContext'
+import {MapAreaLayout} from '../mapAreaLayout'
 import styles from './planetImageLayer.module.css'
 
 const defaultLayerConfig = {
@@ -47,12 +48,12 @@ class _PlanetImageLayer extends React.Component {
     }
 
     createLayer() {
-        const {layerConfig: {bands, urlTemplate} = defaultLayerConfig, map, tab: {busy$}} = this.props
+        const {layerConfig: {bands, urlTemplate} = defaultLayerConfig, map} = this.props
         const concurrency = CONCURRENCY
         const layer = urlTemplate
             ? this.selectedHasCir()
-                ? new PlanetLayer({map, urlTemplate: `${urlTemplate}&proc=${bands}`, concurrency, busy$})
-                : new PlanetLayer({map, urlTemplate: `${urlTemplate}`, concurrency, busy$})
+                ? new PlanetLayer({map, urlTemplate: `${urlTemplate}&proc=${bands}`, concurrency})
+                : new PlanetLayer({map, urlTemplate: `${urlTemplate}`, concurrency})
             : null
         this.layer = layer
         return layer
@@ -70,6 +71,7 @@ class _PlanetImageLayer extends React.Component {
     renderBands() {
         const {layerConfig: {bands}} = this.props
         const link = <Button
+            key='link'
             tooltip={msg('imageLayerSources.Planet.bands.tooltip')}
             chromeless
             shape='circle'
@@ -123,7 +125,7 @@ class _PlanetImageLayer extends React.Component {
                 searchableText: `${date} ${duration}`,
                 render: () =>
                     <div className={styles.imageLayerSourceOption}>
-                        <Item title={duration} description={date}/>
+                        <CrudItem title={duration} description={date}/>
                     </div>
             })
         })
@@ -232,7 +234,6 @@ export const PlanetImageLayer = compose(
     connect(),
     withMapArea(),
     withRecipe(mapRecipeToProps),
-    withTab(),
     withMapApiKey(),
     withSubscriptions()
 )

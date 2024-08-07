@@ -1,16 +1,18 @@
-import {Form} from 'widget/form/form'
-import {Message} from 'widget/message'
-import {Panel} from 'widget/panel/panel'
-import {RecipeActions} from 'app/home/body/process/recipe/opticalMosaic/opticalMosaicRecipe'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {compose} from 'compose'
-import {msg} from 'translate'
 import React from 'react'
+
+import {RecipeActions} from '~/app/home/body/process/recipe/opticalMosaic/opticalMosaicRecipe'
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {msg} from '~/translate'
+import {Form} from '~/widget/form'
+import {Message} from '~/widget/message'
+import {Panel} from '~/widget/panel/panel'
+
 import styles from './clearSelectedScenes.module.css'
 
 const fields = {}
 
-class ClearSelectedScenes extends React.Component {
+class _ClearSelectedScenes extends React.Component {
     constructor(props) {
         super(props)
         const {recipeId} = props
@@ -38,9 +40,9 @@ class ClearSelectedScenes extends React.Component {
     }
 }
 
-ClearSelectedScenes.propTypes = {}
-
-export default compose(
-    ClearSelectedScenes,
+export const ClearSelectedScenes = compose(
+    _ClearSelectedScenes,
     recipeFormPanel({id: 'clearSelectedScenes', fields})
 )
+
+ClearSelectedScenes.propTypes = {}

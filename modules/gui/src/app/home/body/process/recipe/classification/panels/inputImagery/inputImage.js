@@ -1,20 +1,22 @@
+import React from 'react'
+
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {uuid} from '~/uuid'
+import {ButtonSelect} from '~/widget/buttonSelect'
+import {Form} from '~/widget/form'
+import {PanelSections} from '~/widget/panelSections'
+
+import {AssetSection} from './assetSection'
 import {BandSetSpec} from './bandSetSpec'
-import {Form} from 'widget/form/form'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {SectionSelection} from './sectionSelection'
-import {compose} from 'compose'
+import {ImageForm} from './imageForm'
+import styles from './inputImage.module.css'
 import {getAvailableIndexes} from './opticalIndexes'
 import {getProfileBandSetSpecs, isProfileDisabled} from './profiles'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import AssetSection from './assetSection'
-import ButtonSelect from 'widget/buttonSelect'
-import ImageForm from './imageForm'
-import PanelSections from 'widget/panelSections'
-import React from 'react'
-import RecipeSection from './recipeSection'
-import guid from 'guid'
-import styles from './inputImage.module.css'
+import {RecipeSection} from './recipeSection'
+import {SectionSelection} from './sectionSelection'
 
 const fields = {
     imageId: new Form.Field(),
@@ -40,7 +42,7 @@ const mapRecipeToProps = recipe => ({
     recipeId: recipe.id
 })
 
-class InputImage extends React.Component {
+class _InputImage extends React.Component {
     constructor(props) {
         super(props)
         this.updateImageLayerSources = this.updateImageLayerSources.bind(this)
@@ -110,7 +112,7 @@ class InputImage extends React.Component {
     initBandSetSpecs() {
         const {inputs: {bandSetSpecs}} = this.props
         if (!bandSetSpecs.value) {
-            bandSetSpecs.set([{id: guid(), type: 'IMAGE_BANDS', class: 'IMAGE_BANDS', included: []}])
+            bandSetSpecs.set([{id: uuid(), type: 'IMAGE_BANDS', class: 'IMAGE_BANDS', included: []}])
         }
     }
 
@@ -183,11 +185,11 @@ class InputImage extends React.Component {
                 return getProfileBandSetSpecs(option.value, bands.value)
             case 'PAIR_WISE_EXPRESSION':
                 return bandSetSpecs.value.concat(
-                    {id: guid(), type: 'PAIR_WISE_EXPRESSION', operation: option.value, included: []}
+                    {id: uuid(), type: 'PAIR_WISE_EXPRESSION', operation: option.value, included: []}
                 )
             case 'INDEXES':
                 return bandSetSpecs.value.concat(
-                    {id: guid(), type: 'INDEXES', included: []}
+                    {id: uuid(), type: 'INDEXES', included: []}
                 )
             default:
                 throw Error(`Unsupported type: ${JSON.stringify(option)}`)
@@ -287,8 +289,8 @@ const panelOptions = {
     policy
 }
 
-export default compose(
-    InputImage,
+export const InputImage = compose(
+    _InputImage,
     recipeFormPanel(panelOptions)
 )
 

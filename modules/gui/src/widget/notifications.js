@@ -1,15 +1,17 @@
-import {Scrollable, ScrollableContainer} from './scrollable'
-import {Subject, delay, filter, map, merge, mergeMap, scan, takeWhile, timer} from 'rxjs'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {publishError} from 'eventPublisher'
-import {v4 as uuid} from 'uuid'
-import {withSubscriptions} from 'subscription'
-import PropTypes from 'prop-types'
-import React from 'react'
 import _ from 'lodash'
 import hash from 'object-hash'
+import PropTypes from 'prop-types'
+import React from 'react'
+import {delay, filter, map, merge, mergeMap, scan, Subject, takeWhile, timer} from 'rxjs'
+
+import {compose} from '~/compose'
+import {publishError} from '~/eventPublisher'
+import {withSubscriptions} from '~/subscription'
+import {msg} from '~/translate'
+import {uuid} from '~/uuid'
+
 import styles from './notifications.module.css'
+import {Scrollable} from './scrollable'
 
 const PUBLISH_ANIMATION_DURATION_MS = 1000
 const DISMISS_ANIMATION_DURATION_MS = 1000
@@ -39,7 +41,7 @@ const dismiss$ = merge(
 const added$ = publish$.pipe(delay(PUBLISH_ANIMATION_DURATION_MS))
 const removed$ = dismiss$.pipe(delay(DISMISS_ANIMATION_DURATION_MS))
 
-const group = ({group = false, id, ...notification}) =>
+const getGroup = ({group = false, id, ...notification}) =>
     group === false
         ? id
         : group === true
@@ -50,7 +52,7 @@ const publish = notification => {
     const publish = notification =>
         publish$.next({
             ...notification,
-            group: group(notification)
+            group: getGroup(notification)
         })
 
     const defaultTitle = {
@@ -90,11 +92,19 @@ class _Notifications extends React.Component {
     renderMessage(message) {
         return (
             <div className={styles.message}>
-                {message}
+                {message.split('|').map(this.renderMessageLine)}
             </div>
         )
     }
 
+    renderMessageLine(messageLine, index) {
+        return (
+            <div key={index} className={styles.messageLine}>
+                {messageLine}
+            </div>
+        )
+    }
+    
     renderError(error) {
         const errorMessage = typeof error === 'string' ? error : error.message
         return (
@@ -108,6 +118,14 @@ class _Notifications extends React.Component {
         return (
             <div className={styles.content}>
                 {content(dismiss)}
+            </div>
+        )
+    }
+
+    renderLink(link) {
+        return (
+            <div className={styles.link}>
+                <a href={link} target="_blank" rel="noreferrer">{link}</a>
             </div>
         )
     }
@@ -133,7 +151,7 @@ class _Notifications extends React.Component {
             : null
     }
 
-    renderNotification({id, level, title, message, error, content, timeout, dismissable, adding, removing}) {
+    renderNotification({id, level, title, message, error, content, link, timeout, dismissable, adding, removing}) {
         const dismiss = () => manualDismiss$.next(id)
         return id
             ? (
@@ -159,7 +177,8 @@ class _Notifications extends React.Component {
                         {message ? this.renderMessage(message) : null}
                         {error ? this.renderError(error) : null}
                         {content ? this.renderContent(content, dismiss) : null}
-                        {this.renderDismissMessage(id)}
+                        {link ? this.renderLink(link) : null}
+                        {timeout > 3 ? this.renderDismissMessage(id) : null}
                         {this.renderAutoDismissIndicator(timeout)}
                     </div>
                 </div>
@@ -174,11 +193,14 @@ class _Notifications extends React.Component {
 
     render() {
         return (
-            <ScrollableContainer className={styles.container}>
-                <Scrollable className={styles.scrollable} hideScrollbar>
+            <div className={styles.container}>
+                <Scrollable
+                    direction='y'
+                    className={styles.scrollable}
+                    hideScrollbar>
                     {this.renderNotifications()}
                 </Scrollable>
-            </ScrollableContainer>
+            </div>
         )
     }
 
@@ -256,7 +278,7 @@ class _Notifications extends React.Component {
 //     })
 // }
 
-const Notifications = compose(
+export const Notifications = compose(
     _Notifications,
     withSubscriptions()
 )
@@ -281,8 +303,6 @@ Notifications.error = notification => {
 Notifications.dismiss = notificationId =>
     dismiss(notificationId)
 
-export default Notifications
-
 Notifications.propTypes = {
     content: PropTypes.func,
     dismissable: PropTypes.any,
@@ -290,6 +310,7 @@ Notifications.propTypes = {
     group: PropTypes.oneOf([true, false, PropTypes.string]),
     id: PropTypes.string,
     level: PropTypes.string,
+    link: PropTypes.string,
     message: PropTypes.string,
     timeout: PropTypes.number,
     title: PropTypes.string,

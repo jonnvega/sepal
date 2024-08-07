@@ -1,19 +1,24 @@
-import {FileSelect} from 'widget/fileSelect'
-import {Form, withForm} from 'widget/form/form'
-import {FormCombo} from 'widget/form/combo'
-import {Layout} from 'widget/layout'
-import {Panel} from 'widget/panel/panel'
-import {Widget} from 'widget/widget'
-import {withActivatable} from 'widget/activation/activatable'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {parseCsvFile$} from 'csv'
-import {withRecipe} from '../body/process/recipeContext'
+import {isReadClipboardSupported, readClipboard} from 'clipboard'
 import Color from 'color'
-import Icon from 'widget/icon'
-import React from 'react'
 import _ from 'lodash'
-import guid from 'guid'
+import React from 'react'
+import {Button} from 'widget/button'
+
+import {compose} from '~/compose'
+import {parseCsvFile$} from '~/csv'
+import {msg} from '~/translate'
+import {uuid} from '~/uuid'
+import {withActivatable} from '~/widget/activation/activatable'
+import {FileSelect} from '~/widget/fileSelect'
+import {Form} from '~/widget/form'
+import {FormCombo} from '~/widget/form/combo'
+import {withForm} from '~/widget/form/form'
+import {Icon} from '~/widget/icon'
+import {Layout} from '~/widget/layout'
+import {Panel} from '~/widget/panel/panel'
+import {Widget} from '~/widget/widget'
+
+import {withRecipe} from '../body/process/recipeContext'
 import styles from './legendImport.module.css'
 
 const fields = {
@@ -51,6 +56,7 @@ class _LegendImport extends React.Component {
     constructor(props) {
         super(props)
         this.save = this.save.bind(this)
+        this.onPaste = this.onPaste.bind(this)
     }
 
     render() {
@@ -149,7 +155,11 @@ class _LegendImport extends React.Component {
     renderFileSelect() {
         const {stream, inputs: {name}} = this.props
         return (
-            <Widget label={msg('map.legendBuilder.import.file.label')}>
+            <Widget label={msg('map.legendBuilder.import.file.label')}
+                labelButtons={[
+                    this.renderPasteButton()
+                ]}
+            >
                 <FileSelect
                     single
                     onSelect={file => this.onSelectFile(file)}>
@@ -164,6 +174,37 @@ class _LegendImport extends React.Component {
                     }
                 </FileSelect>
             </Widget>
+        )
+    }
+
+    renderPasteButton() {
+        return (
+            <Button
+                key='paste'
+                chromeless
+                shape='none'
+                icon='paste'
+                disabled={!isReadClipboardSupported()}
+                tooltip={msg(isReadClipboardSupported() ? 'map.legendBuilder.import.clipboard.tooltip' : 'map.legendBuilder.import.clipboard.disabledTooltip')}
+                tooltipAllowedWhenDisabled
+                onClick={this.onPaste}
+            />
+        )
+        // return isReadClipboardSupported() ? (
+        //     <Button
+        //         key='paste'
+        //         chromeless
+        //         shape='none'
+        //         icon='paste'
+        //         tooltip={msg('map.legendBuilder.import.clipboard.tooltip')}
+        //         onClick={this.onPaste}
+        //     />
+        // ) : null
+    }
+
+    onPaste() {
+        readClipboard().then(
+            clipboard => this.parse('clipboard', clipboard)
         )
     }
 
@@ -196,10 +237,14 @@ class _LegendImport extends React.Component {
     }
 
     onSelectFile(file) {
+        this.parse(file.name, file)
+    }
+
+    parse(source, data) {
         const {stream, inputs: {name, rows: rowsInput}} = this.props
-        name.set(file.name)
+        name.set(source)
         stream('LOAD_CSV_ROWS',
-            parseCsvFile$(file),
+            parseCsvFile$(data),
             ({columns, rows}) => {
                 rowsInput.set(rows)
                 this.setState({columns, rows})
@@ -220,7 +265,7 @@ class _LegendImport extends React.Component {
             blueColumn
         } = inputs
         const entries = rows.value.map(row => ({
-            id: guid(),
+            id: uuid(),
             color: colorColumnType.value === 'single'
                 ? Color(trim(row[colorColumn.value])).hex()
                 : Color.rgb([

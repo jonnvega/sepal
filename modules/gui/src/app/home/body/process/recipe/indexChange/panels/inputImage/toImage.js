@@ -1,14 +1,14 @@
-import {InputImage, fields, modelToValues, valuesToModel} from './inputImage'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {selectFrom} from 'stateUtils'
-import React from 'react'
+import {recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+
+import {fields, InputImage, modelToValues, valuesToModel} from './inputImage'
 
 const mapRecipeToProps = recipe => ({
     fromBand: selectFrom(recipe, 'model.fromImage.band')
 })
-const ToImage = ({form, inputs, recipeActionBuilder, fromBand}) =>
+const _ToImage = ({form, inputs, recipeActionBuilder, fromBand}) =>
     <InputImage
         form={form}
         inputs={inputs}
@@ -17,7 +17,7 @@ const ToImage = ({form, inputs, recipeActionBuilder, fromBand}) =>
         fromBand={fromBand}
     />
 
-export default compose(
-    ToImage,
+export const ToImage = compose(
+    _ToImage,
     recipeFormPanel({id: 'toImage', fields, mapRecipeToProps, modelToValues, valuesToModel})
 )

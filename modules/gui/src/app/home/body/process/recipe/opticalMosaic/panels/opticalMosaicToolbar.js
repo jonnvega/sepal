@@ -1,22 +1,24 @@
-import {Retrieve} from 'app/home/body/process/recipe/opticalMosaic/panels/retrieve/retrieve'
-import {RetrieveButton} from '../../retrieveButton'
-import {SceneSelectionType} from 'app/home/body/process/recipe/opticalMosaic/opticalMosaicRecipe'
-import {Toolbar} from 'widget/toolbar/toolbar'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import {setInitialized} from '../../../recipe'
-import {withRecipe} from 'app/home/body/process/recipeContext'
-import Aoi from 'app/home/body/process/recipe/mosaic/panels/aoi/aoi'
-import AutoSelectScenes from 'app/home/body/process/recipe/opticalMosaic/panels/autoSelectScenes/autoSelectScenes'
-import ClearSelectedScenes from 'app/home/body/process/recipe/opticalMosaic/panels/clearSelectedScenes/clearSelectedScenes'
-import CompositeOptions from 'app/home/body/process/recipe/opticalMosaic/panels/compositeOptions/compositeOptions'
-import Dates from 'app/home/body/process/recipe/opticalMosaic/panels/dates/dates'
-import PanelWizard from 'widget/panelWizard'
-import React from 'react'
-import SceneSelectionOptions from 'app/home/body/process/recipe/opticalMosaic/panels/sceneSelectionOptions/sceneSelectionOptions'
-import Sources from 'app/home/body/process/recipe/opticalMosaic/panels/sources/sources'
 import _ from 'lodash'
+import React from 'react'
+
+import {Aoi} from '~/app/home/body/process/recipe/mosaic/panels/aoi/aoi'
+import {SceneSelectionType} from '~/app/home/body/process/recipe/opticalMosaic/opticalMosaicRecipe'
+import {AutoSelectScenes} from '~/app/home/body/process/recipe/opticalMosaic/panels/autoSelectScenes/autoSelectScenes'
+import {ClearSelectedScenes} from '~/app/home/body/process/recipe/opticalMosaic/panels/clearSelectedScenes/clearSelectedScenes'
+import {CompositeOptions} from '~/app/home/body/process/recipe/opticalMosaic/panels/compositeOptions/compositeOptions'
+import {Dates} from '~/app/home/body/process/recipe/opticalMosaic/panels/dates/dates'
+import {Retrieve} from '~/app/home/body/process/recipe/opticalMosaic/panels/retrieve/retrieve'
+import {SceneSelectionOptions} from '~/app/home/body/process/recipe/opticalMosaic/panels/sceneSelectionOptions/sceneSelectionOptions'
+import {Sources} from '~/app/home/body/process/recipe/opticalMosaic/panels/sources/sources'
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {PanelWizard} from '~/widget/panelWizard'
+import {Toolbar} from '~/widget/toolbar/toolbar'
+
+import {setInitialized} from '../../../recipe'
+import {RetrieveButton} from '../../retrieveButton'
 import styles from './opticalMosaicToolbar.module.css'
 
 const mapRecipeToProps = recipe => {
@@ -31,7 +33,7 @@ const mapRecipeToProps = recipe => {
     }
 }
 
-class MosaicToolbar extends React.Component {
+class _MosaicToolbar extends React.Component {
     render() {
         const {recipeId, initialized, sceneSelectionType, sceneAreasLoaded, scenesSelected} = this.props
         const selectScenes = sceneSelectionType === SceneSelectionType.SELECT
@@ -103,7 +105,7 @@ class MosaicToolbar extends React.Component {
     }
 }
 
-export default compose(
-    MosaicToolbar,
+export const MosaicToolbar = compose(
+    _MosaicToolbar,
     withRecipe(mapRecipeToProps)
 )

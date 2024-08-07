@@ -1,9 +1,11 @@
-import {compose} from 'compose'
-import {delay, distinctUntilChanged, fromEvent, map, merge, of, switchMap, takeUntil, zipWith} from 'rxjs'
-import {withSubscriptions} from 'subscription'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
+import {delay, distinctUntilChanged, fromEvent, map, merge, of, switchMap, takeUntil, zipWith} from 'rxjs'
+
+import {compose} from '~/compose'
+import {withSubscriptions} from '~/subscription'
+
 import styles from './hover.module.css'
 
 const {Provider, Consumer} = React.createContext()
@@ -53,8 +55,7 @@ class _HoverDetector extends React.Component {
             )
         ).pipe(
             distinctUntilChanged(),
-            // [HACK] Prevent click-through on touch screens
-            delay(100)
+            delay(100) // [HACK] Prevent click-through on touch screens
         )
 
         addSubscription(
@@ -95,7 +96,10 @@ HoverDetector.propTypes = {
 export const HoverOverlay = props =>
     <Consumer>
         {hover =>
-            <div className={[styles.overlay, hover ? styles.hoverForced : null].join(' ')}>
+            <div className={[
+                styles.overlay,
+                hover ? styles.hover : null,
+            ].join(' ')}>
                 {hover ? props.children : null}
             </div>
         }

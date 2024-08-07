@@ -1,8 +1,9 @@
-import {Button} from 'widget/button'
-import {msg} from 'translate'
-import Icon from 'widget/icon'
 import PropTypes from 'prop-types'
 import React from 'react'
+
+import {msg} from '~/translate'
+import {Button} from '~/widget/button'
+import {Icon} from '~/widget/icon'
 
 export class UserStatus extends React.Component {
     static LOCKED = 'LOCKED'

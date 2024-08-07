@@ -1,17 +1,18 @@
-import {getAllVisualizations} from 'app/home/body/process/recipe/visualizations'
-import {msg} from 'translate'
-import {publishEvent} from 'eventPublisher'
-import {recipeActionBuilder} from 'app/home/body/process/recipe'
-import {removeImageLayerSource} from 'app/home/body/process/mapLayout/imageLayerSources'
 import _ from 'lodash'
-import api from 'api'
-import guid from 'guid'
+
+import api from '~/apiRegistry'
+import {removeImageLayerSource} from '~/app/home/body/process/mapLayout/imageLayerSources'
+import {recipeActionBuilder} from '~/app/home/body/process/recipe'
+import {getAllVisualizations} from '~/app/home/body/process/recipe/visualizations'
+import {publishEvent} from '~/eventPublisher'
+import {msg} from '~/translate'
+import {uuid} from '~/uuid'
 
 export const getDefaultModel = () => ({
     trainingData: {
         dataSets: [
             {
-                dataSetId: guid(),
+                dataSetId: uuid(),
                 name: msg('process.classification.panel.trainingData.type.COLLECTED.label'),
                 type: 'COLLECTED',
                 referenceData: []

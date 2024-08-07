@@ -1,20 +1,24 @@
-import {CenteredProgress} from 'widget/progress'
-import {Form, withForm} from 'widget/form/form'
-import {Padding} from 'widget/padding'
-import {Panel} from 'widget/panel/panel'
-import {RecipeActions} from 'app/home/body/process/recipe/opticalMosaic/opticalMosaicRecipe'
-import {Scene} from './scene'
-import {Scrollable, ScrollableContainer, Unscrollable} from 'widget/scrollable'
-import {compose} from 'compose'
-import {msg} from 'translate'
-import {objectEquals} from 'collections'
-import {selectFrom} from 'stateUtils'
-import {withActivatable} from 'widget/activation/activatable'
-import {withRecipe} from 'app/home/body/process/recipeContext'
-import Label from 'widget/label'
 import React from 'react'
-import ScenePreview from 'app/home/body/process/recipe/opticalMosaic/scenePreview'
-import api from 'api'
+import {Layout} from 'widget/layout'
+
+import api from '~/apiRegistry'
+import {RecipeActions} from '~/app/home/body/process/recipe/opticalMosaic/opticalMosaicRecipe'
+import {ScenePreview} from '~/app/home/body/process/recipe/opticalMosaic/scenePreview'
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {isPartiallyEqual} from '~/hash'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {withActivatable} from '~/widget/activation/activatable'
+import {Form} from '~/widget/form'
+import {withForm} from '~/widget/form/form'
+import {Label} from '~/widget/label'
+import {Padding} from '~/widget/padding'
+import {Panel} from '~/widget/panel/panel'
+import {CenteredProgress} from '~/widget/progress'
+import {Scrollable} from '~/widget/scrollable'
+
+import {Scene} from './scene'
 import styles from './sceneSelection.module.css'
 
 const fields = {
@@ -34,7 +38,7 @@ const mapRecipeToProps = recipe => {
     }
 }
 
-class SceneSelection extends React.Component {
+class _SceneSelection extends React.Component {
     constructor(props) {
         super(props)
         const {recipeId} = props
@@ -129,16 +133,14 @@ class SceneSelection extends React.Component {
 
     renderScenesSection({scenes, title, selected}) {
         return (
-            <ScrollableContainer>
-                <Unscrollable className={styles.title}>
-                    <Label msg={title}/>
-                </Unscrollable>
-                <Scrollable>
+            <Layout type='vertical' spacing='none'>
+                <Label className={styles.title} msg={title}/>
+                <Scrollable direction='y'>
                     <Padding noHorizontal className={styles.grid}>
                         {scenes.map(scene => this.renderScene(scene, selected))}
                     </Padding>
                 </Scrollable>
-            </ScrollableContainer>
+            </Layout>
         )
     }
 
@@ -162,7 +164,7 @@ class SceneSelection extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (!objectEquals(this.props, prevProps, ['sceneAreaId', 'dates', 'sources', 'sceneSelectionOptions']))
+        if (!isPartiallyEqual(this.props, prevProps, ['sceneAreaId', 'dates', 'sources', 'sceneSelectionOptions']))
             this.loadScenes()
     }
 
@@ -211,12 +213,10 @@ class SceneSelection extends React.Component {
             const scenesById = {}
             scenes.forEach(scene => scenesById[scene.id] = scene)
             return {...prevState, scenes, scenesById}
-        }, () => console.log(scenes))
+        })
     }
 
 }
-
-SceneSelection.propTypes = {}
 
 const policy = () => ({
     _: 'disallow',
@@ -226,9 +226,11 @@ const policy = () => ({
     compositeOptions: 'allow'
 })
 
-export default compose(
-    SceneSelection,
+export const SceneSelection = compose(
+    _SceneSelection,
     withForm({fields}),
     withRecipe(mapRecipeToProps),
     withActivatable({id: 'sceneSelection', policy})
 )
+
+SceneSelection.propTypes = {}

@@ -1,19 +1,21 @@
-import {ElementResizeDetector} from 'widget/elementResizeDetector'
-import {Scrollable, ScrollableContainer} from 'widget/scrollable'
-import {Subject, animationFrames, distinctUntilChanged, map, of, scan, switchMap} from 'rxjs'
-import {compose} from 'compose'
-import {connect} from 'store'
-import {isMobile} from 'widget/userAgent'
-import {selectFrom} from 'stateUtils'
-import {withCursorValue} from './cursorValue'
-import {withMapArea} from './mapAreaContext'
-import {withRecipe} from 'app/home/body/process/recipeContext'
-import {withSubscriptions} from 'subscription'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import Tooltip from 'widget/tooltip'
-import _ from 'lodash'
+import {animationFrames, debounceTime, distinctUntilChanged, map, of, scan, Subject, switchMap} from 'rxjs'
+
+import {withRecipe} from '~/app/home/body/process/recipeContext'
+import {compose} from '~/compose'
+import {connect} from '~/connect'
+import {selectFrom} from '~/stateUtils'
+import {withSubscriptions} from '~/subscription'
+import {ElementResizeDetector} from '~/widget/elementResizeDetector'
+import {Scrollable} from '~/widget/scrollable'
+import {Tooltip} from '~/widget/tooltip'
+import {isMobile} from '~/widget/userAgent'
+
+import {withCursorValue} from './cursorValue'
 import styles from './legendLayer.module.css'
+import {withMapArea} from './mapAreaContext'
 
 const mapRecipeToProps = recipe => ({
     areas: selectFrom(recipe, 'layers.areas') || {}
@@ -27,23 +29,26 @@ class _LegendLayer extends React.Component {
 
     constructor(props) {
         super(props)
+        this.ref = React.createRef()
         const {cursorValue$, addSubscription} = props
         addSubscription(
             cursorValue$.subscribe(value => this.setState({value}))
         )
     }
 
-    render() {
-        const {cursorValue$, mapArea: {area}, areas} = this.props
-        if (!cursorValue$) {
-            return null
-        }
-        const {labels, values, palette} = selectFrom(areas[area], 'imageLayer.layerConfig.visParams') || {}
-        if (!values || !palette) {
-            return null
-        }
+    renderPalette({values, palette}) {
+        return palette.map((color, i) =>
+            <div
+                key={values[i]}
+                style={{'--color': color}}
+                className={styles.color}
+            />
+        )
+    }
+
+    renderCursorValues({labels, values}) {
         const {value, paletteWidth} = this.state
-        const cursorValues = _.isNil(value)
+        return _.isNil(value)
             ? null
             : value.map((v, i) =>
                 <CursorValue
@@ -54,24 +59,26 @@ class _LegendLayer extends React.Component {
                     paletteWidth={paletteWidth}
                 />
             )
-        const colors = palette.map(color =>
-            <div
-                key={color}
-                style={{'--color': color}}
-                className={styles.color}
-            />
-        )
+    }
+
+    render() {
+        const {cursorValue$, mapArea: {area}, areas} = this.props
+        const {labels, values, palette} = selectFrom(areas[area], 'imageLayer.layerConfig.visParams') || {}
+        if (!cursorValue$ || !values || !palette) {
+            return null
+        }
         return (
             <div className={styles.container}>
                 <Tooltip
                     msg={this.renderFullLegend()}
                     placement='top'
                     clickTrigger={isMobile()}>
-                    <div className={styles.legend}>
-                        {colors}
-                        <ElementResizeDetector onResize={({width}) => this.setState({paletteWidth: width})}/>
-                        {cursorValues}
-                    </div>
+                    <ElementResizeDetector targetRef={this.ref} onResize={({width}) => this.setState({paletteWidth: width})}>
+                        <div ref={this.ref} className={styles.legend}>
+                            {this.renderPalette({values, palette})}
+                            {this.renderCursorValues({labels, values})}
+                        </div>
+                    </ElementResizeDetector>
                 </Tooltip>
             </div>
         )
@@ -81,19 +88,17 @@ class _LegendLayer extends React.Component {
         const {mapArea: {area}, areas} = this.props
         const {labels, values, palette} = selectFrom(areas[area], 'imageLayer.layerConfig.visParams') || {}
         return (
-            <ScrollableContainer>
-                <Scrollable direction='y'>
-                    <div className={styles.fullLegend}>
-                        {_.range(0, values.length).map(i =>
-                            <React.Fragment key={values[i]}>
-                                <div className={styles.fullLegendColor} style={{'--color': palette[i]}}/>
-                                <div className={styles.fullLegendValue}>{values[i]}</div>
-                                <div className={styles.fullLegendLabel}>{labels[i]}</div>
-                            </React.Fragment>
-                        )}
-                    </div>
-                </Scrollable>
-            </ScrollableContainer>
+            <Scrollable direction='y'>
+                <div className={styles.fullLegend}>
+                    {_.range(0, values.length).map(i =>
+                        <React.Fragment key={values[i]}>
+                            <div className={styles.fullLegendColor} style={{'--color': palette[i]}}/>
+                            <div className={styles.fullLegendValue}>{values[i]}</div>
+                            <div className={styles.fullLegendLabel}>{labels[i]}</div>
+                        </React.Fragment>
+                    )}
+                </div>
+            </Scrollable>
         )
     }
 }
@@ -124,13 +129,14 @@ class _CursorValue extends React.Component {
 
         addSubscription(
             this.targetPosition$.pipe(
+                debounceTime(50),
                 switchMap(targetPosition => {
                     const {position} = this.state
                     return position === null
                         ? of(targetPosition)
                         : animationFrames().pipe(
                             map(() => targetPosition),
-                            scan(lerp(.1), position),
+                            scan(lerp(.2), position),
                             map(position => Math.round(position)),
                             distinctUntilChanged()
                         )

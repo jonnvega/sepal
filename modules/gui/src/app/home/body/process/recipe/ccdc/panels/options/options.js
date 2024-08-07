@@ -1,15 +1,17 @@
-import {Button} from 'widget/button'
-import {Form} from 'widget/form/form'
-import {Layout} from 'widget/layout'
-import {Panel} from 'widget/panel/panel'
-import {RecipeActions, breakDetectionOptions} from 'app/home/body/process/recipe/ccdc/ccdcRecipe'
-import {RecipeFormPanel, recipeFormPanel} from 'app/home/body/process/recipeFormPanel'
-import {compose} from 'compose'
-import {groupedBandOptions, toDataSetIds} from 'sources'
-import {msg} from 'translate'
-import {selectFrom} from 'stateUtils'
-import React from 'react'
 import _ from 'lodash'
+import React from 'react'
+
+import {breakDetectionOptions, RecipeActions} from '~/app/home/body/process/recipe/ccdc/ccdcRecipe'
+import {RecipeFormPanel, recipeFormPanel} from '~/app/home/body/process/recipeFormPanel'
+import {compose} from '~/compose'
+import {groupedBandOptions, toDataSetIds} from '~/sources'
+import {selectFrom} from '~/stateUtils'
+import {msg} from '~/translate'
+import {Button} from '~/widget/button'
+import {Form} from '~/widget/form'
+import {Layout} from '~/widget/layout'
+import {Panel} from '~/widget/panel/panel'
+
 import styles from './options.module.css'
 
 const J_DAYS = 0
@@ -37,7 +39,7 @@ const mapRecipeToProps = recipe => ({
     classifierType: selectFrom(recipe, 'ui.classification.classifierType'),
 })
 
-class Options extends React.Component {
+class _Options extends React.Component {
     constructor(props) {
         super(props)
         this.recipeActions = RecipeActions(props.recipeId)
@@ -102,7 +104,6 @@ class Options extends React.Component {
                     disabled={tmaskBandsOptions.length < 2}
                     options={tmaskBandsOptions}
                     framed
-                    errorMessage
                 />
                 <Form.Input
                     label={msg('process.ccdc.panel.options.form.minObservations')}
@@ -168,8 +169,6 @@ class Options extends React.Component {
     }
 }
 
-Options.propTypes = {}
-
 const valuesToModel = values => {
     if (values.advanced) {
         return {
@@ -201,7 +200,9 @@ const modelToBreakDetection = model =>
             _.isEqual(breakDetectionOptions[breakDetection], _.omit(model, 'tmaskBands'))
         )
 
-export default compose(
-    Options,
+export const Options = compose(
+    _Options,
     recipeFormPanel({id: 'ccdcOptions', fields, mapRecipeToProps, modelToValues, valuesToModel})
 )
+
+Options.propTypes = {}

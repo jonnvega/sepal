@@ -1,11 +1,13 @@
-import {Form} from './form/form'
-import {Panel} from 'widget/panel/panel'
-import ButtonSelect from 'widget/buttonSelect'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import _ from 'lodash'
 
-export default class PanelSections extends React.Component {
+import {ButtonSelect} from '~/widget/buttonSelect'
+import {Panel} from '~/widget/panel/panel'
+
+import {Form} from './form'
+
+export class PanelSections extends React.Component {
     render() {
         const {icon, step} = this.props
         const section = this.findSection()
@@ -39,7 +41,7 @@ export default class PanelSections extends React.Component {
             <ButtonSelect
                 chromeless
                 shape='none'
-                placement='below'
+                // placement='below'G
                 input={selected}
                 tooltipPlacement='bottom'
                 options={options}
