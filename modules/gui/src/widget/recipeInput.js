@@ -112,6 +112,7 @@ class _RecipeInput extends React.Component {
                         }))
                 }
             })
+        console.log({options})
         return _.sortBy(options, 'label')
     }
 

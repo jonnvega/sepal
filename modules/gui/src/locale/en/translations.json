@@ -2190,7 +2190,7 @@
                 "tooltip": "Sample a pre-existing classification."
               },
               "CEO" : {
-                "label": "From CEO project",
+                "label": "CEO Project",
                 "title": "CEO PROJECT",
                 "tooltip": "Connect to CEO and use training data from a project"
               }

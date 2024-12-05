@@ -67,6 +67,7 @@ const loadCountryAreas$ = countryId => {
     )
 }
 
+
 const mapStateToProps = (state, ownProps) => {
     const country = ownProps.inputs.country.value
     return {
@@ -91,6 +92,7 @@ class _CountrySection extends React.Component {
 
     render() {
         const {stream, countries, countryAreas, inputs: {country, area, buffer}} = this.props
+        console.log({country})
         const loadCountries = stream('LOAD_COUNTRIES')
         const loadCountryAreas = stream('LOAD_COUNTRY_AREAS')
         const countriesState = loadCountries.active

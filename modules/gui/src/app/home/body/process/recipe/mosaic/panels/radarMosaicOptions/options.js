@@ -108,10 +108,10 @@ class _Options extends React.Component {
         ]
         return (
             <Form.Buttons
-                label={msg('process.radarMosaic.panel.options.form.orbits.label')}
-                input={orbits}
-                multiple
-                options={options}
+                label={"button"}
+                // input={orbits}
+                // multiple
+                // options={options}
             />
         )
     }

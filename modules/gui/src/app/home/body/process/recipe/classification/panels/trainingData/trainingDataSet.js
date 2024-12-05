@@ -18,6 +18,7 @@ import {RecipeSection} from './recipeSection'
 import {SampleClassificationSection} from './sampleClassificationSection'
 import {SectionSelection} from './sectionSelection'
 import styles from './trainingDataSet.module.css'
+import { CeoSection } from './ceoSection'
 
 const fields = {
     dataSetId: new Form.Field()
@@ -172,7 +173,7 @@ class _TrainingDataSet extends React.Component {
                 tooltip: msg('process.classification.panel.trainingData.type.CEO.tooltip'),
                 title: msg('process.classification.panel.trainingData.type.CEO.title'),
                 steps: [
-                    <CsvUploadSection ${...this.props}/>,
+                    <CeoSection ${...this.props}/>,
                     <LocationStep ${...this.props}/>,
                     <ClassStep ${...this.props}/>,
                     <ClassMappingStep ${...this.props}/>

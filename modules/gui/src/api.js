@@ -11,6 +11,7 @@ import tasks from './api/tasks'
 import user from './api/user'
 import userFiles from './api/userFiles'
 import wmts from './api/wmts'
+import ceo from './api/ceo'
 
 export const initApi = () =>
     setApi({
@@ -24,5 +25,6 @@ export const initApi = () =>
         tasks,
         user,
         userFiles,
-        wmts
+        wmts,
+        ceo
     })
